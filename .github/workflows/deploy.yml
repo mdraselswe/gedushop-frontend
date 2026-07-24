@@ -34,6 +34,7 @@ jobs:
           WP_URL: https://wp.gedushop.com
           NEXT_PUBLIC_WP_URL: https://wp.gedushop.com
           NEXT_PUBLIC_SITE_URL: https://gedushop.com
+          NEXT_PUBLIC_GA_ID: G-SF6ZE96GFX
 
       - name: Deploy to Cloudflare Pages
         uses: cloudflare/wrangler-action@v3
