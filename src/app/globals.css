@@ -1,26 +1,89 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
+@theme {
+  /* Brand: logo purple ("Gedu") */
+  --color-plum-50: #f4f2fa;
+  --color-plum-100: #e7e3f4;
+  --color-plum-200: #cfc7e8;
+  --color-plum-300: #a99dd1;
+  --color-plum-400: #8577b8;
+  --color-plum-500: #6b5ca8;
+  --color-plum-600: #4f4274;
+  --color-plum-700: #3f3560;
+  --color-plum-800: #2f2749;
+  --color-plum-900: #221c36;
+
+  /* Brand: logo coral ("Shop") */
+  --color-coral-50: #fef1f0;
+  --color-coral-100: #fde1df;
+  --color-coral-200: #fac5c1;
+  --color-coral-300: #f5aba5;
+  --color-coral-400: #ee8881;
+  --color-coral-500: #e96d65;
+  --color-coral-600: #d7534b;
+  --color-coral-700: #b23f38;
+
+  --color-cream: #f6f5fb;
+
+  --font-heading: var(--font-fredoka), "Fredoka", sans-serif;
+  --font-body: var(--font-nunito), "Nunito", sans-serif;
+
+  /* Plum-tinted shadows — softer & more premium than flat black */
+  --shadow-soft: 0 1px 2px rgba(47, 39, 73, 0.04), 0 4px 12px rgba(47, 39, 73, 0.06);
+  --shadow-lift: 0 6px 16px rgba(47, 39, 73, 0.1), 0 12px 32px rgba(47, 39, 73, 0.08);
+  --shadow-coral: 0 8px 24px rgba(233, 109, 101, 0.32);
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+html {
+  scroll-behavior: smooth;
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  /* Ambient tinted gradient wash instead of a flat fill */
+  background:
+    radial-gradient(1200px 600px at 100% -10%, rgba(238, 136, 129, 0.08), transparent 60%),
+    radial-gradient(1000px 500px at -10% 0%, rgba(79, 66, 116, 0.07), transparent 55%),
+    var(--color-cream);
+  background-attachment: fixed;
+  color: var(--color-plum-800);
+  font-family: var(--font-body);
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Hide scrollbar for horizontal chip/banner scrollers */
+.no-scrollbar {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+/* Scroll-reveal: elements fade/slide up as they enter, staggered by index. */
+@media (prefers-reduced-motion: no-preference) {
+  .reveal {
+    opacity: 0;
+    transform: translateY(16px);
+    transition: opacity 0.5s cubic-bezier(0.22, 1, 0.36, 1), transform 0.5s cubic-bezier(0.22, 1, 0.36, 1);
+    transition-delay: var(--reveal-delay, 0ms);
+  }
+  .reveal.reveal-in {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* Subtle grain overlay to break flatness — applied to hero surfaces. */
+.grain {
+  position: relative;
+}
+.grain::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0.5;
+  mix-blend-mode: soft-light;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  border-radius: inherit;
 }
