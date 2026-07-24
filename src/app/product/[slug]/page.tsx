@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { BadgeCheck, Truck } from "lucide-react";
+import Breadcrumbs from "@/components/Breadcrumbs";
+import ShareButton from "@/components/ShareButton";
 import ProductBuyBox from "@/components/ProductBuyBox";
 import ProductGallery from "@/components/ProductGallery";
 import ProductCard from "@/components/ProductCard";
@@ -72,13 +74,28 @@ export default async function ProductPage({ params }: Props) {
   return (
     <div className="mx-auto max-w-5xl px-4 pt-4">
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
+      <Breadcrumbs
+        items={[
+          { label: "Home", href: "/" },
+          { label: "Shop", href: "/shop" },
+          ...(product.categories[0]
+            ? [{ label: product.categories[0].name, href: `/shop?category=${product.categories[0].id}` }]
+            : []),
+          { label: product.name },
+        ]}
+      />
       <div className="grid gap-5 md:grid-cols-2 md:gap-8">
         <ProductGallery images={product.images} name={product.name} discount={discount} />
 
         <div className="flex flex-col">
-          <h1 className="font-heading text-2xl font-semibold leading-tight tracking-tight text-plum-800 md:text-3xl">
-            {product.name}
-          </h1>
+          <div className="flex items-start justify-between gap-3">
+            <h1 className="font-heading text-2xl font-semibold leading-tight tracking-tight text-plum-800 md:text-3xl">
+              {product.name}
+            </h1>
+            <div className="shrink-0 pt-1">
+              <ShareButton title={product.name} />
+            </div>
+          </div>
 
           {product.review_count > 0 && (
             <a href="#reviews" className="mt-2.5 flex items-center gap-1.5">

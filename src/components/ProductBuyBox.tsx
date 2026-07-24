@@ -1,18 +1,24 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
+import { Loader2, Minus, Plus, ShoppingCart, Zap } from "lucide-react";
 import { apiFetch, STORE_API } from "@/lib/api";
+import { useCart } from "@/context/CartContext";
 import { discountPercent, formatPrice } from "@/lib/format";
 import type { StoreProduct } from "@/lib/types";
-import AddToCartButton from "./AddToCartButton";
 
 /**
- * Price + stock + add-to-cart as a live client island. Paints instantly with
- * the build-time snapshot, then refetches the product on mount so stock/price
- * reflect real-time state (e.g. after other customers order) — no rebuild needed.
+ * Price + quantity + Add-to-cart / Buy-now as a live client island. Paints with
+ * the build snapshot, then refetches on mount so stock/price stay real-time
+ * (e.g. after other customers order) — no rebuild needed.
  */
 export default function ProductBuyBox({ product: initial }: { product: StoreProduct }) {
   const [product, setProduct] = useState(initial);
+  const [qty, setQty] = useState(1);
+  const [buying, setBuying] = useState(false);
+  const router = useRouter();
+  const { addItem, pendingIds } = useCart();
 
   useEffect(() => {
     let cancelled = false;
@@ -28,6 +34,19 @@ export default function ProductBuyBox({ product: initial }: { product: StoreProd
   }, [initial.slug]);
 
   const discount = discountPercent(product.prices);
+  const available = product.is_purchasable && product.is_in_stock;
+  const busy = pendingIds.has(product.id) || buying;
+
+  async function buyNow() {
+    if (!available) return;
+    setBuying(true);
+    try {
+      const ok = await addItem(product.id, qty);
+      if (ok) router.push("/checkout");
+    } finally {
+      setBuying(false);
+    }
+  }
 
   return (
     <>
@@ -49,12 +68,56 @@ export default function ProductBuyBox({ product: initial }: { product: StoreProd
         )}
       </div>
 
-      <div className="mt-6 flex items-center gap-3">
-        <AddToCartButton productId={product.id} disabled={!product.is_purchasable || !product.is_in_stock} />
-        <span className={`text-sm font-bold ${product.is_in_stock ? "text-emerald-600" : "text-coral-600"}`}>
-          {product.is_in_stock ? "In stock — order now" : "Out of stock"}
-        </span>
-      </div>
+      <p className={`mt-2 text-sm font-bold ${available ? "text-emerald-600" : "text-coral-600"}`}>
+        {available ? "In stock — ready to ship" : "Out of stock"}
+      </p>
+
+      {available && (
+        <div className="mt-5 space-y-3">
+          {/* Quantity */}
+          <div className="flex items-center gap-3">
+            <span className="text-sm font-bold text-plum-500">Quantity</span>
+            <div className="flex items-center rounded-full ring-1 ring-plum-200">
+              <button
+                onClick={() => setQty((q) => Math.max(1, q - 1))}
+                disabled={qty <= 1}
+                aria-label="Decrease quantity"
+                className="flex size-10 items-center justify-center rounded-full text-plum-600 transition-colors hover:text-coral-500 disabled:opacity-40"
+              >
+                <Minus className="size-4" strokeWidth={2.5} />
+              </button>
+              <span className="min-w-8 text-center text-base font-extrabold text-plum-800 tabular-nums">{qty}</span>
+              <button
+                onClick={() => setQty((q) => q + 1)}
+                aria-label="Increase quantity"
+                className="flex size-10 items-center justify-center rounded-full text-plum-600 transition-colors hover:text-coral-500"
+              >
+                <Plus className="size-4" strokeWidth={2.5} />
+              </button>
+            </div>
+          </div>
+
+          {/* Actions */}
+          <div className="flex flex-col gap-2.5 sm:flex-row">
+            <button
+              onClick={() => addItem(product.id, qty)}
+              disabled={busy}
+              className="flex flex-1 items-center justify-center gap-2 rounded-full border-2 border-plum-600 bg-white py-3 text-sm font-extrabold text-plum-700 transition-all hover:bg-plum-50 active:scale-[0.98] disabled:opacity-60"
+            >
+              <ShoppingCart className="size-4.5" strokeWidth={2.25} />
+              Add to Cart
+            </button>
+            <button
+              onClick={buyNow}
+              disabled={busy}
+              className="flex flex-1 items-center justify-center gap-2 rounded-full bg-coral-500 py-3 text-sm font-extrabold text-white shadow-[var(--shadow-coral)] transition-all hover:bg-coral-600 active:scale-[0.98] disabled:opacity-60"
+            >
+              {buying ? <Loader2 className="size-4.5 animate-spin" /> : <Zap className="size-4.5" strokeWidth={2.25} />}
+              Buy Now
+            </button>
+          </div>
+        </div>
+      )}
     </>
   );
 }

@@ -3,7 +3,10 @@ import { Fredoka, Nunito } from "next/font/google";
 import "./globals.css";
 import { CartProvider } from "@/context/CartContext";
 import { WishlistProvider } from "@/context/WishlistContext";
+import { ToastProvider } from "@/context/ToastContext";
 import Header from "@/components/Header";
+import Footer from "@/components/Footer";
+import ScrollToTop from "@/components/ScrollToTop";
 import BottomNav from "@/components/BottomNav";
 import FloatingCartBar from "@/components/FloatingCartBar";
 import CartDockButton from "@/components/CartDockButton";
@@ -55,19 +58,23 @@ export default async function RootLayout({
       {/* suppressHydrationWarning: browser extensions (ColorZilla etc.) inject
           attributes into <body> before React hydrates — harmless, not our markup */}
       <body className="min-h-full flex flex-col" suppressHydrationWarning>
+        <ToastProvider>
         <WishlistProvider>
         <CartProvider>
           <Header />
           <div className="mx-auto flex w-full max-w-[120rem] flex-1">
             <Sidebar categories={categories} />
-            <main className="min-w-0 flex-1 pb-32 md:pb-8">{children}</main>
+            <main className="min-w-0 flex-1 pb-8">{children}</main>
           </div>
+          <Footer categories={categories} />
           <CartDockButton />
           <CartDrawer />
           <FloatingCartBar />
           <BottomNav />
+          <ScrollToTop />
         </CartProvider>
         </WishlistProvider>
+        </ToastProvider>
       </body>
     </html>
   );

@@ -26,16 +26,23 @@ export default function BottomNav() {
             <Link
               key={href}
               href={href}
-              className={`relative flex flex-col items-center gap-0.5 py-2 text-[11px] font-bold ${
+              aria-current={active ? "page" : undefined}
+              className={`relative flex flex-col items-center gap-1 py-2 text-[11px] font-bold transition-colors ${
                 active ? "text-coral-500" : "text-plum-400"
               }`}
             >
-              <Icon className="size-6" />
-              {label === "Cart" && count > 0 && (
-                <span className="absolute left-1/2 top-0.5 ml-1.5 flex size-4 items-center justify-center rounded-full bg-coral-500 text-[10px] font-extrabold text-white">
-                  {count}
-                </span>
-              )}
+              <span
+                className={`relative flex h-7 w-12 items-center justify-center rounded-full transition-colors ${
+                  active ? "bg-coral-50" : ""
+                }`}
+              >
+                <Icon className="size-5.5" />
+                {label === "Cart" && count > 0 && (
+                  <span className="absolute right-1.5 top-0 flex size-4 items-center justify-center rounded-full bg-coral-500 text-[10px] font-extrabold text-white">
+                    {count}
+                  </span>
+                )}
+              </span>
               {label}
             </Link>
           );

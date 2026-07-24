@@ -3,6 +3,18 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from "react";
 import type { Cart } from "@/lib/types";
 import { apiFetch, STORE_API } from "@/lib/api";
+import { decodeEntities } from "@/lib/decode";
+import { useToast } from "./ToastContext";
+
+/** Turn Woo's verbose cart errors into a short, friendly message. */
+function friendlyCartError(raw?: string): string {
+  const msg = decodeEntities((raw ?? "").replace(/<[^>]+>/g, "")).trim();
+  const stock = msg.match(/(\d+)\s*(?:remaining|in stock)/i);
+  if (/not enough stock|cannot add|already have|out of stock/i.test(msg)) {
+    return stock ? `Only ${stock[1]} left in stock` : "Not enough stock available";
+  }
+  return msg && msg.length <= 70 ? msg : "Couldn't update cart — please try again";
+}
 
 interface ShippingAddress {
   country: string;
@@ -18,9 +30,9 @@ interface CartContextValue {
   loading: boolean;
   /** Product ids with an in-flight cart mutation (disables their buttons). */
   pendingIds: Set<number>;
-  addItem: (productId: number, quantity?: number) => Promise<void>;
-  setQuantity: (itemKey: string, quantity: number) => Promise<void>;
-  removeItem: (itemKey: string) => Promise<void>;
+  addItem: (productId: number, quantity?: number) => Promise<boolean>;
+  setQuantity: (itemKey: string, quantity: number) => Promise<boolean>;
+  removeItem: (itemKey: string) => Promise<boolean>;
   /** Current quantity of a product in the cart (0 if absent). */
   qtyOf: (productId: number) => number;
   /** Right-side cart drawer (desktop). Auto-opens on add-to-cart. */
@@ -61,6 +73,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
   const [shippingLoading, setShippingLoading] = useState(false);
   const [couponLoading, setCouponLoading] = useState(false);
   const keyToProductId = useRef<Map<string, number>>(new Map());
+  const { show: showToast } = useToast();
 
   const syncCart = useCallback((next: Cart) => {
     for (const item of next.items) keyToProductId.current.set(item.key, item.id);
@@ -84,11 +97,18 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
   }, [syncCart]);
 
   const mutate = useCallback(
-    async (productId: number, path: string, body: Record<string, unknown>) => {
+    async (productId: number, path: string, body: Record<string, unknown>): Promise<boolean> => {
       setPendingIds((prev) => new Set(prev).add(productId));
       try {
         const res = await storeFetch(path, { method: "POST", body: JSON.stringify(body) });
-        if (res.ok) syncCart(await res.json());
+        const data = await res.json().catch(() => null);
+        if (res.ok) {
+          syncCart(data);
+          return true;
+        }
+        // Woo rejects e.g. "you already have the max in stock" — surface it briefly.
+        showToast(friendlyCartError(data?.message as string | undefined), "error");
+        return false;
       } finally {
         setPendingIds((prev) => {
           const next = new Set(prev);
@@ -97,16 +117,19 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
         });
       }
     },
-    [syncCart],
+    [syncCart, showToast],
   );
 
   const addItem = useCallback(
-    async (productId: number, quantity = 1) => {
-      await mutate(productId, "cart/add-item", { id: productId, quantity });
-      // Drawer only fits beside content on lg+; mobile keeps the floating bar.
+    async (productId: number, quantity = 1): Promise<boolean> => {
+      const ok = await mutate(productId, "cart/add-item", { id: productId, quantity });
+      if (!ok) return false; // error toast already shown by mutate
+      // Desktop opens the side drawer; mobile has no drawer, so confirm with a toast.
       if (typeof window !== "undefined" && window.innerWidth >= 1024) setDrawerOpen(true);
+      else showToast("Added to cart");
+      return true;
     },
-    [mutate],
+    [mutate, showToast],
   );
 
   const setQuantity = useCallback(
