@@ -9,6 +9,7 @@ import Footer from "@/components/Footer";
 import ScrollToTop from "@/components/ScrollToTop";
 import SiteJsonLd from "@/components/SiteJsonLd";
 import Analytics from "@/components/Analytics";
+import MetaPixel from "@/components/MetaPixel";
 import BottomNav from "@/components/BottomNav";
 import FloatingCartBar from "@/components/FloatingCartBar";
 import CartDockButton from "@/components/CartDockButton";
@@ -63,6 +64,7 @@ export default async function RootLayout({
       <body className="min-h-full flex flex-col" suppressHydrationWarning>
         <SiteJsonLd />
         <Analytics />
+        <MetaPixel />
         <ToastProvider>
         <WishlistProvider>
         <CartProvider>

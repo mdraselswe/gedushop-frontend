@@ -4,6 +4,7 @@ import { createContext, useCallback, useContext, useEffect, useMemo, useRef, use
 import type { Cart } from "@/lib/types";
 import { apiFetch, STORE_API } from "@/lib/api";
 import { decodeEntities } from "@/lib/decode";
+import { fbTrack } from "@/lib/pixel";
 import { useToast } from "./ToastContext";
 
 /** Turn Woo's verbose cart errors into a short, friendly message. */
@@ -124,6 +125,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     async (productId: number, quantity = 1): Promise<boolean> => {
       const ok = await mutate(productId, "cart/add-item", { id: productId, quantity });
       if (!ok) return false; // error toast already shown by mutate
+      fbTrack("AddToCart", { content_ids: [productId], content_type: "product", currency: "BDT" });
       // Desktop opens the side drawer; mobile has no drawer, so confirm with a toast.
       if (typeof window !== "undefined" && window.innerWidth >= 1024) setDrawerOpen(true);
       else showToast("Added to cart");

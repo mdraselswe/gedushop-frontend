@@ -2,11 +2,26 @@
 
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
-import { Suspense } from "react";
+import { Suspense, useEffect, useRef } from "react";
 import { CircleCheckBig } from "lucide-react";
+import { fbTrack } from "@/lib/pixel";
 
 function SuccessInner() {
-  const order = useSearchParams().get("order");
+  const params = useSearchParams();
+  const order = params.get("order");
+  const value = params.get("value");
+  const tracked = useRef(false);
+
+  useEffect(() => {
+    if (tracked.current || !order) return;
+    tracked.current = true;
+    fbTrack("Purchase", {
+      currency: "BDT",
+      value: value ? Number(value) : 0,
+      content_type: "product",
+      order_id: order,
+    });
+  }, [order, value]);
 
   return (
     <div className="mx-auto flex max-w-md flex-col items-center px-4 pt-14 text-center">

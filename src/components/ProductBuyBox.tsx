@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { Loader2, Minus, Plus, ShoppingCart, Zap } from "lucide-react";
 import { apiFetch, STORE_API } from "@/lib/api";
 import { useCart } from "@/context/CartContext";
+import { fbTrack } from "@/lib/pixel";
 import { discountPercent, formatPrice } from "@/lib/format";
 import type { StoreProduct } from "@/lib/types";
 
@@ -19,6 +20,17 @@ export default function ProductBuyBox({ product: initial }: { product: StoreProd
   const [buying, setBuying] = useState(false);
   const router = useRouter();
   const { addItem, pendingIds } = useCart();
+
+  useEffect(() => {
+    const minor = initial.prices.currency_minor_unit ?? 2;
+    fbTrack("ViewContent", {
+      content_ids: [initial.id],
+      content_name: initial.name,
+      content_type: "product",
+      value: Number(initial.prices.price) / 10 ** minor,
+      currency: "BDT",
+    });
+  }, [initial.id, initial.name, initial.prices]);
 
   useEffect(() => {
     let cancelled = false;

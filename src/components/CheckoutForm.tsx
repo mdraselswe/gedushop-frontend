@@ -2,11 +2,12 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Banknote, Loader2, ShoppingCart } from "lucide-react";
 import { useCart } from "@/context/CartContext";
 import { decodeEntities } from "@/lib/decode";
 import { formatPrice } from "@/lib/format";
+import { fbTrack } from "@/lib/pixel";
 import { DISTRICTS } from "@/lib/districts";
 import { apiFetch, STORE_API } from "@/lib/api";
 
@@ -30,6 +31,19 @@ export default function CheckoutForm() {
   const [form, setForm] = useState<FormState>(EMPTY);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const trackedCheckout = useRef(false);
+
+  // Fire InitiateCheckout once the cart is loaded with items.
+  useEffect(() => {
+    if (trackedCheckout.current || !cart || cart.items.length === 0) return;
+    trackedCheckout.current = true;
+    const minor = cart.totals.currency_minor_unit ?? 2;
+    fbTrack("InitiateCheckout", {
+      currency: "BDT",
+      value: Number(cart.totals.total_price) / 10 ** minor,
+      num_items: cart.items_count,
+    });
+  }, [cart]);
 
   function set<K extends keyof FormState>(key: K) {
     return (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) =>
@@ -85,7 +99,9 @@ export default function CheckoutForm() {
         return;
       }
       localStorage.removeItem(TOKEN_KEY); // cart is consumed by the order
-      router.push(`/checkout/success?order=${data.order_id}`);
+      const minor = cart?.totals.currency_minor_unit ?? 2;
+      const value = (Number(cart?.totals.total_price ?? 0) / 10 ** minor).toFixed(2);
+      router.push(`/checkout/success?order=${data.order_id}&value=${value}`);
     } catch {
       setError("Network problem — please try again.");
     } finally {
