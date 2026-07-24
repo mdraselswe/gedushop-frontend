@@ -34,6 +34,7 @@ export const metadata: Metadata = {
   },
   description:
     "GeduShop — baby items, toys and kids essentials in Bangladesh. Order online, cash on delivery.",
+  verification: { google: "Fp6pGFx8e9THBB-oayAFFv1VaNbZMpT0qWSY_JQ8Nxk" },
   appleWebApp: {
     capable: true,
     title: "GeduShop",
