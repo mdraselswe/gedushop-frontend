@@ -41,7 +41,7 @@ export default function Footer({ categories }: { categories: StoreCategory[] }) 
           <ul className="mt-3 space-y-2 text-sm text-plum-500">
             {topCategories.map((c) => (
               <li key={c.id}>
-                <Link href={`/shop?category=${c.id}`} className="hover:text-coral-500">
+                <Link href={`/category/${c.slug}`} className="hover:text-coral-500">
                   {c.name}
                 </Link>
               </li>

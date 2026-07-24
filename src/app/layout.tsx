@@ -7,6 +7,8 @@ import { ToastProvider } from "@/context/ToastContext";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import ScrollToTop from "@/components/ScrollToTop";
+import SiteJsonLd from "@/components/SiteJsonLd";
+import Analytics from "@/components/Analytics";
 import BottomNav from "@/components/BottomNav";
 import FloatingCartBar from "@/components/FloatingCartBar";
 import CartDockButton from "@/components/CartDockButton";
@@ -58,6 +60,8 @@ export default async function RootLayout({
       {/* suppressHydrationWarning: browser extensions (ColorZilla etc.) inject
           attributes into <body> before React hydrates — harmless, not our markup */}
       <body className="min-h-full flex flex-col" suppressHydrationWarning>
+        <SiteJsonLd />
+        <Analytics />
         <ToastProvider>
         <WishlistProvider>
         <CartProvider>

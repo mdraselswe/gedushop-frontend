@@ -24,7 +24,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   ];
 
   const categoryRoutes: MetadataRoute.Sitemap = categories.map((c) => ({
-    url: `${SITE}/shop?category=${c.id}`,
+    url: `${SITE}/category/${c.slug}`,
     changeFrequency: "weekly",
     priority: 0.7,
   }));
@@ -33,6 +33,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     url: `${SITE}/product/${p.slug}`,
     changeFrequency: "weekly",
     priority: 0.8,
+    images: p.images?.[0]?.src ? [p.images[0].src] : undefined,
   }));
 
   return [...staticRoutes, ...categoryRoutes, ...productRoutes];

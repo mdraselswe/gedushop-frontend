@@ -71,7 +71,7 @@ function ShopInner() {
         {!loading && <span className="text-xs font-bold text-plum-400">{total} products</span>}
       </div>
       <div className="lg:hidden">
-        <CategoryChips categories={categories} activeId={category ? Number(category) : undefined} />
+        <CategoryChips categories={categories} />
       </div>
       {loading ? (
         <ProductGridSkeleton count={12} />

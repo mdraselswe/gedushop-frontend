@@ -17,7 +17,6 @@ function SidebarInner({ categories }: { categories: StoreCategory[] }) {
   const pathname = usePathname().replace(/\/+$/, "") || "/";
   const params = useSearchParams();
   const onShop = pathname === "/shop";
-  const activeCategory = onShop ? params.get("category") : null;
 
   const itemCls = (active: boolean) =>
     `flex items-center gap-2.5 rounded-xl px-3 py-2 text-sm font-bold transition-colors ${
@@ -48,9 +47,9 @@ function SidebarInner({ categories }: { categories: StoreCategory[] }) {
       <nav className="mt-1.5 space-y-1">
         {categories.map((c) => {
           const Icon = categoryIcon(c.slug);
-          const active = activeCategory === String(c.id) && !params.get("sale") && !params.get("sort");
+          const active = pathname === `/category/${c.slug}`;
           return (
-            <Link key={c.id} href={`/shop?category=${c.id}`} className={itemCls(active)}>
+            <Link key={c.id} href={`/category/${c.slug}`} className={itemCls(active)}>
               <Icon className={`size-4.5 shrink-0 ${active ? "" : "text-plum-400"}`} strokeWidth={2} />
               <span className="flex-1 leading-tight">{c.name}</span>
               <span className={`shrink-0 text-[11px] font-bold ${active ? "text-white/80" : "text-plum-300"}`}>

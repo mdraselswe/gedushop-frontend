@@ -90,6 +90,11 @@ export async function getCategories(): Promise<StoreCategory[]> {
   return cats.filter((c) => c.count > 0).map(decodeCategory);
 }
 
+export async function getCategoryBySlug(slug: string): Promise<StoreCategory | null> {
+  const cats = await getCategories();
+  return cats.find((c) => c.slug === slug) ?? null;
+}
+
 /** Products from the same category, excluding the current one. */
 export async function getRelatedProducts(
   categoryId: number | undefined,

@@ -33,6 +33,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   return {
     title: product.name,
     description,
+    alternates: { canonical: `/product/${product.slug}` },
     openGraph: {
       title: product.name,
       description,
@@ -69,17 +70,40 @@ export default async function ProductPage({ params }: Props) {
         ? "https://schema.org/InStock"
         : "https://schema.org/OutOfStock",
     },
+    ...(product.review_count > 0 && Number(product.average_rating) > 0
+      ? {
+          aggregateRating: {
+            "@type": "AggregateRating",
+            ratingValue: Number(product.average_rating).toFixed(1),
+            reviewCount: product.review_count,
+          },
+        }
+      : {}),
+  };
+
+  const breadcrumbLd = {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    itemListElement: [
+      { "@type": "ListItem", position: 1, name: "Home", item: SITE },
+      { "@type": "ListItem", position: 2, name: "Shop", item: `${SITE}/shop` },
+      ...(product.categories[0]
+        ? [{ "@type": "ListItem", position: 3, name: product.categories[0].name, item: `${SITE}/category/${product.categories[0].slug}` }]
+        : []),
+      { "@type": "ListItem", position: product.categories[0] ? 4 : 3, name: product.name, item: `${SITE}/product/${product.slug}` },
+    ],
   };
 
   return (
     <div className="mx-auto max-w-5xl px-4 pt-4">
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbLd) }} />
       <Breadcrumbs
         items={[
           { label: "Home", href: "/" },
           { label: "Shop", href: "/shop" },
           ...(product.categories[0]
-            ? [{ label: product.categories[0].name, href: `/shop?category=${product.categories[0].id}` }]
+            ? [{ label: product.categories[0].name, href: `/category/${product.categories[0].slug}` }]
             : []),
           { label: product.name },
         ]}
