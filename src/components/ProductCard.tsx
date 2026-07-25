@@ -61,12 +61,13 @@ export default function ProductCard({ product }: { product: StoreProduct }) {
 
       {/* price + control share one row so they never overlap or overflow on narrow cards */}
       <div className="flex items-center justify-between gap-2 px-3.5 pb-3.5 pt-2">
-        <div className="flex min-w-0 flex-col leading-tight">
+        {/* mobile (2-col) stacks to save width; sm+ shows both prices on one line */}
+        <div className="flex min-w-0 flex-col leading-tight sm:flex-row sm:items-baseline sm:gap-1.5">
           <span className="text-lg font-extrabold tracking-tight text-plum-700 tabular-nums">
             {formatPrice(product.prices.price, product.prices)}
           </span>
           {product.on_sale && (
-            <span className="text-[11px] text-plum-300 line-through tabular-nums">
+            <span className="text-[11px] text-plum-300 line-through tabular-nums sm:text-xs">
               {formatPrice(product.prices.regular_price, product.prices)}
             </span>
           )}
