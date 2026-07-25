@@ -23,7 +23,14 @@ function ShopInner() {
   return (
     <div className="space-y-4 px-4 pt-4">
       <h1 className="font-heading text-2xl font-semibold tracking-tight text-plum-800">{title}</h1>
-      <ProductBrowser search={search} defaultSort={defaultSort} defaultOnSale={sale} />
+      {/* key forces a fresh mount when the query changes (client nav within /shop),
+          so defaultSort/defaultOnSale actually re-initialise for Flash Sales / New Arrivals */}
+      <ProductBrowser
+        key={`${search ?? ""}|${sale ? "1" : ""}|${sortParam ?? ""}`}
+        search={search}
+        defaultSort={defaultSort}
+        defaultOnSale={sale}
+      />
     </div>
   );
 }

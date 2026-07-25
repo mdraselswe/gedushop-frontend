@@ -10,6 +10,7 @@ import { formatPrice } from "@/lib/format";
 import { fbTrack } from "@/lib/pixel";
 import { DISTRICTS } from "@/lib/districts";
 import { apiFetch, STORE_API } from "@/lib/api";
+import CouponField from "./CouponField";
 
 const TOKEN_KEY = "gedu-cart-token";
 
@@ -131,6 +132,14 @@ export default function CheckoutForm() {
   const shipping = cart.totals.total_shipping;
   const shippingIsFree = form.district !== "" && !shippingLoading && (shipping === "0" || shipping === null);
 
+  // Before a district is picked, Woo applies a default flat rate — don't add that
+  // phantom shipping to the shown Total (it says "Select district"). Once a district
+  // is chosen, use Woo's authoritative total (correct rate / free over ৳2000).
+  const totalDisplay =
+    form.district && !shippingLoading
+      ? cart.totals.total_price
+      : String(Number(cart.totals.total_items) - Number(cart.totals.total_discount));
+
   function renderDelivery() {
     if (!form.district) return <span className="text-plum-300">Select district</span>;
     if (shippingLoading) return <Loader2 className="size-4 animate-spin text-plum-400" />;
@@ -198,13 +207,14 @@ export default function CheckoutForm() {
             <span>−{formatPrice(cart.totals.total_discount, cart.totals)}</span>
           </div>
         )}
-        <div className="mt-1 flex items-center justify-between text-sm text-plum-500">
+        <CouponField />
+        <div className="mt-3 flex items-center justify-between text-sm text-plum-500">
           <span>Delivery</span>
           {renderDelivery()}
         </div>
         <div className="mt-2 flex justify-between border-t border-plum-100 pt-3 text-lg font-extrabold text-plum-800">
           <span>Total</span>
-          <span className="tabular-nums">{formatPrice(cart.totals.total_price, cart.totals)}</span>
+          <span className="tabular-nums">{formatPrice(totalDisplay, cart.totals)}</span>
         </div>
         <p className="mt-3 flex items-center gap-2 rounded-xl bg-coral-50 px-3 py-2 text-xs font-bold text-coral-700">
           <Banknote className="size-4 shrink-0" strokeWidth={2.25} />

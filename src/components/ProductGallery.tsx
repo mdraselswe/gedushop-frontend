@@ -21,6 +21,8 @@ export default function ProductGallery({ images, name, discount, slug }: Props) 
   const [hoverZoom, setHoverZoom] = useState(false);
   const [origin, setOrigin] = useState("50% 50%");
   const [lightbox, setLightbox] = useState(false);
+  const touchStartX = useRef<number | null>(null);
+  const swiped = useRef(false);
 
   const many = images.length > 1;
   const current = images[index];
@@ -48,7 +50,27 @@ export default function ProductGallery({ images, name, discount, slug }: Props) 
           const r = e.currentTarget.getBoundingClientRect();
           setOrigin(`${((e.clientX - r.left) / r.width) * 100}% ${((e.clientY - r.top) / r.height) * 100}%`);
         }}
-        onClick={() => setLightbox(true)}
+        onTouchStart={(e) => {
+          touchStartX.current = e.touches[0].clientX;
+          swiped.current = false;
+        }}
+        onTouchMove={(e) => {
+          if (touchStartX.current !== null && Math.abs(e.touches[0].clientX - touchStartX.current) > 10)
+            swiped.current = true;
+        }}
+        onTouchEnd={(e) => {
+          if (touchStartX.current === null) return;
+          const dx = e.changedTouches[0].clientX - touchStartX.current;
+          touchStartX.current = null;
+          if (many && Math.abs(dx) > 40) go(dx < 0 ? 1 : -1);
+        }}
+        onClick={() => {
+          if (swiped.current) {
+            swiped.current = false;
+            return; // it was a swipe, not a tap → don't open the lightbox
+          }
+          setLightbox(true);
+        }}
       >
         {/* Plain <img> with WP's responsive srcset: the static export runs the Next
             optimizer off (unoptimized), so next/image can't resize — this lets the
@@ -157,6 +179,7 @@ function Lightbox({
   const [zoom, setZoom] = useState(1);
   const [pan, setPan] = useState({ x: 0, y: 0 });
   const drag = useRef<{ x: number; y: number; panX: number; panY: number } | null>(null);
+  const swipeX = useRef<number | null>(null);
 
   const reset = useCallback(() => {
     setZoom(1);
@@ -228,7 +251,10 @@ function Lightbox({
         onDoubleClick={() => (zoom > 1 ? reset() : setZoom(2))}
         onWheel={(e) => step(e.deltaY < 0 ? 0.25 : -0.25)}
         onPointerDown={(e) => {
-          if (zoom === 1) return;
+          if (zoom === 1) {
+            swipeX.current = e.clientX; // not zoomed → track a swipe to change image
+            return;
+          }
           e.currentTarget.setPointerCapture(e.pointerId);
           drag.current = { x: e.clientX, y: e.clientY, panX: pan.x, panY: pan.y };
         }}
@@ -236,7 +262,14 @@ function Lightbox({
           if (!drag.current) return;
           setPan({ x: drag.current.panX + e.clientX - drag.current.x, y: drag.current.panY + e.clientY - drag.current.y });
         }}
-        onPointerUp={() => (drag.current = null)}
+        onPointerUp={(e) => {
+          if (zoom === 1 && swipeX.current !== null && images.length > 1) {
+            const dx = e.clientX - swipeX.current;
+            if (Math.abs(dx) > 50) go(dx < 0 ? 1 : -1);
+          }
+          swipeX.current = null;
+          drag.current = null;
+        }}
       >
         {/* plain <img>: next/image optimization caps large zoomed renders */}
         {/* eslint-disable-next-line @next/next/no-img-element */}

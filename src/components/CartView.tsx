@@ -124,10 +124,13 @@ export default function CartView() {
           </div>
         )}
         <CouponField />
-        <div className="mt-3 flex justify-between border-t border-plum-100 pt-3 text-lg font-extrabold text-plum-800">
+        <div className="mt-3 flex items-center justify-between border-t border-plum-100 pt-3 text-lg font-extrabold text-plum-800">
           <span>Total</span>
-          <span className="tabular-nums">{formatPrice(cart.totals.total_price, cart.totals)}</span>
+          <span className="tabular-nums">
+            {formatPrice(String(Number(cart.totals.total_items) - Number(cart.totals.total_discount)), cart.totals)}
+          </span>
         </div>
+        <p className="mt-1 text-right text-xs font-semibold text-plum-400">+ delivery calculated at checkout</p>
         <Link
           href="/checkout"
           className="mt-4 block rounded-full bg-coral-500 py-3.5 text-center text-sm font-extrabold text-white shadow-[var(--shadow-coral)] transition-all hover:bg-coral-600 active:scale-[0.98]"

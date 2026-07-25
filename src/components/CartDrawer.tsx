@@ -7,6 +7,7 @@ import { decodeEntities } from "@/lib/decode";
 import { formatPrice } from "@/lib/format";
 import { CartIcon, CloseIcon, MinusIcon, PlusIcon, TrashIcon } from "./Icons";
 import FreeShippingBar from "./FreeShippingBar";
+import CouponField from "./CouponField";
 
 function productSlug(permalink?: string): string | null {
   if (!permalink) return null;
@@ -135,6 +136,9 @@ export default function CartDrawer() {
           <div className="mb-3">
             <FreeShippingBar totals={cart.totals} />
           </div>
+          <div className="mb-3">
+            <CouponField />
+          </div>
           <Link
             href="/checkout"
             onClick={() => setDrawerOpen(false)}
@@ -142,7 +146,7 @@ export default function CartDrawer() {
           >
             <span>Checkout</span>
             <span className="rounded-full bg-white/20 px-3 py-0.5">
-              {formatPrice(cart.totals.total_price, cart.totals)}
+              {formatPrice(String(Number(cart.totals.total_items) - Number(cart.totals.total_discount)), cart.totals)}
             </span>
           </Link>
           <Link
