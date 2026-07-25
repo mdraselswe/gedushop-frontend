@@ -31,14 +31,21 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params;
   const product = await getProductBySlug(slug);
   if (!product) return { title: "Product not found" };
-  const description = product.short_description.replace(/<[^>]+>/g, "").slice(0, 160);
+  const minor = product.prices.currency_minor_unit ?? 2;
+  const priceNum = Math.round(Number(product.prices.price) / 10 ** minor);
+  const snippet = product.short_description.replace(/<[^>]+>/g, "").trim();
+  const description = (
+    (snippet ? snippet.slice(0, 110).trim() + " — " : "") +
+    `Buy ${product.name} online in Bangladesh at ৳${priceNum}. Cash on delivery, genuine & quality-checked.`
+  ).slice(0, 180);
+  const title = `${product.name} — Price in Bangladesh`;
   const image = product.images[0]?.src;
   return {
-    title: product.name,
+    title,
     description,
     alternates: { canonical: `/product/${product.slug}` },
     openGraph: {
-      title: product.name,
+      title,
       description,
       type: "website",
       images: image ? [{ url: image }] : undefined,

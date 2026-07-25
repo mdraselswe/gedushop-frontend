@@ -77,14 +77,13 @@ export default function Footer({ categories }: { categories: StoreCategory[] }) 
       </div>
 
       <div className="border-t border-plum-100/70">
-        <div className="mx-auto flex max-w-[120rem] flex-col items-center justify-between gap-3 px-4 py-5 text-xs text-plum-400 sm:flex-row lg:px-8">
+        <div className="mx-auto flex max-w-[120rem] flex-col items-center justify-between gap-3 px-4 pt-5 pb-[calc(8rem+env(safe-area-inset-bottom))] text-xs text-plum-400 sm:flex-row md:pb-5 md:pr-24 lg:pl-8">
           <p>© {new Date().getFullYear()} GeduShop. All rights reserved.</p>
           <nav className="flex flex-wrap items-center gap-x-4 gap-y-2">
             <Link href="/privacy" className="hover:text-coral-500">Privacy</Link>
             <Link href="/terms" className="hover:text-coral-500">Terms</Link>
             <Link href="/return-policy" className="hover:text-coral-500">Returns</Link>
             <Link href="/delivery" className="hover:text-coral-500">Delivery</Link>
-            <Link href="/faq" className="hover:text-coral-500">FAQ</Link>
             <Link href="/about" className="hover:text-coral-500">About</Link>
             <Link href="/contact" className="hover:text-coral-500">Contact</Link>
           </nav>

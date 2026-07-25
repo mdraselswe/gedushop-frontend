@@ -22,8 +22,9 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params;
   const category = await getCategoryBySlug(slug);
   if (!category) return { title: "Category not found" };
-  const title = `${category.name} — Baby & Kids ${category.name} in Bangladesh`;
-  const description = `Shop ${category.name.toLowerCase()} at GeduShop — ${category.count} products, cash on delivery all over Bangladesh.`;
+  const n = category.name;
+  const title = `${n} in Bangladesh — Buy ${n} Online at Best Price`;
+  const description = `Buy ${n.toLowerCase()} online in Bangladesh at GeduShop — ${category.count}+ genuine, quality-checked products. Cash on delivery all over the country at the best price.`;
   return {
     title,
     description,

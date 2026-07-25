@@ -1,8 +1,16 @@
+import type { Metadata } from "next";
 import BannerSlider from "@/components/BannerSlider";
 import ProductBrowser from "@/components/ProductBrowser";
 import RecentlyViewed from "@/components/RecentlyViewed";
 import TrustBar from "@/components/TrustBar";
 import { getProductsPaged } from "@/lib/wp";
+
+export const metadata: Metadata = {
+  title: "Baby Items, Toys, Baby Clothing & Kids Essentials Online",
+  description:
+    "Shop baby items, toys, baby clothing and kids essentials online in Bangladesh at GeduShop. Cash on delivery all over the country — genuine, quality-checked products at the best price.",
+  alternates: { canonical: "/" },
+};
 
 export default async function HomePage() {
   const { products, total } = await getProductsPaged({ perPage: 24, orderby: "popularity" }).catch(() => ({
