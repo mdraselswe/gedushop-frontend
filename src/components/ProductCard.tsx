@@ -30,17 +30,13 @@ export default function ProductCard({ product }: { product: StoreProduct }) {
               alt={image.alt || product.name}
               loading="lazy"
               decoding="async"
-              className={`absolute inset-0 h-full w-full object-cover transition-transform duration-500 ease-out group-hover:scale-[1.07] ${
-                soldOut ? "grayscale" : ""
-              }`}
+              className="absolute inset-0 h-full w-full object-cover transition-transform duration-500 ease-out group-hover:scale-[1.07]"
             />
           ) : (
             <div className="flex h-full items-center justify-center">
               <ImageOff className="size-10 text-plum-200" strokeWidth={1.5} />
             </div>
           )}
-          {/* dim the whole image area when sold out */}
-          {soldOut && <span className="pointer-events-none absolute inset-0 bg-white/45" aria-hidden />}
           {showDiscount && (
             <span className="absolute left-2.5 top-2.5 rounded-full bg-coral-500 px-2.5 py-1 text-[11px] font-extrabold text-white shadow-[var(--shadow-coral)]">
               -{discount}%
