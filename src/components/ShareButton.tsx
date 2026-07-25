@@ -3,11 +3,18 @@
 import { useState } from "react";
 import { Check, Share2 } from "lucide-react";
 
-export default function ShareButton({ title }: { title: string }) {
+export default function ShareButton({ title, slug }: { title: string; slug?: string }) {
   const [copied, setCopied] = useState(false);
 
   async function share() {
-    const url = typeof window !== "undefined" ? window.location.href : "";
+    // Prefer the product's own URL: the gallery/share button is also used inside
+    // QuickView, where window.location is the listing page (e.g. /shop), not the product.
+    const url =
+      typeof window === "undefined"
+        ? ""
+        : slug
+          ? `${window.location.origin}/product/${slug}/`
+          : window.location.href;
     if (navigator.share) {
       try {
         await navigator.share({ title, url });

@@ -13,9 +13,10 @@ interface Props {
   images: StoreImage[];
   name: string;
   discount: number | null;
+  slug?: string;
 }
 
-export default function ProductGallery({ images, name, discount }: Props) {
+export default function ProductGallery({ images, name, discount, slug }: Props) {
   const [index, setIndex] = useState(0);
   const [hoverZoom, setHoverZoom] = useState(false);
   const [origin, setOrigin] = useState("50% 50%");
@@ -66,7 +67,7 @@ export default function ProductGallery({ images, name, discount }: Props) {
         )}
 
         <span className="absolute bottom-3 left-3 z-10" onClick={(e) => e.stopPropagation()}>
-          <ShareButton title={name} />
+          <ShareButton title={name} slug={slug} />
         </span>
 
         <button
