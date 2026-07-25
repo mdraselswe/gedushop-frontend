@@ -53,6 +53,16 @@ body {
   -webkit-tap-highlight-color: transparent;
 }
 
+/* Prevent mobile browsers from auto-zooming when a text field is focused:
+   any font-size < 16px triggers the zoom (and it never zooms back out). */
+@media (max-width: 640px) {
+  input:not([type="checkbox"]):not([type="radio"]),
+  textarea,
+  select {
+    font-size: 16px !important;
+  }
+}
+
 /* Hide scrollbar for horizontal chip/banner scrollers */
 .no-scrollbar {
   scrollbar-width: none;
