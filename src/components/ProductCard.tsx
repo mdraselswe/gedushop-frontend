@@ -10,6 +10,9 @@ import WishlistButton from "./WishlistButton";
 export default function ProductCard({ product }: { product: StoreProduct }) {
   const image = product.images[0];
   const discount = discountPercent(product.prices);
+  const soldOut = !product.is_in_stock || !product.is_purchasable;
+  // Sold-out badge takes the top-left slot; discount is moot when unavailable.
+  const showDiscount = discount && !soldOut;
 
   return (
     <article className="group relative flex flex-col overflow-hidden rounded-3xl bg-white shadow-[var(--shadow-soft)] ring-1 ring-plum-100/50 transition-all duration-300 hover:-translate-y-1 hover:shadow-[var(--shadow-lift)]">
@@ -26,22 +29,31 @@ export default function ProductCard({ product }: { product: StoreProduct }) {
               alt={image.alt || product.name}
               loading="lazy"
               decoding="async"
-              className="absolute inset-0 h-full w-full object-cover transition-transform duration-500 ease-out group-hover:scale-[1.07]"
+              className={`absolute inset-0 h-full w-full object-cover transition-transform duration-500 ease-out group-hover:scale-[1.07] ${
+                soldOut ? "grayscale" : ""
+              }`}
             />
           ) : (
             <div className="flex h-full items-center justify-center">
               <ImageOff className="size-10 text-plum-200" strokeWidth={1.5} />
             </div>
           )}
-          {discount && (
+          {/* dim the whole image area when sold out */}
+          {soldOut && <span className="pointer-events-none absolute inset-0 bg-white/45" aria-hidden />}
+          {showDiscount && (
             <span className="absolute left-2.5 top-2.5 rounded-full bg-coral-500 px-2.5 py-1 text-[11px] font-extrabold text-white shadow-[var(--shadow-coral)]">
               -{discount}%
+            </span>
+          )}
+          {soldOut && (
+            <span className="absolute left-2.5 top-2.5 rounded-full bg-plum-800/90 px-2.5 py-1 text-[11px] font-extrabold uppercase tracking-wide text-white shadow-sm">
+              Sold Out
             </span>
           )}
           <span className="absolute right-2.5 top-2.5">
             <QuickView product={product} />
           </span>
-          <span className="absolute left-2.5" style={{ top: discount ? "2.9rem" : "0.625rem" }}>
+          <span className="absolute left-2.5" style={{ top: showDiscount || soldOut ? "2.9rem" : "0.625rem" }}>
             <WishlistButton productId={product.id} />
           </span>
         </div>
@@ -75,7 +87,13 @@ export default function ProductCard({ product }: { product: StoreProduct }) {
             </span>
           )}
         </div>
-        <AddToCartButton productId={product.id} disabled={!product.is_purchasable || !product.is_in_stock} />
+        {soldOut ? (
+          <span className="shrink-0 rounded-full bg-plum-100 px-3.5 py-2 text-xs font-extrabold text-plum-400">
+            Sold out
+          </span>
+        ) : (
+          <AddToCartButton productId={product.id} disabled={false} />
+        )}
       </div>
     </article>
   );
