@@ -1,23 +1,15 @@
 import BannerSlider from "@/components/BannerSlider";
-import CategoryChips from "@/components/CategoryChips";
 import ProductGrid from "@/components/ProductGrid";
 import TrustBar from "@/components/TrustBar";
-import { getCategories, getProducts } from "@/lib/wp";
+import { getProducts } from "@/lib/wp";
 
 export default async function HomePage() {
-  const [products, categories] = await Promise.all([
-    getProducts({ perPage: 20 }).catch(() => []),
-    getCategories().catch(() => []),
-  ]);
+  const products = await getProducts({ perPage: 20 }).catch(() => []);
 
   return (
     <div className="space-y-6 px-4 pb-4 pt-4">
       <BannerSlider />
       <TrustBar />
-      {/* Mobile-only — the desktop sidebar already lists categories */}
-      <div className="lg:hidden">
-        <CategoryChips categories={categories} />
-      </div>
       <section>
         <div className="mb-4 flex items-end justify-between">
           <div>

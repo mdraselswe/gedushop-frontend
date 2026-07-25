@@ -66,6 +66,7 @@ export interface CartItem {
   id: number;
   name: string;
   quantity: number;
+  permalink?: string;
   images: StoreImage[];
   prices: StorePrices;
   totals: CartItemTotals;

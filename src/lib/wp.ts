@@ -33,7 +33,12 @@ async function storeGet<T>(path: string): Promise<T> {
 }
 
 function decodeProduct(p: StoreProduct): StoreProduct {
-  return { ...p, name: decodeEntities(p.name) };
+  return {
+    ...p,
+    name: decodeEntities(p.name),
+    // Embedded category names are HTML-encoded too (used in breadcrumbs / links).
+    categories: p.categories?.map((c) => ({ ...c, name: decodeEntities(c.name) })) ?? p.categories,
+  };
 }
 
 function decodeCategory(c: StoreCategory): StoreCategory {

@@ -8,6 +8,17 @@ import { formatPrice } from "@/lib/format";
 import { CartIcon, MinusIcon, PlusIcon, TrashIcon } from "./Icons";
 import CouponField from "./CouponField";
 
+/** Store API cart items carry the WP permalink; grab the last path segment as our route slug. */
+function productSlug(permalink?: string): string | null {
+  if (!permalink) return null;
+  try {
+    const parts = new URL(permalink).pathname.replace(/\/+$/, "").split("/");
+    return parts[parts.length - 1] || null;
+  } catch {
+    return null;
+  }
+}
+
 export default function CartView() {
   const { cart, loading, setQuantity, removeItem, pendingIds } = useCart();
 
@@ -42,15 +53,24 @@ export default function CartView() {
     <div className="mt-4 space-y-3 pb-6">
       {cart.items.map((item) => {
         const busy = pendingIds.has(item.id);
+        const slug = productSlug(item.permalink);
         return (
           <div key={item.key} className="flex items-center gap-3 rounded-2xl bg-white p-3 shadow-[var(--shadow-soft)] ring-1 ring-plum-100/50">
-            <div className="relative size-16 shrink-0 overflow-hidden rounded-xl bg-gradient-to-br from-plum-50 to-coral-50/40">
+            <Link
+              href={slug ? `/product/${slug}` : "#"}
+              className="relative size-16 shrink-0 overflow-hidden rounded-xl bg-gradient-to-br from-plum-50 to-coral-50/40"
+            >
               {item.images[0] && (
                 <Image src={item.images[0].thumbnail || item.images[0].src} alt={item.name} fill sizes="64px" className="object-cover" />
               )}
-            </div>
+            </Link>
             <div className="min-w-0 flex-1">
-              <p className="line-clamp-2 text-sm font-semibold text-plum-800">{decodeEntities(item.name)}</p>
+              <Link
+                href={slug ? `/product/${slug}` : "#"}
+                className="line-clamp-2 text-sm font-semibold text-plum-800 transition-colors hover:text-coral-500"
+              >
+                {decodeEntities(item.name)}
+              </Link>
               <p className="mt-0.5 text-sm font-extrabold text-plum-600 tabular-nums">
                 {formatPrice(item.totals.line_total, item.totals)}
               </p>

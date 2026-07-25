@@ -1,7 +1,7 @@
 "use client";
 
 import { createContext, useCallback, useContext, useRef, useState } from "react";
-import { Check, TriangleAlert } from "lucide-react";
+import { TriangleAlert } from "lucide-react";
 
 type Variant = "success" | "error";
 interface Toast {
@@ -33,14 +33,30 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
             style={{ animation: "toast-in 0.25s cubic-bezier(0.22,1,0.36,1)" }}
           >
             <span
-              className={`flex size-5 shrink-0 items-center justify-center rounded-full ${
-                t.variant === "error" ? "bg-coral-500" : "bg-emerald-500"
+              className={`flex size-6 shrink-0 items-center justify-center rounded-full shadow-sm ${
+                t.variant === "error"
+                  ? "bg-coral-500 shadow-coral-500/40"
+                  : "bg-emerald-500 shadow-emerald-500/40"
               }`}
+              style={{ animation: "badge-pop 0.35s cubic-bezier(0.22,1,0.36,1)" }}
             >
               {t.variant === "error" ? (
-                <TriangleAlert className="size-3" strokeWidth={3} />
+                <TriangleAlert className="size-3.5" strokeWidth={3} />
               ) : (
-                <Check className="size-3.5" strokeWidth={3} />
+                <svg viewBox="0 0 24 24" fill="none" className="size-3.5" aria-hidden>
+                  <path
+                    d="M5 13l4 4L19 7"
+                    stroke="white"
+                    strokeWidth={3}
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    style={{
+                      strokeDasharray: 24,
+                      strokeDashoffset: 24,
+                      animation: "check-draw 0.4s 0.14s cubic-bezier(0.65,0,0.35,1) forwards",
+                    }}
+                  />
+                </svg>
               )}
             </span>
             {t.message}

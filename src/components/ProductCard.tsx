@@ -43,7 +43,7 @@ export default function ProductCard({ product }: { product: StoreProduct }) {
           </span>
         </div>
 
-        <div className="flex flex-1 flex-col p-3.5">
+        <div className="flex flex-1 flex-col px-3.5 pt-3.5">
           <h3 className="line-clamp-2 min-h-[2.75em] text-sm font-semibold leading-snug text-plum-800">
             {product.name}
           </h3>
@@ -56,20 +56,21 @@ export default function ProductCard({ product }: { product: StoreProduct }) {
               </>
             )}
           </div>
-          <div className="mt-auto flex items-baseline gap-1.5 pt-2">
-            <span className="text-lg font-extrabold tracking-tight text-plum-700 tabular-nums">
-              {formatPrice(product.prices.price, product.prices)}
-            </span>
-            {product.on_sale && (
-              <span className="text-xs text-plum-300 line-through tabular-nums">
-                {formatPrice(product.prices.regular_price, product.prices)}
-              </span>
-            )}
-          </div>
         </div>
       </Link>
 
-      <div className="absolute bottom-3.5 right-3">
+      {/* price + control share one row so they never overlap or overflow on narrow cards */}
+      <div className="flex items-center justify-between gap-2 px-3.5 pb-3.5 pt-2">
+        <div className="flex min-w-0 flex-col leading-tight">
+          <span className="text-lg font-extrabold tracking-tight text-plum-700 tabular-nums">
+            {formatPrice(product.prices.price, product.prices)}
+          </span>
+          {product.on_sale && (
+            <span className="text-[11px] text-plum-300 line-through tabular-nums">
+              {formatPrice(product.prices.regular_price, product.prices)}
+            </span>
+          )}
+        </div>
         <AddToCartButton productId={product.id} disabled={!product.is_purchasable || !product.is_in_stock} />
       </div>
     </article>

@@ -2,13 +2,12 @@
 
 import { Suspense, useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
-import CategoryChips from "@/components/CategoryChips";
 import Pagination from "@/components/Pagination";
 import ProductGrid from "@/components/ProductGrid";
 import ProductGridSkeleton from "@/components/ProductGridSkeleton";
 import { apiFetch, STORE_API } from "@/lib/api";
 import { decodeEntities } from "@/lib/decode";
-import type { StoreCategory, StoreProduct } from "@/lib/types";
+import type { StoreProduct } from "@/lib/types";
 
 const PER_PAGE = 24;
 
@@ -21,19 +20,9 @@ function ShopInner() {
   const page = Math.max(1, Number(params.get("page")) || 1);
 
   const [products, setProducts] = useState<StoreProduct[]>([]);
-  const [categories, setCategories] = useState<StoreCategory[]>([]);
   const [total, setTotal] = useState(0);
   const [totalPages, setTotalPages] = useState(1);
   const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    apiFetch(`${STORE_API}/products/categories?per_page=50`)
-      .then((r) => (r.ok ? r.json() : []))
-      .then((d: StoreCategory[]) =>
-        setCategories(d.filter((c) => c.count > 0).map((c) => ({ ...c, name: decodeEntities(c.name) }))),
-      )
-      .catch(() => {});
-  }, []);
 
   useEffect(() => {
     setLoading(true);
@@ -69,9 +58,6 @@ function ShopInner() {
       <div className="flex items-baseline justify-between">
         <h1 className="font-heading text-2xl font-semibold tracking-tight text-plum-800">{title}</h1>
         {!loading && <span className="text-xs font-bold text-plum-400">{total} products</span>}
-      </div>
-      <div className="lg:hidden">
-        <CategoryChips categories={categories} />
       </div>
       {loading ? (
         <ProductGridSkeleton count={12} />

@@ -3,6 +3,7 @@
 import Image from "next/image";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { ChevronLeft, ChevronRight, ImageOff, Maximize2, Minus, Plus, X } from "lucide-react";
+import ShareButton from "./ShareButton";
 import type { StoreImage } from "@/lib/types";
 
 const MIN_ZOOM = 1;
@@ -63,6 +64,10 @@ export default function ProductGallery({ images, name, discount }: Props) {
             -{discount}% OFF
           </span>
         )}
+
+        <span className="absolute right-3 top-3 z-10" onClick={(e) => e.stopPropagation()}>
+          <ShareButton title={name} />
+        </span>
 
         <button
           onClick={(e) => {

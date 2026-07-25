@@ -11,7 +11,6 @@ import SiteJsonLd from "@/components/SiteJsonLd";
 import Analytics from "@/components/Analytics";
 import MetaPixel from "@/components/MetaPixel";
 import BottomNav from "@/components/BottomNav";
-import FloatingCartBar from "@/components/FloatingCartBar";
 import CartDockButton from "@/components/CartDockButton";
 import CartDrawer from "@/components/CartDrawer";
 import Sidebar from "@/components/Sidebar";
@@ -71,13 +70,12 @@ export default async function RootLayout({
           <Header />
           <div className="mx-auto flex w-full max-w-[120rem] flex-1">
             <Sidebar categories={categories} />
-            <main className="min-w-0 flex-1 pb-8">{children}</main>
+            <main className="min-w-0 flex-1 overflow-x-clip pb-8">{children}</main>
           </div>
           <Footer categories={categories} />
           <CartDockButton />
           <CartDrawer />
-          <FloatingCartBar />
-          <BottomNav />
+          <BottomNav categories={categories} />
           <ScrollToTop />
         </CartProvider>
         </WishlistProvider>

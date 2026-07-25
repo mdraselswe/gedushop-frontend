@@ -30,7 +30,7 @@ export default function AddToCartButton({ productId, disabled }: { productId: nu
   }
 
   return (
-    <div className="flex items-center gap-1 rounded-full bg-plum-600 text-white shadow-md shadow-plum-600/30">
+    <div className="flex shrink-0 items-center gap-0.5 rounded-full bg-plum-600 text-white shadow-md shadow-plum-600/30">
       <button
         onClick={(e) => {
           e.preventDefault();
@@ -42,7 +42,7 @@ export default function AddToCartButton({ productId, disabled }: { productId: nu
       >
         <MinusIcon className="size-4" />
       </button>
-      <span className="min-w-5 text-center text-sm font-extrabold">{busy ? "…" : qty}</span>
+      <span className="min-w-4 text-center text-sm font-extrabold tabular-nums">{busy ? "…" : qty}</span>
       <button
         onClick={(e) => {
           e.preventDefault();

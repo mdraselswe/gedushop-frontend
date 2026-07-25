@@ -117,7 +117,7 @@ export default function BannerSlider() {
           <a
             key={title}
             href="/shop"
-            className={`grain relative flex w-[88%] shrink-0 snap-start items-center justify-between gap-4 overflow-hidden rounded-3xl bg-gradient-to-br ${bg} p-6 text-white shadow-[var(--shadow-lift)] md:w-[46%] md:p-8`}
+            className={`grain relative flex w-[88%] shrink-0 snap-start items-center justify-between gap-4 overflow-hidden rounded-3xl bg-gradient-to-br ${bg} p-6 text-white md:w-[46%] md:p-8`}
           >
             {/* soft radial highlight for depth */}
             <span className="pointer-events-none absolute -right-10 -top-16 size-52 rounded-full bg-white/15 blur-2xl" aria-hidden />

@@ -10,9 +10,14 @@ import { useToast } from "./ToastContext";
 /** Turn Woo's verbose cart errors into a short, friendly message. */
 function friendlyCartError(raw?: string): string {
   const msg = decodeEntities((raw ?? "").replace(/<[^>]+>/g, "")).trim();
-  const stock = msg.match(/(\d+)\s*(?:remaining|in stock)/i);
-  if (/not enough stock|cannot add|already have|out of stock/i.test(msg)) {
-    return stock ? `Only ${stock[1]} left in stock` : "Not enough stock available";
+  // Pull a remaining-stock number from Woo's various phrasings.
+  const stock =
+    msg.match(/(\d+)\s*(?:remaining|in stock|left|available)/i) ||
+    msg.match(/(?:quantity of|maximum of|max of)\s*(\d+)/i) ||
+    msg.match(/(?:have|only|is)\s+(\d+)/i);
+  // Woo stock rejections almost always mention "stock" / "quantity" / "maximum".
+  if (/stock|quantity|maximum|not enough|cannot add|can'?t add|already have/i.test(msg)) {
+    return stock ? `Only ${stock[1]} left in stock` : "Sorry, not enough stock available";
   }
   return msg && msg.length <= 70 ? msg : "Couldn't update cart — please try again";
 }

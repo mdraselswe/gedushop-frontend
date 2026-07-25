@@ -7,6 +7,16 @@ import { decodeEntities } from "@/lib/decode";
 import { formatPrice } from "@/lib/format";
 import { CartIcon, CloseIcon, MinusIcon, PlusIcon, TrashIcon } from "./Icons";
 
+function productSlug(permalink?: string): string | null {
+  if (!permalink) return null;
+  try {
+    const parts = new URL(permalink).pathname.replace(/\/+$/, "").split("/");
+    return parts[parts.length - 1] || null;
+  } catch {
+    return null;
+  }
+}
+
 /** Right-side cart drawer (Chaldal-style). Slides in on add-to-cart, lg+ only. */
 export default function CartDrawer() {
   const { cart, drawerOpen, setDrawerOpen, setQuantity, removeItem, pendingIds } = useCart();
@@ -47,9 +57,14 @@ export default function CartDrawer() {
           <ul className="divide-y divide-plum-50">
             {cart.items.map((item) => {
               const busy = pendingIds.has(item.id);
+              const slug = productSlug(item.permalink);
               return (
                 <li key={item.key} className="flex items-center gap-3 px-4 py-3">
-                  <div className="relative size-12 shrink-0 overflow-hidden rounded-lg bg-plum-50">
+                  <Link
+                    href={slug ? `/product/${slug}` : "#"}
+                    onClick={() => setDrawerOpen(false)}
+                    className="relative size-12 shrink-0 overflow-hidden rounded-lg bg-plum-50"
+                  >
                     {item.images[0] ? (
                       <Image
                         src={item.images[0].thumbnail || item.images[0].src}
@@ -63,9 +78,15 @@ export default function CartDrawer() {
                         <CartIcon className="size-5 text-plum-200" strokeWidth={1.75} />
                       </span>
                     )}
-                  </div>
+                  </Link>
                   <div className="min-w-0 flex-1">
-                    <p className="line-clamp-2 text-xs font-semibold leading-snug text-plum-800">{decodeEntities(item.name)}</p>
+                    <Link
+                      href={slug ? `/product/${slug}` : "#"}
+                      onClick={() => setDrawerOpen(false)}
+                      className="line-clamp-2 text-xs font-semibold leading-snug text-plum-800 transition-colors hover:text-coral-500"
+                    >
+                      {decodeEntities(item.name)}
+                    </Link>
                     <p className="mt-0.5 text-xs font-extrabold text-plum-600">
                       {formatPrice(item.totals.line_total, item.totals)}
                     </p>
