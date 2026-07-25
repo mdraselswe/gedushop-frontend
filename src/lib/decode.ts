@@ -5,6 +5,7 @@
  */
 export function decodeEntities(s: string): string {
   return s
+    .replace(/&nbsp;/g, " ")
     .replace(/&amp;/g, "&")
     .replace(/&lt;/g, "<")
     .replace(/&gt;/g, ">")

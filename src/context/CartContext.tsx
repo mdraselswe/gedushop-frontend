@@ -22,6 +22,21 @@ function friendlyCartError(raw?: string): string {
   return msg && msg.length <= 70 ? msg : "Couldn't update cart — please try again";
 }
 
+/** Short, friendly coupon errors (Woo messages are verbose + HTML-encoded). */
+function friendlyCouponError(raw?: string): string {
+  const m = decodeEntities((raw ?? "").replace(/<[^>]+>/g, ""))
+    .replace(/\s+/g, " ")
+    .replace(/\s+([.!?])/g, "$1")
+    .trim();
+  if (/does not exist|not exist|not valid|invalid|no longer/i.test(m)) return "This coupon code is not valid.";
+  if (/expired/i.test(m)) return "This coupon has expired.";
+  if (/usage limit|limit has been reached|already been used/i.test(m)) return "This coupon has reached its usage limit.";
+  if (/minimum spend/i.test(m)) return m; // keeps the amount, already decoded
+  if (/maximum spend/i.test(m)) return "Your cart total is too high for this coupon.";
+  if (/already applied/i.test(m)) return "This coupon is already applied.";
+  return m && m.length <= 90 ? m : "This coupon can’t be applied.";
+}
+
 interface ShippingAddress {
   country: string;
   state: string;
@@ -209,7 +224,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
           body: JSON.stringify({ code: code.trim() }),
         });
         const data = await res.json();
-        if (!res.ok) return data.message?.replace(/<[^>]+>/g, "") || "Invalid coupon code.";
+        if (!res.ok) return friendlyCouponError(data.message as string | undefined);
         syncCart(data);
         return null;
       } finally {

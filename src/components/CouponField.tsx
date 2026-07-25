@@ -10,8 +10,7 @@ export default function CouponField() {
   const [error, setError] = useState<string | null>(null);
   const coupons = cart?.coupons ?? [];
 
-  async function apply(e: React.FormEvent) {
-    e.preventDefault();
+  async function apply() {
     setError(null);
     if (!code.trim()) return;
     const err = await applyCoupon(code);
@@ -41,21 +40,30 @@ export default function CouponField() {
           ))}
         </ul>
       )}
-      <form onSubmit={apply} className="flex gap-2">
+      {/* plain div (not a <form>) so it can be embedded inside the checkout form
+          without nesting forms, which caused a page flash on submit */}
+      <div className="flex gap-2">
         <input
           value={code}
           onChange={(e) => setCode(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === "Enter") {
+              e.preventDefault();
+              apply();
+            }
+          }}
           placeholder="Coupon code"
           className="min-w-0 flex-1 rounded-xl border border-plum-100 bg-white px-3 py-2 text-sm text-plum-800 placeholder:text-plum-300 outline-none focus:border-plum-300 focus:ring-2 focus:ring-plum-100"
         />
         <button
-          type="submit"
+          type="button"
+          onClick={apply}
           disabled={couponLoading || !code.trim()}
           className="flex items-center gap-1.5 rounded-xl border border-plum-200 px-4 py-2 text-sm font-extrabold text-plum-600 transition-colors hover:bg-plum-50 disabled:opacity-50"
         >
           {couponLoading ? <Loader2 className="size-4 animate-spin" /> : "Apply"}
         </button>
-      </form>
+      </div>
       {error && <p className="mt-1.5 text-xs font-bold text-coral-600">{error}</p>}
     </div>
   );
