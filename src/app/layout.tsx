@@ -4,6 +4,7 @@ import "./globals.css";
 import { CartProvider } from "@/context/CartContext";
 import { WishlistProvider } from "@/context/WishlistContext";
 import { ToastProvider } from "@/context/ToastContext";
+import AnnouncementBar from "@/components/AnnouncementBar";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import ScrollToTop from "@/components/ScrollToTop";
@@ -68,6 +69,7 @@ export default async function RootLayout({
         <ToastProvider>
         <WishlistProvider>
         <CartProvider>
+          <AnnouncementBar />
           <Header />
           <div className="mx-auto flex w-full max-w-[120rem] flex-1">
             <Sidebar categories={categories} />
