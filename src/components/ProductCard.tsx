@@ -1,4 +1,3 @@
-import Image from "next/image";
 import Link from "next/link";
 import { ImageOff } from "lucide-react";
 import type { StoreProduct } from "@/lib/types";
@@ -17,13 +16,17 @@ export default function ProductCard({ product }: { product: StoreProduct }) {
       <Link href={`/product/${product.slug}`} className="flex flex-1 flex-col">
         <div className="relative aspect-square overflow-hidden bg-gradient-to-br from-plum-50 to-coral-50/40">
           {image ? (
-            <Image
-              src={image.src}
+            // Plain <img> + WP srcset: static export can't run the Next optimizer,
+            // so this lets the browser fetch a sized WebP instead of the full image.
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+              src={image.thumbnail || image.src}
+              srcSet={image.srcset}
+              sizes={image.srcset ? "(max-width: 768px) 50vw, (max-width: 1200px) 33vw, 20vw" : undefined}
               alt={image.alt || product.name}
-              fill
-              sizes="(max-width: 768px) 50vw, (max-width: 1200px) 33vw, 20vw"
-              className="object-cover transition-transform duration-500 ease-out group-hover:scale-[1.07]"
               loading="lazy"
+              decoding="async"
+              className="absolute inset-0 h-full w-full object-cover transition-transform duration-500 ease-out group-hover:scale-[1.07]"
             />
           ) : (
             <div className="flex h-full items-center justify-center">

@@ -50,15 +50,20 @@ export default function ProductGallery({ images, name, discount, slug }: Props) 
         }}
         onClick={() => setLightbox(true)}
       >
-        <Image
+        {/* Plain <img> with WP's responsive srcset: the static export runs the Next
+            optimizer off (unoptimized), so next/image can't resize — this lets the
+            browser pick a sized WebP and fetch it eagerly for a fast LCP. */}
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img
           key={current.id}
           src={current.src}
+          srcSet={current.srcset}
+          sizes={current.srcset ? "(max-width: 768px) 100vw, 50vw" : undefined}
           alt={current.alt || name}
-          fill
-          sizes="(max-width: 768px) 100vw, 50vw"
-          className="object-contain transition-transform duration-200"
+          fetchPriority="high"
+          decoding="async"
+          className="absolute inset-0 h-full w-full object-contain transition-transform duration-200"
           style={hoverZoom ? { transform: "scale(1.9)", transformOrigin: origin } : undefined}
-          preload
         />
         {discount && (
           <span className="absolute left-3 top-3 z-10 rounded-full bg-coral-500 px-3 py-1 text-xs font-extrabold text-white">

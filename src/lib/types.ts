@@ -4,6 +4,9 @@ export interface StoreImage {
   id: number;
   src: string;
   thumbnail: string;
+  /** Responsive candidates from WP — used for sized <img> since the static export can't run the Next optimizer. */
+  srcset?: string;
+  sizes?: string;
   alt: string;
 }
 
