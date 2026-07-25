@@ -65,7 +65,7 @@ export default function ProductGallery({ images, name, discount }: Props) {
           </span>
         )}
 
-        <span className="absolute right-3 top-3 z-10" onClick={(e) => e.stopPropagation()}>
+        <span className="absolute bottom-3 left-3 z-10" onClick={(e) => e.stopPropagation()}>
           <ShareButton title={name} />
         </span>
 

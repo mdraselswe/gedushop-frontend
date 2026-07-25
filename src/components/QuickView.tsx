@@ -84,12 +84,12 @@ export default function QuickView({ product }: { product: StoreProduct }) {
               <X className="size-4.5" strokeWidth={2.5} />
             </button>
 
-            <div className="grid sm:grid-cols-2">
-              <div className="p-4 pb-0 sm:p-5 sm:pb-5">
+            <div className="grid grid-cols-1 sm:grid-cols-2">
+              <div className="min-w-0 p-4 pb-0 sm:p-5 sm:pb-5">
                 <ProductGallery images={product.images} name={product.name} discount={discount} />
               </div>
 
-              <div className="flex flex-col p-5 sm:p-6">
+              <div className="flex min-w-0 flex-col p-5 sm:p-6">
                 <h2 className="line-clamp-3 pr-9 font-heading text-base font-semibold leading-snug text-plum-800 sm:text-lg">
                   {product.name}
                 </h2>
