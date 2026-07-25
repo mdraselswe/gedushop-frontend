@@ -32,6 +32,7 @@ export default function Footer({ categories }: { categories: StoreCategory[] }) 
             <li><Link href="/shop?sale=1" className="hover:text-coral-500">Flash sales</Link></li>
             <li><Link href="/shop?sort=date" className="hover:text-coral-500">New arrivals</Link></li>
             <li><Link href="/track" className="hover:text-coral-500">Track order</Link></li>
+            <li><Link href="/faq" className="hover:text-coral-500">FAQ &amp; Help</Link></li>
           </ul>
         </div>
 
@@ -83,6 +84,7 @@ export default function Footer({ categories }: { categories: StoreCategory[] }) 
             <Link href="/terms" className="hover:text-coral-500">Terms</Link>
             <Link href="/return-policy" className="hover:text-coral-500">Returns</Link>
             <Link href="/delivery" className="hover:text-coral-500">Delivery</Link>
+            <Link href="/faq" className="hover:text-coral-500">FAQ</Link>
             <Link href="/about" className="hover:text-coral-500">About</Link>
             <Link href="/contact" className="hover:text-coral-500">Contact</Link>
           </nav>

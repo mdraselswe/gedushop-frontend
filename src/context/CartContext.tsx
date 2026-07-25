@@ -36,7 +36,7 @@ interface CartContextValue {
   loading: boolean;
   /** Product ids with an in-flight cart mutation (disables their buttons). */
   pendingIds: Set<number>;
-  addItem: (productId: number, quantity?: number) => Promise<boolean>;
+  addItem: (productId: number, quantity?: number, variation?: { attribute: string; value: string }[]) => Promise<boolean>;
   setQuantity: (itemKey: string, quantity: number) => Promise<boolean>;
   removeItem: (itemKey: string) => Promise<boolean>;
   /** Current quantity of a product in the cart (0 if absent). */
@@ -127,8 +127,14 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
   );
 
   const addItem = useCallback(
-    async (productId: number, quantity = 1): Promise<boolean> => {
-      const ok = await mutate(productId, "cart/add-item", { id: productId, quantity });
+    async (
+      productId: number,
+      quantity = 1,
+      variation?: { attribute: string; value: string }[],
+    ): Promise<boolean> => {
+      const body: Record<string, unknown> = { id: productId, quantity };
+      if (variation && variation.length) body.variation = variation;
+      const ok = await mutate(productId, "cart/add-item", body);
       if (!ok) return false; // error toast already shown by mutate
       fbTrack("AddToCart", { content_ids: [productId], content_type: "product", currency: "BDT" });
       // Desktop opens the side drawer; mobile has no drawer, so confirm with a toast.

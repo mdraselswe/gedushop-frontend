@@ -6,6 +6,7 @@ import { useCart } from "@/context/CartContext";
 import { decodeEntities } from "@/lib/decode";
 import { formatPrice } from "@/lib/format";
 import { CartIcon, CloseIcon, MinusIcon, PlusIcon, TrashIcon } from "./Icons";
+import FreeShippingBar from "./FreeShippingBar";
 
 function productSlug(permalink?: string): string | null {
   if (!permalink) return null;
@@ -131,6 +132,9 @@ export default function CartDrawer() {
 
       {cart && cart.items.length > 0 && (
         <div className="border-t border-plum-100 p-3">
+          <div className="mb-3">
+            <FreeShippingBar totals={cart.totals} />
+          </div>
           <Link
             href="/checkout"
             onClick={() => setDrawerOpen(false)}

@@ -11,6 +11,7 @@ export default function ProductCard({ product }: { product: StoreProduct }) {
   const image = product.images[0];
   const discount = discountPercent(product.prices);
   const soldOut = !product.is_in_stock || !product.is_purchasable;
+  const needsOptions = product.type === "variable"; // pick a variation on the product page
   // Sold-out badge takes the top-left slot; discount is moot when unavailable.
   const showDiscount = discount && !soldOut;
 
@@ -91,6 +92,13 @@ export default function ProductCard({ product }: { product: StoreProduct }) {
           <span className="shrink-0 rounded-full bg-plum-100 px-3.5 py-2 text-xs font-extrabold text-plum-400">
             Sold out
           </span>
+        ) : needsOptions ? (
+          <Link
+            href={`/product/${product.slug}`}
+            className="shrink-0 rounded-full bg-plum-600 px-3.5 py-2 text-xs font-extrabold text-white transition-colors hover:bg-plum-700"
+          >
+            Options
+          </Link>
         ) : (
           <AddToCartButton productId={product.id} disabled={false} />
         )}

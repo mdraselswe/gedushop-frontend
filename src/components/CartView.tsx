@@ -7,6 +7,7 @@ import { decodeEntities } from "@/lib/decode";
 import { formatPrice } from "@/lib/format";
 import { CartIcon, MinusIcon, PlusIcon, TrashIcon } from "./Icons";
 import CouponField from "./CouponField";
+import FreeShippingBar from "./FreeShippingBar";
 
 /** Store API cart items carry the WP permalink; grab the last path segment as our route slug. */
 function productSlug(permalink?: string): string | null {
@@ -51,6 +52,7 @@ export default function CartView() {
 
   return (
     <div className="mt-4 space-y-3 pb-6">
+      <FreeShippingBar totals={cart.totals} />
       {cart.items.map((item) => {
         const busy = pendingIds.has(item.id);
         const slug = productSlug(item.permalink);

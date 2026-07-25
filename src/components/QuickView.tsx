@@ -117,10 +117,20 @@ export default function QuickView({ product }: { product: StoreProduct }) {
                 )}
 
                 <div className="mt-auto flex items-center justify-between gap-3 pt-5">
-                  <AddToCartButton
-                    productId={product.id}
-                    disabled={!product.is_purchasable || !product.is_in_stock}
-                  />
+                  {product.type === "variable" ? (
+                    <Link
+                      href={`/product/${product.slug}`}
+                      onClick={close}
+                      className="rounded-full bg-plum-600 px-5 py-2.5 text-sm font-extrabold text-white transition-colors hover:bg-plum-700"
+                    >
+                      Select options
+                    </Link>
+                  ) : (
+                    <AddToCartButton
+                      productId={product.id}
+                      disabled={!product.is_purchasable || !product.is_in_stock}
+                    />
+                  )}
                   <Link
                     href={`/product/${product.slug}`}
                     onClick={close}

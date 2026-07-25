@@ -39,6 +39,21 @@ export interface StoreProduct {
   is_purchasable: boolean;
   average_rating: string;
   review_count: number;
+  attributes?: StoreAttribute[];
+  variations?: StoreVariationRef[];
+}
+
+export interface StoreAttribute {
+  id: number;
+  name: string;
+  taxonomy: string | null;
+  has_variations: boolean;
+  terms: { id: number; name: string; slug: string; default?: boolean }[];
+}
+
+export interface StoreVariationRef {
+  id: number;
+  attributes: { name: string; value: string }[];
 }
 
 export interface StoreReview {

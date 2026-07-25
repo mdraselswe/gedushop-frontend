@@ -4,10 +4,12 @@ import "./globals.css";
 import { CartProvider } from "@/context/CartContext";
 import { WishlistProvider } from "@/context/WishlistContext";
 import { ToastProvider } from "@/context/ToastContext";
+import { InStockProvider } from "@/context/InStockContext";
 import AnnouncementBar from "@/components/AnnouncementBar";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import ScrollToTop from "@/components/ScrollToTop";
+import MessengerButton from "@/components/MessengerButton";
 import SiteJsonLd from "@/components/SiteJsonLd";
 import Analytics from "@/components/Analytics";
 import MetaPixel from "@/components/MetaPixel";
@@ -68,6 +70,7 @@ export default async function RootLayout({
         <MetaPixel />
         <ToastProvider>
         <WishlistProvider>
+        <InStockProvider>
         <CartProvider>
           <AnnouncementBar />
           <Header />
@@ -80,7 +83,9 @@ export default async function RootLayout({
           <CartDrawer />
           <BottomNav categories={categories} />
           <ScrollToTop />
+          <MessengerButton />
         </CartProvider>
+        </InStockProvider>
         </WishlistProvider>
         </ToastProvider>
       </body>

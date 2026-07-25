@@ -6,6 +6,7 @@ import ProductBuyBox from "@/components/ProductBuyBox";
 import ProductGallery from "@/components/ProductGallery";
 import ProductCard from "@/components/ProductCard";
 import ProductReviews from "@/components/ProductReviews";
+import RecentlyViewed from "@/components/RecentlyViewed";
 import ProductAssurance from "@/components/ProductAssurance";
 import Highlights from "@/components/Highlights";
 import StickyBuyBar from "@/components/StickyBuyBar";
@@ -182,6 +183,8 @@ export default async function ProductPage({ params }: Props) {
           </div>
         </section>
       )}
+
+      <RecentlyViewed excludeSlug={product.slug} />
 
       <StickyBuyBar product={product} />
     </div>

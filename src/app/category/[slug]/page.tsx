@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import Breadcrumbs from "@/components/Breadcrumbs";
-import ProductGrid from "@/components/ProductGrid";
+import ProductBrowser from "@/components/ProductBrowser";
 import { getCategories, getCategoryBySlug, getProducts } from "@/lib/wp";
 
 interface Props {
@@ -37,7 +37,7 @@ export default async function CategoryPage({ params }: Props) {
   const category = await getCategoryBySlug(slug);
   if (!category) notFound();
 
-  const products = await getProducts({ category: String(category.id), perPage: 48 }).catch(() => []);
+  const products = await getProducts({ category: String(category.id), perPage: 24 }).catch(() => []);
 
   const breadcrumbLd = {
     "@context": "https://schema.org",
@@ -55,11 +55,12 @@ export default async function CategoryPage({ params }: Props) {
       <Breadcrumbs
         items={[{ label: "Home", href: "/" }, { label: "Shop", href: "/shop" }, { label: category.name }]}
       />
-      <div className="flex items-baseline justify-between">
-        <h1 className="font-heading text-2xl font-semibold tracking-tight text-plum-800">{category.name}</h1>
-        <span className="text-xs font-bold text-plum-400">{category.count} products</span>
-      </div>
-      <ProductGrid products={products} reveal />
+      <h1 className="font-heading text-2xl font-semibold tracking-tight text-plum-800">{category.name}</h1>
+      <ProductBrowser
+        categoryId={String(category.id)}
+        initialProducts={products}
+        initialTotal={category.count}
+      />
     </div>
   );
 }
