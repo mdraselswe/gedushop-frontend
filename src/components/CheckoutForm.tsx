@@ -172,9 +172,12 @@ export default function CheckoutForm() {
       ? cart.totals.total_price
       : String(Number(cart.totals.total_items) - Number(cart.totals.total_discount));
 
-  // bKash send-money charge (matches the server-side fee added on the order).
+  // bKash send-money charge, rounded to whole taka (matches the server-side fee).
+  const minorFactor = 10 ** (cart.totals.currency_minor_unit ?? 2);
   const bkashFee =
-    method === "bkash" && bkashCfg.enabled ? Math.round((Number(totalDisplay) * bkashCfg.fee) / 100) : 0;
+    method === "bkash" && bkashCfg.enabled
+      ? Math.round((Number(totalDisplay) / minorFactor) * (bkashCfg.fee / 100)) * minorFactor
+      : 0;
   const grandTotal = Number(totalDisplay) + bkashFee;
 
   function renderDelivery() {
@@ -284,13 +287,33 @@ export default function CheckoutForm() {
 
       <div className="h-fit rounded-2xl bg-white p-5 shadow-[var(--shadow-soft)] ring-1 ring-plum-100/50 md:sticky md:top-20">
         <h2 className="font-heading text-base font-semibold tracking-tight text-plum-800">Order Summary</h2>
-        <ul className="mt-3 space-y-2 text-sm text-plum-600">
+        <ul className="mt-4 space-y-3">
           {cart.items.map((item) => (
-            <li key={item.key} className="flex items-start justify-between gap-3">
-              <span className="leading-snug">
-                {decodeEntities(item.name)} <span className="whitespace-nowrap text-plum-400">× {item.quantity}</span>
+            <li key={item.key} className="flex items-center gap-3">
+              <div className="relative size-14 shrink-0 overflow-hidden rounded-xl bg-gradient-to-br from-plum-50 to-coral-50/40 ring-1 ring-plum-100">
+                {item.images[0] && (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img
+                    src={item.images[0].thumbnail || item.images[0].src}
+                    alt={decodeEntities(item.name)}
+                    loading="lazy"
+                    decoding="async"
+                    className="absolute inset-0 h-full w-full object-cover"
+                  />
+                )}
+                <span className="absolute -right-1.5 -top-1.5 flex size-5 items-center justify-center rounded-full bg-plum-600 text-[11px] font-extrabold text-white ring-2 ring-white">
+                  {item.quantity}
+                </span>
+              </div>
+              <div className="min-w-0 flex-1">
+                <p className="line-clamp-2 text-sm font-semibold leading-snug text-plum-800">{decodeEntities(item.name)}</p>
+                <p className="mt-0.5 text-xs text-plum-400 tabular-nums">
+                  {formatPrice(item.prices.price, item.prices)} × {item.quantity}
+                </p>
+              </div>
+              <span className="shrink-0 text-sm font-extrabold text-plum-700 tabular-nums">
+                {formatPrice(item.totals.line_total, item.totals)}
               </span>
-              <span className="shrink-0 font-bold">{formatPrice(item.totals.line_total, item.totals)}</span>
             </li>
           ))}
         </ul>
