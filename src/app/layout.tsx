@@ -38,6 +38,19 @@ export const metadata: Metadata = {
   description:
     "GeduShop — baby items, toys and kids essentials in Bangladesh. Order online, cash on delivery.",
   verification: { google: "Fp6pGFx8e9THBB-oayAFFv1VaNbZMpT0qWSY_JQ8Nxk" },
+  openGraph: {
+    type: "website",
+    siteName: "GeduShop",
+    title: "GeduShop — Baby Items & Toys in Bangladesh",
+    description: "Baby items, toys and kids essentials. Cash on delivery all over Bangladesh.",
+    images: [{ url: "/og.png", width: 1730, height: 909, alt: "GeduShop — Baby Items, Toys & Kids Essentials" }],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "GeduShop — Baby Items & Toys in Bangladesh",
+    description: "Baby items, toys and kids essentials. Cash on delivery all over Bangladesh.",
+    images: ["/og.png"],
+  },
   appleWebApp: {
     capable: true,
     title: "GeduShop",

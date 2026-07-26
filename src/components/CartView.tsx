@@ -74,7 +74,7 @@ export default function CartView() {
                 {decodeEntities(item.name)}
               </Link>
               <p className="mt-0.5 text-sm font-extrabold text-plum-600 tabular-nums">
-                {formatPrice(item.totals.line_total, item.totals)}
+                {formatPrice(item.totals.line_subtotal, item.totals)}
               </p>
             </div>
             <div className="flex flex-col items-end gap-2">

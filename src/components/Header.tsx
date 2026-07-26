@@ -25,7 +25,7 @@ export default function Header() {
     >
       <div className="mx-auto flex max-w-[120rem] flex-wrap items-center gap-x-4 gap-y-2 px-4 py-2.5 md:py-3">
         <Link href="/" className="shrink-0" aria-label="GeduShop home">
-          <Image src="/logo-light.png" alt="GeduShop" width={66} height={48} className="h-10 w-auto md:h-11" preload />
+          <Image src="/logo-light.png" alt="GeduShop" width={77} height={56} className="h-12 w-auto md:h-14" priority />
         </Link>
 
         <HeaderNav />

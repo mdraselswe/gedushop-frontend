@@ -88,6 +88,10 @@ export default function CheckoutForm() {
   async function submit(e: React.FormEvent) {
     e.preventDefault();
     setError(null);
+    if (!/^01[3-9]\d{8}$/.test(form.phone.trim())) {
+      setError("Please enter a valid Bangladeshi mobile number (11 digits, e.g. 01712345678).");
+      return;
+    }
     if (method === "bkash" && !trxId.trim()) {
       setError("Please enter your bKash Transaction ID after sending the money.");
       return;
@@ -198,12 +202,20 @@ export default function CheckoutForm() {
           placeholder="Mobile number (01XXXXXXXXX) *"
           className={inputCls}
           type="tel"
-          pattern="01[0-9]{9}"
-          title="11-digit Bangladeshi mobile number starting with 01"
+          pattern="01[3-9][0-9]{8}"
+          title="11-digit Bangladeshi mobile number, e.g. 01712345678"
           autoComplete="tel"
         />
         <input value={form.email} onChange={set("email")} placeholder="Email (optional)" className={inputCls} type="email" autoComplete="email" />
-        <input required value={form.address} onChange={set("address")} placeholder="Full delivery address *" className={inputCls} autoComplete="street-address" />
+        <textarea
+          required
+          value={form.address}
+          onChange={set("address")}
+          placeholder="Full delivery address (house, road, area) *"
+          rows={2}
+          className={inputCls}
+          autoComplete="street-address"
+        />
         <div className="grid gap-3 sm:grid-cols-2">
           <select
             required
@@ -290,17 +302,19 @@ export default function CheckoutForm() {
         <ul className="mt-4 space-y-3">
           {cart.items.map((item) => (
             <li key={item.key} className="flex items-center gap-3">
-              <div className="relative size-14 shrink-0 overflow-hidden rounded-xl bg-gradient-to-br from-plum-50 to-coral-50/40 ring-1 ring-plum-100">
-                {item.images[0] && (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img
-                    src={item.images[0].thumbnail || item.images[0].src}
-                    alt={decodeEntities(item.name)}
-                    loading="lazy"
-                    decoding="async"
-                    className="absolute inset-0 h-full w-full object-cover"
-                  />
-                )}
+              <div className="relative shrink-0">
+                <div className="size-14 overflow-hidden rounded-xl bg-gradient-to-br from-plum-50 to-coral-50/40 ring-1 ring-plum-100">
+                  {item.images[0] && (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img
+                      src={item.images[0].thumbnail || item.images[0].src}
+                      alt={decodeEntities(item.name)}
+                      loading="lazy"
+                      decoding="async"
+                      className="h-full w-full object-cover"
+                    />
+                  )}
+                </div>
                 <span className="absolute -right-1.5 -top-1.5 flex size-5 items-center justify-center rounded-full bg-plum-600 text-[11px] font-extrabold text-white ring-2 ring-white">
                   {item.quantity}
                 </span>
@@ -312,7 +326,7 @@ export default function CheckoutForm() {
                 </p>
               </div>
               <span className="shrink-0 text-sm font-extrabold text-plum-700 tabular-nums">
-                {formatPrice(item.totals.line_total, item.totals)}
+                {formatPrice(item.totals.line_subtotal, item.totals)}
               </span>
             </li>
           ))}

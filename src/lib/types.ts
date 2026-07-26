@@ -75,7 +75,8 @@ export interface StoreCategory {
 }
 
 export interface CartItemTotals {
-  line_total: string;
+  line_subtotal: string; // before coupon discount (price × qty)
+  line_total: string; // after coupon discount
   currency_minor_unit: number;
 }
 
