@@ -8,21 +8,22 @@ const STORE_API = `${WP_URL}/wp-json/wc/store/v1`;
  * Fetch with retry. Hostinger's hCDN intermittently returns 403/5xx on some
  * edge nodes (~1 in 12), which would otherwise leave a page empty at build.
  */
-async function fetchRetry(url: string, init?: RequestInit, attempts = 6): Promise<Response> {
+async function fetchRetry(url: string, init?: RequestInit, attempts = 8): Promise<Response> {
   let last: Response | null = null;
+  let lastErr: unknown = null;
   for (let i = 0; i < attempts; i++) {
     try {
       const res = await fetch(url, init);
       if (res.ok) return res;
       last = res;
       if (res.status !== 403 && res.status < 500) return res; // genuine client error — don't retry
-    } catch {
-      // network hiccup — retry
+    } catch (e) {
+      lastErr = e; // network hiccup / socket error — retry
     }
-    await new Promise((r) => setTimeout(r, 300 * (i + 1)));
+    await new Promise((r) => setTimeout(r, Math.min(500 * (i + 1), 4000)));
   }
   if (last) return last;
-  return fetch(url, init);
+  throw lastErr ?? new Error(`fetch failed: ${url}`);
 }
 
 async function storeGet<T>(path: string): Promise<T> {
@@ -85,9 +86,28 @@ export async function getProductsPaged(params: Parameters<typeof getProducts>[0]
   };
 }
 
+// All products fetched once and memoized for the build. Prevents the ~130
+// per-page requests (product + related pages) that trip Hostinger's hCDN rate
+// limiting and fail the export with socket errors.
+let allProductsCache: Promise<StoreProduct[]> | null = null;
+async function getAllProducts(): Promise<StoreProduct[]> {
+  if (!allProductsCache) {
+    allProductsCache = (async () => {
+      const all: StoreProduct[] = [];
+      for (let page = 1; page <= 20; page++) {
+        const list = await storeGet<StoreProduct[]>(`/products?per_page=100&page=${page}`);
+        all.push(...list.map(decodeProduct));
+        if (list.length < 100) break;
+      }
+      return all;
+    })();
+  }
+  return allProductsCache;
+}
+
 export async function getProductBySlug(slug: string): Promise<StoreProduct | null> {
-  const list = await storeGet<StoreProduct[]>(`/products?slug=${encodeURIComponent(slug)}`);
-  return list[0] ? decodeProduct(list[0]) : null;
+  const all = await getAllProducts();
+  return all.find((p) => p.slug === slug) ?? null;
 }
 
 export async function getCategories(): Promise<StoreCategory[]> {
@@ -107,6 +127,8 @@ export async function getRelatedProducts(
   limit = 6,
 ): Promise<StoreProduct[]> {
   if (!categoryId) return [];
-  const list = await getProducts({ perPage: limit + 1, category: String(categoryId) });
-  return list.filter((p) => p.id !== excludeId).slice(0, limit);
+  const all = await getAllProducts();
+  return all
+    .filter((p) => p.id !== excludeId && p.categories?.some((c) => c.id === categoryId))
+    .slice(0, limit);
 }
