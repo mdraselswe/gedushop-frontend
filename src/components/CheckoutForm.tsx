@@ -9,7 +9,7 @@ import { decodeEntities } from "@/lib/decode";
 import { formatPrice } from "@/lib/format";
 import { fbTrack } from "@/lib/pixel";
 import { DISTRICTS } from "@/lib/districts";
-import { apiFetch, STORE_API } from "@/lib/api";
+import { apiFetch, GEDU_API, STORE_API } from "@/lib/api";
 import CouponField from "./CouponField";
 
 const TOKEN_KEY = "gedu-cart-token";
@@ -33,6 +33,22 @@ export default function CheckoutForm() {
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const trackedCheckout = useRef(false);
+
+  const [method, setMethod] = useState<"cod" | "bkash">("cod");
+  const [trxId, setTrxId] = useState("");
+  const [sender, setSender] = useState("");
+  const [bkashCfg, setBkashCfg] = useState<{ enabled: boolean; number: string; fee: number }>({
+    enabled: false,
+    number: "",
+    fee: 1.85,
+  });
+
+  useEffect(() => {
+    apiFetch(`${GEDU_API}/payment`)
+      .then((r) => (r.ok ? r.json() : null))
+      .then((d) => d?.bkash && setBkashCfg(d.bkash))
+      .catch(() => {});
+  }, []);
 
   // Fire InitiateCheckout once the cart is loaded with items.
   useEffect(() => {
@@ -63,6 +79,10 @@ export default function CheckoutForm() {
   async function submit(e: React.FormEvent) {
     e.preventDefault();
     setError(null);
+    if (method === "bkash" && !trxId.trim()) {
+      setError("Please enter your bKash Transaction ID after sending the money.");
+      return;
+    }
     setSubmitting(true);
 
     const [firstName, ...rest] = form.name.trim().split(/\s+/);
@@ -90,8 +110,11 @@ export default function CheckoutForm() {
         body: JSON.stringify({
           billing_address: address,
           shipping_address: address,
-          payment_method: "cod",
+          payment_method: method,
           customer_note: form.note.trim(),
+          ...(method === "bkash"
+            ? { extensions: { gedushop: { trx_id: trxId.trim(), sender: sender.trim() } } }
+            : {}),
         }),
       });
       const data = await res.json();
@@ -101,7 +124,7 @@ export default function CheckoutForm() {
       }
       localStorage.removeItem(TOKEN_KEY); // cart is consumed by the order
       const minor = cart?.totals.currency_minor_unit ?? 2;
-      const value = (Number(cart?.totals.total_price ?? 0) / 10 ** minor).toFixed(2);
+      const value = (grandTotal / 10 ** minor).toFixed(2);
       router.push(`/checkout/success?order=${data.order_id}&value=${value}`);
     } catch {
       setError("Network problem — please try again.");
@@ -139,6 +162,11 @@ export default function CheckoutForm() {
     form.district && !shippingLoading
       ? cart.totals.total_price
       : String(Number(cart.totals.total_items) - Number(cart.totals.total_discount));
+
+  // bKash send-money charge (matches the server-side fee added on the order).
+  const bkashFee =
+    method === "bkash" && bkashCfg.enabled ? Math.round((Number(totalDisplay) * bkashCfg.fee) / 100) : 0;
+  const grandTotal = Number(totalDisplay) + bkashFee;
 
   function renderDelivery() {
     if (!form.district) return <span className="text-plum-300">Select district</span>;
@@ -183,6 +211,60 @@ export default function CheckoutForm() {
           <input value={form.area} onChange={set("area")} placeholder="Area / Thana (optional)" className={inputCls} autoComplete="address-level3" />
         </div>
         <textarea value={form.note} onChange={set("note")} placeholder="Order note (optional)" rows={2} className={inputCls} />
+
+        {/* Payment method */}
+        <div className="rounded-2xl bg-white p-4 shadow-[var(--shadow-soft)] ring-1 ring-plum-100/50">
+          <h3 className="mb-2.5 text-sm font-bold text-plum-700">Payment method</h3>
+          <div className="space-y-2">
+            <label
+              className={`flex cursor-pointer items-center gap-3 rounded-xl border-2 p-3 transition-colors ${
+                method === "cod" ? "border-coral-500 bg-coral-50/40" : "border-plum-100"
+              }`}
+            >
+              <input type="radio" name="pay" checked={method === "cod"} onChange={() => setMethod("cod")} className="size-4 accent-coral-500" />
+              <span className="text-sm font-bold text-plum-800">Cash on Delivery</span>
+            </label>
+            {bkashCfg.enabled && (
+              <label
+                className={`flex cursor-pointer items-center gap-3 rounded-xl border-2 p-3 transition-colors ${
+                  method === "bkash" ? "border-coral-500 bg-coral-50/40" : "border-plum-100"
+                }`}
+              >
+                <input type="radio" name="pay" checked={method === "bkash"} onChange={() => setMethod("bkash")} className="size-4 accent-coral-500" />
+                <span className="text-sm font-bold text-plum-800">
+                  bKash <span className="font-normal text-plum-400">(+{bkashCfg.fee}% charge)</span>
+                </span>
+              </label>
+            )}
+          </div>
+
+          {method === "bkash" && bkashCfg.enabled && (
+            <div className="mt-3 space-y-2.5 rounded-xl bg-plum-50/60 p-3.5 text-sm text-plum-700">
+              <p>
+                Send <span className="font-extrabold text-plum-900">{formatPrice(String(grandTotal), cart.totals)}</span> to our bKash{" "}
+                <span className="font-extrabold">Merchant</span> number:
+              </p>
+              <p className="text-lg font-extrabold tracking-wide text-plum-900">{bkashCfg.number}</p>
+              <p className="text-xs text-plum-500">
+                Open bKash → Payment → enter the number → send the exact amount → then put the Transaction ID below.
+              </p>
+              <input
+                required
+                value={trxId}
+                onChange={(e) => setTrxId(e.target.value)}
+                placeholder="bKash Transaction ID *"
+                className={inputCls}
+              />
+              <input
+                value={sender}
+                onChange={(e) => setSender(e.target.value)}
+                placeholder="Your bKash number (optional)"
+                type="tel"
+                className={inputCls}
+              />
+            </div>
+          )}
+        </div>
       </div>
 
       <div className="h-fit rounded-2xl bg-white p-5 shadow-[var(--shadow-soft)] ring-1 ring-plum-100/50 md:sticky md:top-20">
@@ -212,9 +294,15 @@ export default function CheckoutForm() {
           <span>Delivery</span>
           {renderDelivery()}
         </div>
+        {bkashFee > 0 && (
+          <div className="mt-1 flex items-center justify-between text-sm text-plum-500">
+            <span>bKash charge ({bkashCfg.fee}%)</span>
+            <span className="tabular-nums">{formatPrice(String(bkashFee), cart.totals)}</span>
+          </div>
+        )}
         <div className="mt-2 flex justify-between border-t border-plum-100 pt-3 text-lg font-extrabold text-plum-800">
           <span>Total</span>
-          <span className="tabular-nums">{formatPrice(totalDisplay, cart.totals)}</span>
+          <span className="tabular-nums">{formatPrice(String(grandTotal), cart.totals)}</span>
         </div>
         <p className="mt-3 flex items-center gap-2 rounded-xl bg-coral-50 px-3 py-2 text-xs font-bold text-coral-700">
           <Banknote className="size-4 shrink-0" strokeWidth={2.25} />
