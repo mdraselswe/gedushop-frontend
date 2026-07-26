@@ -26,6 +26,15 @@ interface FormState {
 
 const EMPTY: FormState = { name: "", phone: "", email: "", address: "", area: "", district: "", note: "" };
 
+/** Official bKash logomark (brand pink). Sized by height, width auto — no aspect mismatch. */
+function BkashLogo({ className = "" }: { className?: string }) {
+  return (
+    <svg viewBox="61 0 58 54" className={`w-auto text-[#E2136E] ${className}`} fill="currentColor" aria-hidden>
+      <path d="m82.9 25.9 3.3 14.6 21.5-10.7zM89 3.8 83.2 25l24 3.8zM62.8.6l25.5 3.1-6 21.8zM62.5 4.8h3l8 10.3zM108.4 29.6l-7.5-10.3 12-2.3zM107.2 32.5l.7-2.2-18.7 9.6zM82.4 26.3 86.3 44l-11.6 9.4zM111.8 22.3h7l-5.1-5.1z" />
+    </svg>
+  );
+}
+
 export default function CheckoutForm() {
   const { cart, loading, updateShipping, shippingLoading } = useCart();
   const router = useRouter();
@@ -222,6 +231,9 @@ export default function CheckoutForm() {
               }`}
             >
               <input type="radio" name="pay" checked={method === "cod"} onChange={() => setMethod("cod")} className="size-4 accent-coral-500" />
+              <span className="flex w-6 shrink-0 justify-center">
+                <Banknote className="size-5 text-emerald-600" strokeWidth={2} />
+              </span>
               <span className="text-sm font-bold text-plum-800">Cash on Delivery</span>
             </label>
             {bkashCfg.enabled && (
@@ -231,6 +243,9 @@ export default function CheckoutForm() {
                 }`}
               >
                 <input type="radio" name="pay" checked={method === "bkash"} onChange={() => setMethod("bkash")} className="size-4 accent-coral-500" />
+                <span className="flex w-6 shrink-0 justify-center">
+                  <BkashLogo className="h-5" />
+                </span>
                 <span className="text-sm font-bold text-plum-800">
                   bKash <span className="font-normal text-plum-400">(+{bkashCfg.fee}% charge)</span>
                 </span>
@@ -241,12 +256,12 @@ export default function CheckoutForm() {
           {method === "bkash" && bkashCfg.enabled && (
             <div className="mt-3 space-y-2.5 rounded-xl bg-plum-50/60 p-3.5 text-sm text-plum-700">
               <p>
-                Send <span className="font-extrabold text-plum-900">{formatPrice(String(grandTotal), cart.totals)}</span> to our bKash{" "}
-                <span className="font-extrabold">Merchant</span> number:
+                <span className="font-extrabold">Send Money</span> of{" "}
+                <span className="font-extrabold text-plum-900">{formatPrice(String(grandTotal), cart.totals)}</span> to our bKash number:
               </p>
               <p className="text-lg font-extrabold tracking-wide text-plum-900">{bkashCfg.number}</p>
               <p className="text-xs text-plum-500">
-                Open bKash → Payment → enter the number → send the exact amount → then put the Transaction ID below.
+                Open bKash → Send Money → enter the number → send the exact amount → then put the Transaction ID below.
               </p>
               <input
                 required
@@ -306,7 +321,9 @@ export default function CheckoutForm() {
         </div>
         <p className="mt-3 flex items-center gap-2 rounded-xl bg-coral-50 px-3 py-2 text-xs font-bold text-coral-700">
           <Banknote className="size-4 shrink-0" strokeWidth={2.25} />
-          Cash on Delivery — pay when your order arrives
+          {method === "bkash"
+            ? "bKash Send Money now, then place your order"
+            : "Cash on Delivery — pay when your order arrives"}
         </p>
         <p className="mt-2 text-center text-[11px] font-semibold text-plum-400">
           Free delivery on orders over ৳2,000
