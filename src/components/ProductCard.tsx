@@ -12,6 +12,16 @@ export default function ProductCard({ product }: { product: StoreProduct }) {
   const discount = discountPercent(product.prices);
   const soldOut = !product.is_in_stock || !product.is_purchasable;
   const needsOptions = product.type === "variable"; // pick a variation on the product page
+
+  // Mini color swatches for variable products (from WP's swatch plugin hexes).
+  const swatches = (() => {
+    const maps = product.extensions?.gedushop?.attribute_colors;
+    if (!maps) return [];
+    const attr = (product.attributes ?? []).find((a) => a.has_variations && a.taxonomy && maps[a.taxonomy]);
+    if (!attr) return [];
+    const m = maps[attr.taxonomy!];
+    return attr.terms.map((t) => m[t.slug]).filter(Boolean);
+  })();
   // Sold-out badge takes the top-left slot; discount is moot when unavailable.
   const showDiscount = discount && !soldOut;
 
@@ -66,6 +76,16 @@ export default function ProductCard({ product }: { product: StoreProduct }) {
                 <Stars value={Number(product.average_rating) || 0} className="size-3" />
                 <span className="text-[11px] font-bold text-plum-400">({product.review_count})</span>
               </>
+            )}
+            {swatches.length > 0 && (
+              <span className="ml-auto flex items-center gap-1">
+                {swatches.slice(0, 4).map((h, i) => (
+                  <span key={i} className="size-3 rounded-full ring-1 ring-plum-200" style={{ backgroundColor: h }} />
+                ))}
+                {swatches.length > 4 && (
+                  <span className="text-[10px] font-bold text-plum-300">+{swatches.length - 4}</span>
+                )}
+              </span>
             )}
           </div>
         </div>

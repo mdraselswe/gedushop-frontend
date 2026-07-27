@@ -29,18 +29,34 @@ export default function ProductGallery({ images, name, discount, slug, video }: 
   const [hoverZoom, setHoverZoom] = useState(false);
   const [origin, setOrigin] = useState("50% 50%");
   const [lightbox, setLightbox] = useState(false);
+  // Selected variation's own photo (sent by the buy box) — shown instead of the
+  // current slide until the user browses the gallery again.
+  const [override, setOverride] = useState<StoreImage | null>(null);
   const touchStartX = useRef<number | null>(null);
   const swiped = useRef(false);
+
+  useEffect(() => {
+    const onVarImage = (e: Event) => {
+      const img = (e as CustomEvent).detail as StoreImage | null;
+      // Skip if it's already the product's own first image (no visual change).
+      setOverride(img && img.src !== images[0]?.src ? img : null);
+    };
+    window.addEventListener("gedu:variation-image", onVarImage);
+    return () => window.removeEventListener("gedu:variation-image", onVarImage);
+  }, [images]);
 
   const embed = youtubeEmbed(video);
   const hasVideo = !!embed;
   const slideCount = images.length + (hasVideo ? 1 : 0);
   const many = slideCount > 1;
-  const isVideo = hasVideo && index >= images.length;
-  const current = images[index]; // undefined on the video slide
+  const isVideo = hasVideo && index >= images.length && !override;
+  const current = override ?? images[index]; // undefined on the video slide
 
   const go = useCallback(
-    (dir: 1 | -1) => setIndex((i) => (i + dir + slideCount) % slideCount),
+    (dir: 1 | -1) => {
+      setOverride(null);
+      setIndex((i) => (i + dir + slideCount) % slideCount);
+    },
     [slideCount],
   );
 
@@ -157,10 +173,13 @@ export default function ProductGallery({ images, name, discount, slug, video }: 
           {images.map((img, i) => (
             <button
               key={img.id}
-              onClick={() => setIndex(i)}
+              onClick={() => {
+                setOverride(null);
+                setIndex(i);
+              }}
               aria-label={`Image ${i + 1}`}
               className={`relative size-16 shrink-0 overflow-hidden rounded-xl border-2 bg-white transition-colors ${
-                i === index ? "border-coral-500" : "border-transparent hover:border-plum-200"
+                i === index && !override ? "border-coral-500" : "border-transparent hover:border-plum-200"
               }`}
             >
               <Image src={img.thumbnail || img.src} alt="" fill sizes="64px" className="object-cover" />
@@ -168,7 +187,10 @@ export default function ProductGallery({ images, name, discount, slug, video }: 
           ))}
           {hasVideo && (
             <button
-              onClick={() => setIndex(images.length)}
+              onClick={() => {
+                setOverride(null);
+                setIndex(images.length);
+              }}
               aria-label="Play product video"
               className={`relative size-16 shrink-0 overflow-hidden rounded-xl border-2 bg-plum-900 transition-colors ${
                 isVideo ? "border-coral-500" : "border-transparent hover:border-plum-200"

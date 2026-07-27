@@ -23,7 +23,9 @@ export default function StickyBuyBar({ product }: { product: StoreProduct }) {
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
-  if (!available) return null;
+  // Variable products need an option picked in the buy box — a blind quick-add
+  // would be rejected by Woo, so skip the bar for them.
+  if (!available || product.type === "variable") return null;
 
   return (
     <div

@@ -73,8 +73,18 @@ export default function CartView() {
               >
                 {decodeEntities(item.name)}
               </Link>
+              {item.variation && item.variation.length > 0 && (
+                <p className="mt-0.5 text-xs font-semibold text-plum-400">
+                  {item.variation.map((v) => `${v.attribute}: ${v.value}`).join(" · ")}
+                </p>
+              )}
               <p className="mt-0.5 text-sm font-extrabold text-plum-600 tabular-nums">
                 {formatPrice(item.totals.line_subtotal, item.totals)}
+                {Number(item.prices.regular_price) > Number(item.prices.price) && (
+                  <span className="ml-1.5 text-xs font-semibold text-plum-300 line-through">
+                    {formatPrice(String(Number(item.prices.regular_price) * item.quantity), item.prices)}
+                  </span>
+                )}
               </p>
             </div>
             <div className="flex flex-col items-end gap-2">

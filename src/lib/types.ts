@@ -41,7 +41,13 @@ export interface StoreProduct {
   review_count: number;
   attributes?: StoreAttribute[];
   variations?: StoreVariationRef[];
-  extensions?: { gedushop?: { video?: string } };
+  extensions?: {
+    gedushop?: {
+      video?: string;
+      /** Swatch hex by taxonomy then term slug, e.g. { pa_color: { blue: "#1e73be" } } */
+      attribute_colors?: Record<string, Record<string, string>>;
+    };
+  };
 }
 
 export interface StoreAttribute {
@@ -89,6 +95,8 @@ export interface CartItem {
   name: string;
   quantity: number;
   permalink?: string;
+  /** Chosen options for variable products, e.g. [{attribute:"Color", value:"Blue"}] */
+  variation?: { attribute: string; value: string }[];
   images: StoreImage[];
   prices: StorePrices;
   totals: CartItemTotals;

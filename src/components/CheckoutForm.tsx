@@ -143,7 +143,9 @@ export default function CheckoutForm() {
           JSON.stringify({
             id: data.order_id,
             items: cart!.items.map((i) => ({
-              name: decodeEntities(i.name),
+              name:
+                decodeEntities(i.name) +
+                (i.variation?.length ? ` (${i.variation.map((v) => v.value).join(", ")})` : ""),
               qty: i.quantity,
               total: formatPrice(i.totals.line_subtotal, i.totals),
             })),
@@ -352,7 +354,17 @@ export default function CheckoutForm() {
               </div>
               <div className="min-w-0 flex-1">
                 <p className="line-clamp-2 text-sm font-semibold leading-snug text-plum-800">{decodeEntities(item.name)}</p>
+                {item.variation && item.variation.length > 0 && (
+                  <p className="mt-0.5 text-xs font-semibold text-plum-400">
+                    {item.variation.map((v) => `${v.attribute}: ${v.value}`).join(" · ")}
+                  </p>
+                )}
                 <p className="mt-0.5 text-xs text-plum-400 tabular-nums">
+                  {Number(item.prices.regular_price) > Number(item.prices.price) && (
+                    <span className="mr-1 text-plum-300 line-through">
+                      {formatPrice(item.prices.regular_price, item.prices)}
+                    </span>
+                  )}
                   {formatPrice(item.prices.price, item.prices)} × {item.quantity}
                 </p>
               </div>
