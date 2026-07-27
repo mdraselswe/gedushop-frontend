@@ -136,6 +136,37 @@ export default function CheckoutForm() {
         return;
       }
       localStorage.removeItem(TOKEN_KEY); // cart is consumed by the order
+      // Snapshot for the success page (order details without any backend call).
+      try {
+        sessionStorage.setItem(
+          "gedu_last_order",
+          JSON.stringify({
+            id: data.order_id,
+            items: cart!.items.map((i) => ({
+              name: decodeEntities(i.name),
+              qty: i.quantity,
+              total: formatPrice(i.totals.line_subtotal, i.totals),
+            })),
+            subtotal: formatPrice(cart!.totals.total_items, cart!.totals),
+            discount:
+              Number(cart!.totals.total_discount) > 0
+                ? formatPrice(cart!.totals.total_discount, cart!.totals)
+                : null,
+            delivery: shippingIsFree ? "FREE" : formatPrice(shipping ?? "0", cart!.totals),
+            fee: bkashFee > 0 ? formatPrice(String(bkashFee), cart!.totals) : null,
+            total: formatPrice(String(grandTotal), cart!.totals),
+            method: method === "bkash" ? "bKash" : "Cash on Delivery",
+            trxId: method === "bkash" ? trxId.trim() : null,
+            name: form.name.trim(),
+            phone: form.phone.trim(),
+            address: `${form.address.trim()}${form.area.trim() ? ", " + form.area.trim() : ""}, ${
+              DISTRICTS.find((d) => d.code === form.district)?.name ?? ""
+            }`,
+          }),
+        );
+      } catch {
+        // storage unavailable — success page falls back to the simple view
+      }
       const minor = cart?.totals.currency_minor_unit ?? 2;
       const value = (grandTotal / 10 ** minor).toFixed(2);
       router.push(`/checkout/success?order=${data.order_id}&value=${value}`);

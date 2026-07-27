@@ -25,8 +25,8 @@
 
   --color-cream: #f6f5fb;
 
-  --font-heading: var(--font-fredoka), "Fredoka", sans-serif;
-  --font-body: var(--font-nunito), "Nunito", sans-serif;
+  --font-heading: var(--font-fredoka), "Fredoka", var(--font-bengali), sans-serif;
+  --font-body: var(--font-nunito), "Nunito", var(--font-bengali), sans-serif;
 
   /* Plum-tinted shadows — softer & more premium than flat black */
   --shadow-soft: 0 1px 2px rgba(47, 39, 73, 0.04), 0 4px 12px rgba(47, 39, 73, 0.06);
@@ -90,6 +90,36 @@ body {
   from {
     opacity: 0;
     transform: translateX(16px) scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* Outdated-browser notice: visible by default (plain CSS every browser understands),
+   hidden by any browser modern enough for Tailwind v4 (oklch = same baseline). */
+.browser-warning {
+  background: #fff3cd;
+  color: #664d03;
+  border-bottom: 1px solid #ffe69c;
+  padding: 12px 16px;
+  text-align: center;
+  font-size: 14px;
+  line-height: 1.5;
+  font-family: Arial, sans-serif;
+}
+@supports (color: oklch(0% 0 0)) {
+  .browser-warning {
+    display: none;
+  }
+}
+
+/* Soft page enter (used by app/template.tsx on route change) */
+@keyframes page-in {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
   }
   to {
     opacity: 1;

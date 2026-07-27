@@ -41,6 +41,7 @@ export interface StoreProduct {
   review_count: number;
   attributes?: StoreAttribute[];
   variations?: StoreVariationRef[];
+  extensions?: { gedushop?: { video?: string } };
 }
 
 export interface StoreAttribute {
@@ -64,6 +65,7 @@ export interface StoreReview {
   rating: number;
   date_created: string;
   verified: boolean;
+  photos?: { thumb: string; full: string }[];
 }
 
 export interface StoreCategory {
@@ -71,6 +73,7 @@ export interface StoreCategory {
   name: string;
   slug: string;
   count: number;
+  description?: string;
   image: StoreImage | null;
 }
 

@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from "next";
-import { Fredoka, Nunito } from "next/font/google";
+import { Fredoka, Noto_Sans_Bengali, Nunito } from "next/font/google";
 import "./globals.css";
 import { CartProvider } from "@/context/CartContext";
 import { WishlistProvider } from "@/context/WishlistContext";
@@ -27,6 +27,14 @@ const fredoka = Fredoka({
 const nunito = Nunito({
   variable: "--font-nunito",
   subsets: ["latin"],
+});
+
+// Bangla glyph fallback — Nunito/Fredoka have no Bengali, so without this the
+// browser falls back to inconsistent system fonts for বাংলা content.
+const bengali = Noto_Sans_Bengali({
+  variable: "--font-bengali",
+  subsets: ["bengali"],
+  weight: ["400", "600", "700"],
 });
 
 export const metadata: Metadata = {
@@ -74,10 +82,16 @@ export default async function RootLayout({
   const categories = await getCategories().catch(() => []);
 
   return (
-    <html lang="en" className={`${fredoka.variable} ${nunito.variable} h-full antialiased`}>
+    <html lang="en" className={`${fredoka.variable} ${nunito.variable} ${bengali.variable} h-full antialiased`}>
       {/* suppressHydrationWarning: browser extensions (ColorZilla etc.) inject
           attributes into <body> before React hydrates — harmless, not our markup */}
       <body className="min-h-full flex flex-col" suppressHydrationWarning>
+        {/* Shown only on browsers too old to render the site's CSS (see .browser-warning) */}
+        <div className="browser-warning">
+          ⚠️ Your browser is outdated and this site may look broken. Please use an updated
+          browser like <strong>Chrome</strong>. — আপনার ব্রাউজারটি পুরনো, সাইটটি ঠিকমতো দেখতে{" "}
+          <strong>Chrome</strong> ব্যবহার করুন।
+        </div>
         <SiteJsonLd />
         <Analytics />
         <MetaPixel />

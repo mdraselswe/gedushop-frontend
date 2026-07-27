@@ -3,8 +3,9 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { Suspense, useEffect, useRef, useState } from "react";
-import { ArrowRight, ImageOff, Loader2, X } from "lucide-react";
+import { Suspense, useCallback, useEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
+import { ArrowLeft, ArrowRight, ImageOff, Loader2, X } from "lucide-react";
 import type { StoreProduct } from "@/lib/types";
 import { decodeEntities } from "@/lib/decode";
 import { formatPrice } from "@/lib/format";
@@ -21,10 +22,12 @@ function SearchBarInner() {
 
   const [query, setQuery] = useState(urlQuery);
   const [results, setResults] = useState<StoreProduct[]>([]);
-  const [open, setOpen] = useState(false);
+  const [open, setOpen] = useState(false); // desktop dropdown
+  const [mobileOpen, setMobileOpen] = useState(false); // full-screen overlay
   const [loading, setLoading] = useState(false);
   const boxRef = useRef<HTMLFormElement>(null);
   const abortRef = useRef<AbortController | null>(null);
+  const mobileInputRef = useRef<HTMLInputElement>(null);
 
   // Keep the input in sync when the URL changes (back button, sidebar links…)
   useEffect(() => setQuery(urlQuery), [urlQuery]);
@@ -49,7 +52,7 @@ function SearchBarInner() {
         });
         if (res.ok) {
           setResults(await res.json());
-          setOpen(true);
+          if (!mobileOpen) setOpen(true);
         }
       } catch {
         // aborted or offline — keep whatever we had
@@ -61,9 +64,9 @@ function SearchBarInner() {
       clearTimeout(t);
       controller.abort();
     };
-  }, [query]);
+  }, [query, mobileOpen]);
 
-  // Close the dropdown on outside click / Escape
+  // Close the desktop dropdown on outside click / Escape
   useEffect(() => {
     const onDown = (e: PointerEvent) => {
       if (boxRef.current && !boxRef.current.contains(e.target as Node)) setOpen(false);
@@ -77,6 +80,25 @@ function SearchBarInner() {
     };
   }, []);
 
+  // Overlay: scroll lock + autofocus + Escape
+  useEffect(() => {
+    if (!mobileOpen) return;
+    document.body.style.overflow = "hidden";
+    const raf = requestAnimationFrame(() => mobileInputRef.current?.focus());
+    const onKey = (e: KeyboardEvent) => e.key === "Escape" && setMobileOpen(false);
+    document.addEventListener("keydown", onKey);
+    return () => {
+      cancelAnimationFrame(raf);
+      document.body.style.overflow = "";
+      document.removeEventListener("keydown", onKey);
+    };
+  }, [mobileOpen]);
+
+  const closeAll = useCallback(() => {
+    setOpen(false);
+    setMobileOpen(false);
+  }, []);
+
   function clear() {
     setQuery("");
     setResults([]);
@@ -85,13 +107,67 @@ function SearchBarInner() {
     if (urlQuery) router.push("/shop");
   }
 
-  function submit(e: React.FormEvent) {
-    e.preventDefault();
+  function goToAll() {
     const q = query.trim();
-    setOpen(false);
+    closeAll();
     if (q) router.push(`/shop?search=${encodeURIComponent(q)}`);
     else clear();
   }
+
+  function submit(e: React.FormEvent) {
+    e.preventDefault();
+    goToAll();
+  }
+
+  const resultsList =
+    results.length === 0 ? (
+      <p className="p-4 text-center text-sm font-semibold text-plum-400">
+        No products found for “{query.trim()}”
+      </p>
+    ) : (
+      <>
+        <ul className="overflow-y-auto md:max-h-80">
+          {results.map((p) => (
+            <li key={p.id}>
+              <Link
+                href={`/product/${p.slug}`}
+                onClick={closeAll}
+                className="flex items-center gap-3 px-3 py-2.5 transition-colors hover:bg-plum-50"
+              >
+                <span className="relative size-10 shrink-0 overflow-hidden rounded-lg bg-plum-50">
+                  {p.images[0] ? (
+                    <Image
+                      src={p.images[0].thumbnail || p.images[0].src}
+                      alt=""
+                      fill
+                      sizes="40px"
+                      className="object-cover"
+                    />
+                  ) : (
+                    <span className="flex h-full items-center justify-center">
+                      <ImageOff className="size-4 text-plum-200" />
+                    </span>
+                  )}
+                </span>
+                <span className="min-w-0 flex-1">
+                  <span className="line-clamp-1 text-sm font-semibold text-plum-800">{decodeEntities(p.name)}</span>
+                  <span className="text-xs font-extrabold text-plum-500">
+                    {formatPrice(p.prices.price, p.prices)}
+                  </span>
+                </span>
+              </Link>
+            </li>
+          ))}
+        </ul>
+        <button
+          type="button"
+          onClick={goToAll}
+          className="flex w-full items-center justify-center gap-1.5 border-t border-plum-100 bg-plum-50/50 py-2.5 text-xs font-extrabold text-coral-500 transition-colors hover:bg-plum-50"
+        >
+          See all results <ArrowRight className="size-3.5" strokeWidth={2.5} />
+        </button>
+      </>
+    );
 
   return (
     <form ref={boxRef} onSubmit={submit} className="relative w-full">
@@ -99,7 +175,15 @@ function SearchBarInner() {
         type="text"
         value={query}
         onChange={(e) => setQuery(e.target.value)}
-        onFocus={() => results.length > 0 && setOpen(true)}
+        onFocus={(e) => {
+          // Mobile: hand over to the full-screen overlay for comfortable typing
+          if (window.innerWidth < 768) {
+            e.target.blur();
+            setMobileOpen(true);
+            return;
+          }
+          if (results.length > 0) setOpen(true);
+        }}
         placeholder="Search toys, baby items…"
         className="w-full rounded-full border border-plum-100 bg-white py-2.5 pl-4 pr-16 text-sm text-plum-800 placeholder:text-plum-300 shadow-sm outline-none focus:border-plum-300 focus:ring-2 focus:ring-plum-100"
       />
@@ -123,57 +207,72 @@ function SearchBarInner() {
         {loading ? <Loader2 className="size-4 animate-spin" /> : <SearchIcon className="size-4" />}
       </button>
 
-      {open && (
-        <div className="absolute left-0 right-0 top-full z-50 mt-2 overflow-hidden rounded-2xl border border-plum-100 bg-white shadow-xl shadow-plum-900/10">
-          {results.length === 0 ? (
-            <p className="p-4 text-center text-sm font-semibold text-plum-400">
-              No products found for “{query.trim()}”
-            </p>
-          ) : (
-            <>
-              <ul className="max-h-80 overflow-y-auto">
-                {results.map((p) => (
-                  <li key={p.id}>
-                    <Link
-                      href={`/product/${p.slug}`}
-                      onClick={() => setOpen(false)}
-                      className="flex items-center gap-3 px-3 py-2.5 transition-colors hover:bg-plum-50"
-                    >
-                      <span className="relative size-10 shrink-0 overflow-hidden rounded-lg bg-plum-50">
-                        {p.images[0] ? (
-                          <Image
-                            src={p.images[0].thumbnail || p.images[0].src}
-                            alt=""
-                            fill
-                            sizes="40px"
-                            className="object-cover"
-                          />
-                        ) : (
-                          <span className="flex h-full items-center justify-center">
-                            <ImageOff className="size-4 text-plum-200" />
-                          </span>
-                        )}
-                      </span>
-                      <span className="min-w-0 flex-1">
-                        <span className="line-clamp-1 text-sm font-semibold text-plum-800">{decodeEntities(p.name)}</span>
-                        <span className="text-xs font-extrabold text-plum-500">
-                          {formatPrice(p.prices.price, p.prices)}
-                        </span>
-                      </span>
-                    </Link>
-                  </li>
-                ))}
-              </ul>
-              <button
-                type="submit"
-                className="flex w-full items-center justify-center gap-1.5 border-t border-plum-100 bg-plum-50/50 py-2.5 text-xs font-extrabold text-coral-500 transition-colors hover:bg-plum-50"
-              >
-                See all results <ArrowRight className="size-3.5" strokeWidth={2.5} />
-              </button>
-            </>
-          )}
+      {/* Desktop dropdown */}
+      {open && !mobileOpen && (
+        <div className="absolute left-0 right-0 top-full z-50 mt-2 hidden overflow-hidden rounded-2xl border border-plum-100 bg-white shadow-xl shadow-plum-900/10 md:block">
+          {resultsList}
         </div>
       )}
+
+      {/* Mobile full-screen search overlay */}
+      {mobileOpen &&
+        createPortal(
+          <div
+            className="fixed inset-0 z-[80] flex flex-col bg-white md:hidden"
+            role="dialog"
+            aria-modal="true"
+            aria-label="Search"
+          >
+            <div className="flex items-center gap-2 border-b border-plum-100 px-3 py-2.5">
+              <button
+                type="button"
+                onClick={() => setMobileOpen(false)}
+                aria-label="Close search"
+                className="flex size-10 shrink-0 items-center justify-center rounded-full text-plum-600 hover:bg-plum-50"
+              >
+                <ArrowLeft className="size-5" strokeWidth={2.25} />
+              </button>
+              <div className="relative flex-1">
+                <input
+                  ref={mobileInputRef}
+                  type="text"
+                  value={query}
+                  onChange={(e) => setQuery(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") {
+                      e.preventDefault();
+                      goToAll();
+                    }
+                  }}
+                  placeholder="Search toys, baby items…"
+                  className="w-full rounded-full border border-plum-100 bg-plum-50/50 py-2.5 pl-4 pr-10 text-plum-800 placeholder:text-plum-300 outline-none focus:border-plum-300"
+                />
+                {query && (
+                  <button
+                    type="button"
+                    onClick={() => setQuery("")}
+                    aria-label="Clear"
+                    className="absolute right-2.5 top-1/2 -translate-y-1/2 rounded-full p-1 text-plum-300"
+                  >
+                    <X className="size-4" strokeWidth={2.5} />
+                  </button>
+                )}
+              </div>
+            </div>
+            <div className="flex-1 overflow-y-auto pb-8">
+              {loading && (
+                <div className="flex justify-center pt-8">
+                  <Loader2 className="size-6 animate-spin text-plum-300" />
+                </div>
+              )}
+              {!loading && query.trim().length >= MIN_CHARS && resultsList}
+              {!loading && query.trim().length < MIN_CHARS && (
+                <p className="pt-10 text-center text-sm font-semibold text-plum-300">Type to search products…</p>
+              )}
+            </div>
+          </div>,
+          document.body,
+        )}
     </form>
   );
 }

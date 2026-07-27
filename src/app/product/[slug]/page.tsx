@@ -119,7 +119,13 @@ export default async function ProductPage({ params }: Props) {
         ]}
       />
       <div className="grid grid-cols-1 gap-5 md:grid-cols-2 md:gap-8">
-        <ProductGallery images={product.images} name={product.name} discount={discount} slug={product.slug} />
+        <ProductGallery
+          images={product.images}
+          name={product.name}
+          discount={discount}
+          slug={product.slug}
+          video={product.extensions?.gedushop?.video}
+        />
 
         <div className="flex min-w-0 flex-col">
           <h1 className="font-heading text-2xl font-semibold leading-tight tracking-tight text-plum-800 md:text-3xl">

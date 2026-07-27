@@ -2,21 +2,29 @@
 
 import Image from "next/image";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { ChevronLeft, ChevronRight, ImageOff, Maximize2, Minus, Plus, X } from "lucide-react";
+import { ChevronLeft, ChevronRight, ImageOff, Maximize2, Minus, Play, Plus, X } from "lucide-react";
 import ShareButton from "./ShareButton";
 import type { StoreImage } from "@/lib/types";
 
 const MIN_ZOOM = 1;
 const MAX_ZOOM = 4;
 
+/** Extract a YouTube embed URL from any common YouTube link. */
+function youtubeEmbed(url?: string): string | null {
+  if (!url) return null;
+  const m = url.match(/(?:youtu\.be\/|youtube\.com\/(?:watch\?v=|embed\/|shorts\/|v\/))([\w-]{11})/);
+  return m ? `https://www.youtube.com/embed/${m[1]}` : null;
+}
+
 interface Props {
   images: StoreImage[];
   name: string;
   discount: number | null;
   slug?: string;
+  video?: string;
 }
 
-export default function ProductGallery({ images, name, discount, slug }: Props) {
+export default function ProductGallery({ images, name, discount, slug, video }: Props) {
   const [index, setIndex] = useState(0);
   const [hoverZoom, setHoverZoom] = useState(false);
   const [origin, setOrigin] = useState("50% 50%");
@@ -24,15 +32,19 @@ export default function ProductGallery({ images, name, discount, slug }: Props) 
   const touchStartX = useRef<number | null>(null);
   const swiped = useRef(false);
 
-  const many = images.length > 1;
-  const current = images[index];
+  const embed = youtubeEmbed(video);
+  const hasVideo = !!embed;
+  const slideCount = images.length + (hasVideo ? 1 : 0);
+  const many = slideCount > 1;
+  const isVideo = hasVideo && index >= images.length;
+  const current = images[index]; // undefined on the video slide
 
   const go = useCallback(
-    (dir: 1 | -1) => setIndex((i) => (i + dir + images.length) % images.length),
-    [images.length],
+    (dir: 1 | -1) => setIndex((i) => (i + dir + slideCount) % slideCount),
+    [slideCount],
   );
 
-  if (images.length === 0) {
+  if (images.length === 0 && !hasVideo) {
     return (
       <div className="flex aspect-square items-center justify-center rounded-2xl border border-plum-100/60 bg-white">
         <ImageOff className="size-16 text-plum-200" strokeWidth={1.5} />
@@ -43,10 +55,13 @@ export default function ProductGallery({ images, name, discount, slug }: Props) 
   return (
     <div>
       <div
-        className="group relative aspect-square cursor-zoom-in overflow-hidden rounded-2xl border border-plum-100/60 bg-white"
-        onMouseEnter={() => setHoverZoom(true)}
+        className={`group relative aspect-square overflow-hidden rounded-2xl border border-plum-100/60 bg-white ${
+          isVideo ? "" : "cursor-zoom-in"
+        }`}
+        onMouseEnter={() => !isVideo && setHoverZoom(true)}
         onMouseLeave={() => setHoverZoom(false)}
         onMouseMove={(e) => {
+          if (isVideo) return;
           const r = e.currentTarget.getBoundingClientRect();
           setOrigin(`${((e.clientX - r.left) / r.width) * 100}% ${((e.clientY - r.top) / r.height) * 100}%`);
         }}
@@ -65,6 +80,7 @@ export default function ProductGallery({ images, name, discount, slug }: Props) 
           if (many && Math.abs(dx) > 40) go(dx < 0 ? 1 : -1);
         }}
         onClick={() => {
+          if (isVideo) return;
           if (swiped.current) {
             swiped.current = false;
             return; // it was a swipe, not a tap → don't open the lightbox
@@ -72,54 +88,66 @@ export default function ProductGallery({ images, name, discount, slug }: Props) 
           setLightbox(true);
         }}
       >
-        {/* Plain <img> with WP's responsive srcset: the static export runs the Next
-            optimizer off (unoptimized), so next/image can't resize — this lets the
-            browser pick a sized WebP and fetch it eagerly for a fast LCP. */}
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img
-          key={current.id}
-          src={current.src}
-          srcSet={current.srcset}
-          sizes={current.srcset ? "(max-width: 768px) 100vw, 50vw" : undefined}
-          alt={current.alt || name}
-          fetchPriority="high"
-          decoding="async"
-          className="absolute inset-0 h-full w-full object-contain transition-transform duration-200"
-          style={hoverZoom ? { transform: "scale(1.9)", transformOrigin: origin } : undefined}
-        />
-        {discount && (
+        {isVideo ? (
+          <iframe
+            src={embed!}
+            title={`${name} video`}
+            className="absolute inset-0 h-full w-full"
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+            allowFullScreen
+          />
+        ) : (
+          <>
+            {/* Plain <img> with WP's responsive srcset: static export can't resize
+                via next/image, so the browser picks a sized WebP for a fast LCP. */}
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              key={current.id}
+              src={current.src}
+              srcSet={current.srcset}
+              sizes={current.srcset ? "(max-width: 768px) 100vw, 50vw" : undefined}
+              alt={current.alt || name}
+              fetchPriority="high"
+              decoding="async"
+              className="absolute inset-0 h-full w-full object-contain transition-transform duration-200"
+              style={hoverZoom ? { transform: "scale(1.9)", transformOrigin: origin } : undefined}
+            />
+            <span className="absolute bottom-3 left-3 z-10" onClick={(e) => e.stopPropagation()}>
+              <ShareButton title={name} slug={slug} />
+            </span>
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                setLightbox(true);
+              }}
+              aria-label="Open fullscreen zoom"
+              className="absolute bottom-3 right-3 z-10 flex size-9 items-center justify-center rounded-full bg-white/90 text-plum-600 shadow-md backdrop-blur transition-colors hover:bg-plum-600 hover:text-white"
+            >
+              <Maximize2 className="size-4" strokeWidth={2.25} />
+            </button>
+          </>
+        )}
+
+        {discount && !isVideo && (
           <span className="absolute left-3 top-3 z-10 rounded-full bg-coral-500 px-3 py-1 text-xs font-extrabold text-white">
             -{discount}% OFF
           </span>
         )}
 
-        <span className="absolute bottom-3 left-3 z-10" onClick={(e) => e.stopPropagation()}>
-          <ShareButton title={name} slug={slug} />
-        </span>
-
-        <button
-          onClick={(e) => {
-            e.stopPropagation();
-            setLightbox(true);
-          }}
-          aria-label="Open fullscreen zoom"
-          className="absolute bottom-3 right-3 z-10 flex size-9 items-center justify-center rounded-full bg-white/90 text-plum-600 shadow-md backdrop-blur transition-colors hover:bg-plum-600 hover:text-white"
-        >
-          <Maximize2 className="size-4" strokeWidth={2.25} />
-        </button>
-
         {many && (
           <>
             <GalleryArrow dir={-1} onClick={(e) => { e.stopPropagation(); go(-1); }} />
             <GalleryArrow dir={1} onClick={(e) => { e.stopPropagation(); go(1); }} />
-            <div className="absolute bottom-3 left-1/2 z-10 flex -translate-x-1/2 gap-1.5">
-              {images.map((img, i) => (
-                <span
-                  key={img.id}
-                  className={`size-1.5 rounded-full transition-all ${i === index ? "w-4 bg-plum-600" : "bg-plum-200"}`}
-                />
-              ))}
-            </div>
+            {!isVideo && (
+              <div className="absolute bottom-3 left-1/2 z-10 flex -translate-x-1/2 gap-1.5">
+                {Array.from({ length: slideCount }).map((_, i) => (
+                  <span
+                    key={i}
+                    className={`size-1.5 rounded-full transition-all ${i === index ? "w-4 bg-plum-600" : "bg-plum-200"}`}
+                  />
+                ))}
+              </div>
+            )}
           </>
         )}
       </div>
@@ -138,10 +166,28 @@ export default function ProductGallery({ images, name, discount, slug }: Props) 
               <Image src={img.thumbnail || img.src} alt="" fill sizes="64px" className="object-cover" />
             </button>
           ))}
+          {hasVideo && (
+            <button
+              onClick={() => setIndex(images.length)}
+              aria-label="Play product video"
+              className={`relative size-16 shrink-0 overflow-hidden rounded-xl border-2 bg-plum-900 transition-colors ${
+                isVideo ? "border-coral-500" : "border-transparent hover:border-plum-200"
+              }`}
+            >
+              {images[0] && (
+                <Image src={images[0].thumbnail || images[0].src} alt="" fill sizes="64px" className="object-cover opacity-50" />
+              )}
+              <span className="absolute inset-0 flex items-center justify-center">
+                <span className="flex size-7 items-center justify-center rounded-full bg-white/90 text-plum-700">
+                  <Play className="size-3.5 fill-current" strokeWidth={0} />
+                </span>
+              </span>
+            </button>
+          )}
         </div>
       )}
 
-      {lightbox && (
+      {lightbox && !isVideo && (
         <Lightbox images={images} name={name} index={index} setIndex={setIndex} onClose={() => setLightbox(false)} />
       )}
     </div>

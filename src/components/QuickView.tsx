@@ -86,7 +86,7 @@ export default function QuickView({ product }: { product: StoreProduct }) {
 
             <div className="grid grid-cols-1 sm:grid-cols-2">
               <div className="min-w-0 p-4 pb-0 sm:p-5 sm:pb-5">
-                <ProductGallery images={product.images} name={product.name} discount={discount} slug={product.slug} />
+                <ProductGallery images={product.images} name={product.name} discount={discount} slug={product.slug} video={product.extensions?.gedushop?.video} />
               </div>
 
               <div className="flex min-w-0 flex-col p-5 sm:p-6">
