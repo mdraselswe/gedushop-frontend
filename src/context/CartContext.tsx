@@ -27,6 +27,9 @@ function friendlyCouponError(raw?: string): string {
   const m = decodeEntities((raw ?? "").replace(/<[^>]+>/g, ""))
     .replace(/\s+/g, " ")
     .replace(/\s+([.!?])/g, "$1")
+    // Normalise Woo money strings: "2,200.00৳" → "৳2,200"
+    .replace(/([\d,]+(?:\.\d+)?)\s*৳/g, "৳$1")
+    .replace(/(৳[\d,]+)\.00\b/g, "$1")
     .trim();
   if (/does not exist|not exist|not valid|invalid|no longer/i.test(m)) return "This coupon code is not valid.";
   if (/expired/i.test(m)) return "This coupon has expired.";

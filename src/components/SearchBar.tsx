@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Suspense, useCallback, useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
-import { ArrowLeft, ArrowRight, ImageOff, Loader2, X } from "lucide-react";
+import { ArrowLeft, ArrowRight, Clock, ImageOff, Loader2, X } from "lucide-react";
 import type { StoreProduct } from "@/lib/types";
 import { decodeEntities } from "@/lib/decode";
 import { formatPrice } from "@/lib/format";
@@ -14,6 +14,25 @@ import { SearchIcon } from "./Icons";
 
 const DEBOUNCE_MS = 250;
 const MIN_CHARS = 2;
+
+/* ---- Recent searches (localStorage) ---- */
+const HISTORY_KEY = "gedu_search_history";
+const HISTORY_MAX = 8;
+
+function getHistory(): string[] {
+  try {
+    return JSON.parse(localStorage.getItem(HISTORY_KEY) || "[]");
+  } catch {
+    return [];
+  }
+}
+function saveHistory(list: string[]) {
+  try {
+    localStorage.setItem(HISTORY_KEY, JSON.stringify(list.slice(0, HISTORY_MAX)));
+  } catch {
+    // storage unavailable — history just won't persist
+  }
+}
 
 function SearchBarInner() {
   const router = useRouter();
@@ -25,9 +44,30 @@ function SearchBarInner() {
   const [open, setOpen] = useState(false); // desktop dropdown
   const [mobileOpen, setMobileOpen] = useState(false); // full-screen overlay
   const [loading, setLoading] = useState(false);
+  const [history, setHistory] = useState<string[]>([]);
   const boxRef = useRef<HTMLFormElement>(null);
   const abortRef = useRef<AbortController | null>(null);
   const mobileInputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => setHistory(getHistory()), []);
+
+  const remember = useCallback((term: string) => {
+    const t = term.trim();
+    if (t.length < MIN_CHARS) return;
+    setHistory((h) => {
+      const next = [t, ...h.filter((x) => x.toLowerCase() !== t.toLowerCase())].slice(0, HISTORY_MAX);
+      saveHistory(next);
+      return next;
+    });
+  }, []);
+
+  const forget = useCallback((term: string) => {
+    setHistory((h) => {
+      const next = h.filter((x) => x !== term);
+      saveHistory(next);
+      return next;
+    });
+  }, []);
 
   // Keep the input in sync when the URL changes (back button, sidebar links…)
   useEffect(() => setQuery(urlQuery), [urlQuery]);
@@ -38,8 +78,8 @@ function SearchBarInner() {
     abortRef.current?.abort();
     if (q.length < MIN_CHARS) {
       setResults([]);
-      setOpen(false);
       setLoading(false);
+      // keep the dropdown open — it shows recent searches when the query is empty
       return;
     }
     setLoading(true);
@@ -110,8 +150,19 @@ function SearchBarInner() {
   function goToAll() {
     const q = query.trim();
     closeAll();
-    if (q) router.push(`/shop?search=${encodeURIComponent(q)}`);
-    else clear();
+    if (q) {
+      remember(q);
+      router.push(`/shop?search=${encodeURIComponent(q)}`);
+    } else {
+      clear();
+    }
+  }
+
+  function searchTerm(term: string) {
+    setQuery(term);
+    remember(term);
+    closeAll();
+    router.push(`/shop?search=${encodeURIComponent(term)}`);
   }
 
   function submit(e: React.FormEvent) {
@@ -131,7 +182,10 @@ function SearchBarInner() {
             <li key={p.id}>
               <Link
                 href={`/product/${p.slug}`}
-                onClick={closeAll}
+                onClick={() => {
+                  remember(query);
+                  closeAll();
+                }}
                 className="flex items-center gap-3 px-3 py-2.5 transition-colors hover:bg-plum-50"
               >
                 <span className="relative size-10 shrink-0 overflow-hidden rounded-lg bg-plum-50">
@@ -169,6 +223,47 @@ function SearchBarInner() {
       </>
     );
 
+  const historyList =
+    history.length === 0 ? null : (
+      <div className="py-1">
+        <div className="flex items-center justify-between px-4 pb-1 pt-2.5">
+          <span className="text-[11px] font-extrabold uppercase tracking-wider text-plum-300">Recent searches</span>
+          <button
+            type="button"
+            onClick={() => {
+              setHistory([]);
+              saveHistory([]);
+            }}
+            className="text-[11px] font-bold text-plum-400 hover:text-coral-500"
+          >
+            Clear all
+          </button>
+        </div>
+        <ul>
+          {history.map((h) => (
+            <li key={h} className="flex items-center gap-3 px-4 py-2 transition-colors hover:bg-plum-50">
+              <Clock className="size-4 shrink-0 text-plum-300" strokeWidth={2.25} />
+              <button
+                type="button"
+                onClick={() => searchTerm(h)}
+                className="min-w-0 flex-1 truncate text-left text-sm font-semibold text-plum-700"
+              >
+                {h}
+              </button>
+              <button
+                type="button"
+                onClick={() => forget(h)}
+                aria-label={`Remove ${h} from history`}
+                className="shrink-0 rounded-full p-1 text-plum-300 hover:text-coral-500"
+              >
+                <X className="size-3.5" strokeWidth={2.5} />
+              </button>
+            </li>
+          ))}
+        </ul>
+      </div>
+    );
+
   return (
     <form ref={boxRef} onSubmit={submit} className="relative w-full">
       <input
@@ -182,7 +277,7 @@ function SearchBarInner() {
             setMobileOpen(true);
             return;
           }
-          if (results.length > 0) setOpen(true);
+          if (results.length > 0 || (query.trim().length < MIN_CHARS && history.length > 0)) setOpen(true);
         }}
         placeholder="Search toys, baby items…"
         className="w-full rounded-full border border-plum-100 bg-white py-2.5 pl-4 pr-16 text-sm text-plum-800 placeholder:text-plum-300 shadow-sm outline-none focus:border-plum-300 focus:ring-2 focus:ring-plum-100"
@@ -207,10 +302,10 @@ function SearchBarInner() {
         {loading ? <Loader2 className="size-4 animate-spin" /> : <SearchIcon className="size-4" />}
       </button>
 
-      {/* Desktop dropdown */}
-      {open && !mobileOpen && (
+      {/* Desktop dropdown: live results, or recent searches while the box is empty */}
+      {open && !mobileOpen && (query.trim().length >= MIN_CHARS || history.length > 0) && (
         <div className="absolute left-0 right-0 top-full z-50 mt-2 hidden overflow-hidden rounded-2xl border border-plum-100 bg-white shadow-xl shadow-plum-900/10 md:block">
-          {resultsList}
+          {query.trim().length >= MIN_CHARS ? resultsList : historyList}
         </div>
       )}
 
@@ -266,9 +361,11 @@ function SearchBarInner() {
                 </div>
               )}
               {!loading && query.trim().length >= MIN_CHARS && resultsList}
-              {!loading && query.trim().length < MIN_CHARS && (
-                <p className="pt-10 text-center text-sm font-semibold text-plum-300">Type to search products…</p>
-              )}
+              {!loading &&
+                query.trim().length < MIN_CHARS &&
+                (historyList ?? (
+                  <p className="pt-10 text-center text-sm font-semibold text-plum-300">Type to search products…</p>
+                ))}
             </div>
           </div>,
           document.body,

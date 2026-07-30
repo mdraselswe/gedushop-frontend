@@ -27,7 +27,9 @@ export default function ProductBuyBox({ product: initial }: { product: StoreProd
     const init: Record<string, string> = {};
     (initial.attributes ?? []).forEach((a) => {
       if (!a.has_variations) return;
-      const def = a.terms.find((t) => t.default) ?? (a.terms.length === 1 ? a.terms[0] : undefined);
+      // WP default term if set, otherwise the first option — so a variation is
+      // always pre-selected and the price/image/buttons are live immediately.
+      const def = a.terms.find((t) => t.default) ?? a.terms[0];
       if (def) init[a.name] = def.slug;
     });
     return init;
