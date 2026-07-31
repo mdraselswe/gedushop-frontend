@@ -8,6 +8,7 @@ import { useCart } from "@/context/CartContext";
 import { fbTrack } from "@/lib/pixel";
 import { discountPercent, formatPrice } from "@/lib/format";
 import { addRecent } from "@/lib/recentlyViewed";
+import RestockNotify from "./RestockNotify";
 import type { StoreProduct } from "@/lib/types";
 
 /**
@@ -176,6 +177,9 @@ export default function ProductBuyBox({ product: initial }: { product: StoreProd
             : "Out of stock"}
       </p>
 
+      {/* Out of stock → capture the demand instead of losing the customer */}
+      {!available && !needsSelection && <RestockNotify productId={product.id} />}
+
       {(available || isVariable) && (
         <div className="mt-5 space-y-3">
           {/* Variation selectors: color swatches when WP provides a hex, pills otherwise */}
@@ -197,7 +201,7 @@ export default function ProductBuyBox({ product: initial }: { product: StoreProd
                       if (hex) {
                         return (
                           <button
-                            key={t.id}
+                            key={t.slug}
                             onClick={() => enabled && setSelected((s) => ({ ...s, [a.name]: t.slug }))}
                             disabled={!enabled}
                             title={enabled ? t.name : `${t.name} — out of stock`}
@@ -215,7 +219,7 @@ export default function ProductBuyBox({ product: initial }: { product: StoreProd
                       }
                       return (
                         <button
-                          key={t.id}
+                          key={t.slug}
                           onClick={() => enabled && setSelected((s) => ({ ...s, [a.name]: t.slug }))}
                           disabled={!enabled}
                           className={`rounded-full px-4 py-1.5 text-sm font-bold ring-1 transition-colors ${
