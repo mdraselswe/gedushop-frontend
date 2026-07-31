@@ -66,6 +66,28 @@ export default function ProductBuyBox({ product: initial }: { product: StoreProd
     };
   }, [initial.slug]);
 
+  // The build snapshot can predate a product becoming variable (attributes
+  // empty at build). Once the live refetch lands, fill in any missing default
+  // selections so the first option is always pre-selected.
+  useEffect(() => {
+    const attrs = (product.attributes ?? []).filter((a) => a.has_variations);
+    if (attrs.length === 0) return;
+    setSelected((s) => {
+      let changed = false;
+      const next = { ...s };
+      for (const a of attrs) {
+        if (!next[a.name]) {
+          const def = a.terms.find((t) => t.default) ?? a.terms[0];
+          if (def) {
+            next[a.name] = def.slug;
+            changed = true;
+          }
+        }
+      }
+      return changed ? next : s;
+    });
+  }, [product]);
+
   const variationAttrs = (product.attributes ?? []).filter((a) => a.has_variations);
   const isVariable = product.type === "variable" && variationAttrs.length > 0;
   const needsSelection = isVariable && !variationAttrs.every((a) => selected[a.name]);
@@ -77,9 +99,11 @@ export default function ProductBuyBox({ product: initial }: { product: StoreProd
   // products of type "variation" under a parent.
   const [varList, setVarList] = useState<StoreProduct[] | null>(null);
   useEffect(() => {
-    if (initial.type !== "variable") return;
+    // Gate on the LIVE product type — the build snapshot may still say "simple"
+    // for a product that was later converted to variable.
+    if (product.type !== "variable") return;
     let cancelled = false;
-    apiFetch(`${STORE_API}/products?type=variation&parent=${initial.id}&per_page=100`)
+    apiFetch(`${STORE_API}/products?type=variation&parent=${product.id}&per_page=100`)
       .then((r) => (r.ok ? r.json() : null))
       .then((list: StoreProduct[] | null) => {
         if (!cancelled && Array.isArray(list)) setVarList(list);
@@ -88,7 +112,7 @@ export default function ProductBuyBox({ product: initial }: { product: StoreProd
     return () => {
       cancelled = true;
     };
-  }, [initial.id, initial.type]);
+  }, [product.id, product.type]);
 
   // The variation matching the current (complete) selection. Empty attribute
   // value on a variation means "any".
