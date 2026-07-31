@@ -1,7 +1,7 @@
 import { Banknote, Gift, RotateCcw, Truck } from "lucide-react";
 
 const ROWS = [
-  { Icon: Truck, title: "Delivery charge", sub: "Dhaka ৳60 · Outside ৳120" },
+  { Icon: Truck, title: "Delivery charge", sub: "Dhaka ৳80 · Outside ৳120" },
   { Icon: Gift, title: "Free delivery", sub: "On orders over ৳2000" },
   { Icon: Banknote, title: "Cash on Delivery", sub: "Pay when it arrives" },
   { Icon: RotateCcw, title: "Easy returns", sub: "Damaged or wrong item" },

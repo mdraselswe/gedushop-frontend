@@ -11,7 +11,7 @@ export default function DeliveryPage() {
       <div>
         <h2>Delivery charges</h2>
         <ul>
-          <li>Inside Dhaka: ৳60</li>
+          <li>Inside Dhaka: ৳80</li>
           <li>Outside Dhaka: ৳120</li>
           <li>Free delivery on orders over ৳2,000</li>
         </ul>

@@ -20,7 +20,7 @@ const FAQS = [
   },
   {
     q: "What are the delivery charges?",
-    a: "Inside Dhaka ৳60, outside Dhaka ৳120. Orders over ৳2000 get free delivery anywhere in Bangladesh.",
+    a: "Inside Dhaka ৳80, outside Dhaka ৳120. Orders over ৳2000 get free delivery anywhere in Bangladesh.",
   },
   {
     q: "How long does delivery take?",
