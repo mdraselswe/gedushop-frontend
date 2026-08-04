@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useCart } from "@/context/CartContext";
 import { decodeEntities } from "@/lib/decode";
 import { formatPrice } from "@/lib/format";
+import { cartItemsTotal } from "@/lib/cart-total";
 import { CartIcon, CloseIcon, MinusIcon, PlusIcon, TrashIcon } from "./Icons";
 import FreeShippingBar from "./FreeShippingBar";
 import CouponField from "./CouponField";
@@ -156,7 +157,7 @@ export default function CartDrawer() {
           >
             <span>Checkout</span>
             <span className="rounded-full bg-white/20 px-3 py-0.5">
-              {formatPrice(String(Number(cart.totals.total_items) - Number(cart.totals.total_discount)), cart.totals)}
+              {formatPrice(cartItemsTotal(cart.totals), cart.totals)}
             </span>
           </Link>
           <Link

@@ -7,6 +7,7 @@ import { Banknote, Loader2, ShoppingCart } from "lucide-react";
 import { useCart } from "@/context/CartContext";
 import { decodeEntities } from "@/lib/decode";
 import { formatPrice } from "@/lib/format";
+import { cartItemsTotal } from "@/lib/cart-total";
 import { fbTrack } from "@/lib/pixel";
 import { DISTRICTS } from "@/lib/districts";
 import { apiFetch, GEDU_API, STORE_API } from "@/lib/api";
@@ -60,13 +61,19 @@ export default function CheckoutForm() {
   }, []);
 
   // Fire InitiateCheckout once the cart is loaded with items.
+  //
+  // Merchandise value only. The event fires on mount, before a district has
+  // been picked, so total_price here still carries Woo's default flat-rate
+  // shipping — reporting it would have inflated every InitiateCheckout by the
+  // delivery charge and skewed the ad numbers. Purchase, fired on the success
+  // page, is the one that carries real delivery + bKash fee.
   useEffect(() => {
     if (trackedCheckout.current || !cart || cart.items.length === 0) return;
     trackedCheckout.current = true;
     const minor = cart.totals.currency_minor_unit ?? 2;
     fbTrack("InitiateCheckout", {
       currency: "BDT",
-      value: Number(cart.totals.total_price) / 10 ** minor,
+      value: Number(cartItemsTotal(cart.totals)) / 10 ** minor,
       num_items: cart.items_count,
     });
   }, [cart]);
@@ -205,9 +212,7 @@ export default function CheckoutForm() {
   // phantom shipping to the shown Total (it says "Select district"). Once a district
   // is chosen, use Woo's authoritative total (correct rate / free over ৳2000).
   const totalDisplay =
-    form.district && !shippingLoading
-      ? cart.totals.total_price
-      : String(Number(cart.totals.total_items) - Number(cart.totals.total_discount));
+    form.district && !shippingLoading ? cart.totals.total_price : cartItemsTotal(cart.totals);
 
   // bKash send-money charge, rounded to whole taka (matches the server-side fee).
   const minorFactor = 10 ** (cart.totals.currency_minor_unit ?? 2);

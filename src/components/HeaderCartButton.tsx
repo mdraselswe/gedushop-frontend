@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useCart } from "@/context/CartContext";
 import { formatPrice } from "@/lib/format";
+import { cartItemsTotal } from "@/lib/cart-total";
 import { CartIcon } from "./Icons";
 
 export default function HeaderCartButton() {
@@ -23,7 +24,7 @@ export default function HeaderCartButton() {
     >
       <CartIcon className="size-5" />
       <span className="hidden sm:inline">
-        {cart && count > 0 ? formatPrice(cart.totals.total_price, cart.totals) : "Cart"}
+        {cart && count > 0 ? formatPrice(cartItemsTotal(cart.totals), cart.totals) : "Cart"}
       </span>
       {count > 0 && (
         <span className="absolute -right-1 -top-1 flex size-5 items-center justify-center rounded-full bg-plum-600 text-[11px] font-extrabold text-white">

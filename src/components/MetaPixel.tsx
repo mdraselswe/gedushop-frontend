@@ -8,7 +8,12 @@ export default function MetaPixel() {
   if (!id) return null;
   return (
     <>
-      <Script id="fb-pixel" strategy="lazyOnload">
+      {/* afterInteractive, not lazyOnload: lazyOnload waits for the window
+          `load` event, which on a product page waits for every gallery image.
+          Effects that fire on mount — ViewContent above all — ran long before
+          fbq existed and were dropped. lib/pixel.ts queues anything that still
+          slips through the remaining gap. */}
+      <Script id="fb-pixel" strategy="afterInteractive">
         {`!function(f,b,e,v,n,t,s)
 {if(f.fbq)return;n=f.fbq=function(){n.callMethod?
 n.callMethod.apply(n,arguments):n.queue.push(arguments)};

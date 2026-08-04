@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useCart } from "@/context/CartContext";
 import { formatPrice } from "@/lib/format";
+import { cartItemsTotal } from "@/lib/cart-total";
 import { CartIcon } from "./Icons";
 
 /** Chaldal-style sticky order bar — appears once the cart has items. Mobile only. */
@@ -26,7 +27,7 @@ export default function FloatingCartBar() {
           {count} item{count > 1 ? "s" : ""}
         </span>
         <span className="text-sm font-extrabold">
-          {formatPrice(cart.totals.total_price, cart.totals)} · View Cart →
+          {formatPrice(cartItemsTotal(cart.totals), cart.totals)} · View Cart →
         </span>
       </Link>
     </div>

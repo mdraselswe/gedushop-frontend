@@ -1,7 +1,7 @@
 "use client";
 
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from "react";
-import type { Cart } from "@/lib/types";
+import type { Cart, CartItem } from "@/lib/types";
 import { apiFetch, STORE_API } from "@/lib/api";
 import { decodeEntities } from "@/lib/decode";
 import { fbTrack } from "@/lib/pixel";
@@ -38,6 +38,52 @@ function friendlyCouponError(raw?: string): string {
   if (/maximum spend/i.test(m)) return "Your cart total is too high for this coupon.";
   if (/already applied/i.test(m)) return "This coupon is already applied.";
   return m && m.length <= 90 ? m : "This coupon can’t be applied.";
+}
+
+/**
+ * The cart line an add-item call actually touched.
+ *
+ * Matching on the posted product id is not enough: for a variable product the
+ * Store API puts the *variation* id on the cart line, not the parent id we
+ * sent. Diffing the cart before and after finds the right line either way —
+ * a brand-new key, or an existing line whose quantity went up.
+ */
+function addedLine(before: Cart | null, after: Cart, productId: number): CartItem | null {
+  // No "before" means the initial cart fetch failed, so there is nothing to
+  // diff against — every line would look new. Fall back to an id match, which
+  // is right for simple products and simply misses for variations.
+  if (!before) return after.items.find((i) => i.id === productId) ?? null;
+  const prevQty = new Map(before.items.map((i) => [i.key, i.quantity]));
+  return after.items.find((i) => i.quantity > (prevQty.get(i.key) ?? 0)) ?? null;
+}
+
+/**
+ * AddToCart, with the money attached.
+ *
+ * `value` is what was *just* added (unit price × quantity), not the line's
+ * running subtotal — adding a second unit of something already in the cart
+ * would otherwise report the whole line again and double-count it.
+ *
+ * content_ids stays the parent product id, matching ViewContent, so the two
+ * events line up against the same catalogue entry.
+ */
+function trackAddToCart(before: Cart | null, after: Cart, productId: number, quantity: number) {
+  const line = addedLine(before, after, productId);
+  if (!line) {
+    // Line unidentifiable (shouldn't happen) — send the plain event rather
+    // than reporting a ৳0 add.
+    fbTrack("AddToCart", { content_ids: [productId], content_type: "product", currency: "BDT" });
+    return;
+  }
+  const minor = line.prices.currency_minor_unit ?? 2;
+  fbTrack("AddToCart", {
+    content_ids: [productId],
+    content_type: "product",
+    content_name: decodeEntities(line.name),
+    currency: "BDT",
+    value: (Number(line.prices.price) * quantity) / 10 ** minor,
+    contents: [{ id: productId, quantity }],
+  });
 }
 
 interface ShippingAddress {
@@ -97,10 +143,15 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
   const [shippingLoading, setShippingLoading] = useState(false);
   const [couponLoading, setCouponLoading] = useState(false);
   const keyToProductId = useRef<Map<string, number>>(new Map());
+  // Mirrors `cart` outside of render, so addItem can read the pre-mutation cart
+  // without taking `cart` as a dependency (which would rebuild the callback on
+  // every cart change).
+  const cartRef = useRef<Cart | null>(null);
   const { show: showToast } = useToast();
 
   const syncCart = useCallback((next: Cart) => {
     for (const item of next.items) keyToProductId.current.set(item.key, item.id);
+    cartRef.current = next;
     setCart(next);
   }, []);
 
@@ -120,19 +171,22 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     };
   }, [syncCart]);
 
+  // Returns the updated cart on success, null on failure — callers that only
+  // need "did it work" coerce it, addItem needs the cart itself to price the
+  // line it just added.
   const mutate = useCallback(
-    async (productId: number, path: string, body: Record<string, unknown>): Promise<boolean> => {
+    async (productId: number, path: string, body: Record<string, unknown>): Promise<Cart | null> => {
       setPendingIds((prev) => new Set(prev).add(productId));
       try {
         const res = await storeFetch(path, { method: "POST", body: JSON.stringify(body) });
         const data = await res.json().catch(() => null);
         if (res.ok) {
           syncCart(data);
-          return true;
+          return data as Cart;
         }
         // Woo rejects e.g. "you already have the max in stock" — surface it briefly.
         showToast(friendlyCartError(data?.message as string | undefined), "error");
-        return false;
+        return null;
       } finally {
         setPendingIds((prev) => {
           const next = new Set(prev);
@@ -152,9 +206,11 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     ): Promise<boolean> => {
       const body: Record<string, unknown> = { id: productId, quantity };
       if (variation && variation.length) body.variation = variation;
-      const ok = await mutate(productId, "cart/add-item", body);
-      if (!ok) return false; // error toast already shown by mutate
-      fbTrack("AddToCart", { content_ids: [productId], content_type: "product", currency: "BDT" });
+      // Read before awaiting — this is the cart as it was prior to the add.
+      const before = cartRef.current;
+      const next = await mutate(productId, "cart/add-item", body);
+      if (!next) return false; // error toast already shown by mutate
+      trackAddToCart(before, next, productId, quantity);
       // Desktop opens the side drawer; mobile has no drawer, so confirm with a toast.
       if (typeof window !== "undefined" && window.innerWidth >= 1024) setDrawerOpen(true);
       else showToast("Added to cart");
@@ -164,18 +220,19 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
   );
 
   const setQuantity = useCallback(
-    (itemKey: string, quantity: number) => {
+    async (itemKey: string, quantity: number): Promise<boolean> => {
       const productId = keyToProductId.current.get(itemKey) ?? -1;
-      if (quantity <= 0) return mutate(productId, "cart/remove-item", { key: itemKey });
-      return mutate(productId, "cart/update-item", { key: itemKey, quantity });
+      const path = quantity <= 0 ? "cart/remove-item" : "cart/update-item";
+      const body = quantity <= 0 ? { key: itemKey } : { key: itemKey, quantity };
+      return (await mutate(productId, path, body)) !== null;
     },
     [mutate],
   );
 
   const removeItem = useCallback(
-    (itemKey: string) => {
+    async (itemKey: string): Promise<boolean> => {
       const productId = keyToProductId.current.get(itemKey) ?? -1;
-      return mutate(productId, "cart/remove-item", { key: itemKey });
+      return (await mutate(productId, "cart/remove-item", { key: itemKey })) !== null;
     },
     [mutate],
   );

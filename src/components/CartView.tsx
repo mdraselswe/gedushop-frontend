@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useCart } from "@/context/CartContext";
 import { decodeEntities } from "@/lib/decode";
 import { formatPrice } from "@/lib/format";
+import { cartItemsTotal } from "@/lib/cart-total";
 import { CartIcon, MinusIcon, PlusIcon, TrashIcon } from "./Icons";
 import CouponField from "./CouponField";
 import FreeShippingBar from "./FreeShippingBar";
@@ -137,7 +138,7 @@ export default function CartView() {
         <div className="mt-3 flex items-center justify-between border-t border-plum-100 pt-3 text-lg font-extrabold text-plum-800">
           <span>Total</span>
           <span className="tabular-nums">
-            {formatPrice(String(Number(cart.totals.total_items) - Number(cart.totals.total_discount)), cart.totals)}
+            {formatPrice(cartItemsTotal(cart.totals), cart.totals)}
           </span>
         </div>
         <p className="mt-1 text-right text-xs font-semibold text-plum-400">+ delivery calculated at checkout</p>

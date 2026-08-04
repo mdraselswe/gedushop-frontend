@@ -2,6 +2,7 @@
 
 import { useCart } from "@/context/CartContext";
 import { formatPrice } from "@/lib/format";
+import { cartItemsTotal } from "@/lib/cart-total";
 import { CartIcon } from "./Icons";
 
 /** Chaldal-style docked tab on the right edge — opens the cart drawer. lg+ only. */
@@ -24,7 +25,7 @@ export default function CartDockButton() {
         </span>
       </span>
       <span className="w-full bg-coral-500 px-3 py-1.5 text-center text-xs font-extrabold text-white">
-        {cart && count > 0 ? formatPrice(cart.totals.total_price, cart.totals) : "৳0"}
+        {cart && count > 0 ? formatPrice(cartItemsTotal(cart.totals), cart.totals) : "৳0"}
       </span>
     </button>
   );
