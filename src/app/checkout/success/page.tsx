@@ -8,7 +8,15 @@ import { fbTrack } from "@/lib/pixel";
 
 interface OrderSnapshot {
   id: number | string;
-  items: { name: string; qty: number; total: string }[];
+  items: {
+    /** Parent product id — matches ViewContent/AddToCart content_ids and the catalogue feed's g:id. */
+    productId?: number;
+    name: string;
+    qty: number;
+    total: string;
+    /** Unit price in taka. */
+    unitPrice?: number;
+  }[];
   subtotal: string;
   discount: string | null;
   delivery: string;
@@ -27,6 +35,13 @@ function SuccessInner() {
   const value = params.get("value");
   const tracked = useRef(false);
   const [snap, setSnap] = useState<OrderSnapshot | null>(null);
+  /**
+   * Whether the snapshot lookup has finished — found or definitively absent.
+   * Purchase waits for this so it can carry content_ids; without them Meta has
+   * no idea *which* products were bought, which breaks catalogue attribution
+   * and leaves dynamic retargeting with nothing to exclude or re-show.
+   */
+  const [snapReady, setSnapReady] = useState(false);
 
   useEffect(() => {
     try {
@@ -38,18 +53,34 @@ function SuccessInner() {
     } catch {
       // no snapshot — simple view
     }
+    setSnapReady(true);
   }, [order]);
 
   useEffect(() => {
-    if (tracked.current || !order) return;
+    if (tracked.current || !order || !snapReady) return;
     tracked.current = true;
+    // Older snapshots (written before productId existed) and the
+    // storage-unavailable path both land here with nothing to report — send the
+    // event anyway rather than losing the conversion entirely.
+    const lines = (snap?.items ?? []).filter((i) => typeof i.productId === "number");
     fbTrack("Purchase", {
       currency: "BDT",
       value: value ? Number(value) : 0,
       content_type: "product",
       order_id: order,
+      ...(lines.length
+        ? {
+            content_ids: lines.map((i) => i.productId),
+            contents: lines.map((i) => ({
+              id: i.productId,
+              quantity: i.qty,
+              ...(typeof i.unitPrice === "number" ? { item_price: i.unitPrice } : {}),
+            })),
+            num_items: lines.reduce((n, i) => n + i.qty, 0),
+          }
+        : {}),
     });
-  }, [order, value]);
+  }, [order, value, snap, snapReady]);
 
   const isBkash = snap?.method === "bKash";
 
