@@ -150,11 +150,17 @@ export default function CheckoutForm() {
           JSON.stringify({
             id: data.order_id,
             items: cart!.items.map((i) => ({
+              // Parent product id — the same value AddToCart/ViewContent report as
+              // content_ids, so Purchase lines up against the same catalogue entry.
+              productId: i.id,
               name:
                 decodeEntities(i.name) +
                 (i.variation?.length ? ` (${i.variation.map((v) => v.value).join(", ")})` : ""),
               qty: i.quantity,
               total: formatPrice(i.totals.line_subtotal, i.totals),
+              // Unit price in taka (not minor units) — Meta's contents[].item_price.
+              unitPrice:
+                Number(i.prices.price) / 10 ** (i.prices.currency_minor_unit ?? 2),
             })),
             subtotal: formatPrice(cart!.totals.total_items, cart!.totals),
             discount:
