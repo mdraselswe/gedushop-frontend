@@ -10,7 +10,11 @@ type Fbq = (...args: unknown[]) => void;
  * with nothing in the console to say so. Hold them instead, and flush once fbq
  * appears.
  */
-const pending: [event: string, params: Record<string, unknown> | undefined][] = [];
+const pending: [
+  event: string,
+  params: Record<string, unknown> | undefined,
+  eventID: string | undefined,
+][] = [];
 let flushTimer: ReturnType<typeof setInterval> | null = null;
 
 // Stop waiting eventually: an ad blocker will never let fbevents.js load, and
@@ -22,11 +26,21 @@ function getFbq(): Fbq | undefined {
   return (window as unknown as { fbq?: Fbq }).fbq;
 }
 
+/**
+ * fbq's 4th argument carries the deduplication key. It must be omitted rather
+ * than passed as undefined — fbq treats a present-but-empty options object as a
+ * real one and logs a warning.
+ */
+function send(fbq: Fbq, event: string, params?: Record<string, unknown>, eventID?: string) {
+  if (eventID) fbq("track", event, params, { eventID });
+  else fbq("track", event, params);
+}
+
 /** Drain the backlog in order. Returns false while the pixel is still absent. */
 function flush(): boolean {
   const fbq = getFbq();
   if (!fbq) return false;
-  for (const [event, params] of pending.splice(0)) fbq("track", event, params);
+  for (const [event, params, eventID] of pending.splice(0)) send(fbq, event, params, eventID);
   return true;
 }
 
@@ -42,13 +56,20 @@ function scheduleFlush() {
   }, POLL_MS);
 }
 
-export function fbTrack(event: string, params?: Record<string, unknown>) {
+/**
+ * `eventID` is Meta's deduplication key. Meta drops a repeat of the same
+ * (event name, eventID) pair for 48 hours, across both the browser pixel and
+ * the Conversions API. Pass a stable, order-derived id for anything that must
+ * only ever count once — without it a page refresh is a second conversion, and
+ * a server-side integration sending the same purchase is a third.
+ */
+export function fbTrack(event: string, params?: Record<string, unknown>, eventID?: string) {
   if (typeof window === "undefined") return;
   const fbq = getFbq();
   if (fbq) {
-    fbq("track", event, params);
+    send(fbq, event, params, eventID);
     return;
   }
-  pending.push([event, params]);
+  pending.push([event, params, eventID]);
   scheduleFlush();
 }
