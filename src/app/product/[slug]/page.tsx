@@ -21,7 +21,16 @@ interface Props {
 // Prerender every product page at build time (static export). New products need
 // a rebuild to appear — handled by the deploy script.
 export async function generateStaticParams() {
-  const products = await getProducts({ perPage: 100 }).catch(() => []);
+  // Unguarded on purpose — see the note in category/[slug]. Swallowing here is
+  // worse still: `g:id` in the catalogue feed has to keep matching a real
+  // product page, so a build that quietly dropped every product would point
+  // Meta's catalogue ads at 404s.
+  const products = await getProducts({ perPage: 100 });
+  if (!products.length) {
+    throw new Error(
+      "Store API returned no products — refusing to build a storefront with no product pages",
+    );
+  }
   return products.map((p) => ({ slug: p.slug }));
 }
 
@@ -60,6 +69,10 @@ export default async function ProductPage({ params }: Props) {
   const product = await getProductBySlug(slug);
   if (!product) notFound();
 
+  // The one place a swallowed failure is right: related products are a
+  // suggestion strip. Losing them costs a little browsing, while failing the
+  // build would cost the whole deploy. Everything structural — which pages
+  // exist, the nav, the sitemap — is deliberately unguarded instead.
   const related = await getRelatedProducts(product.categories[0]?.id, product.id).catch(() => []);
   const discount = discountPercent(product.prices);
 

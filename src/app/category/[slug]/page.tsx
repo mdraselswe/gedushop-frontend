@@ -14,7 +14,17 @@ const SITE = process.env.NEXT_PUBLIC_SITE_URL ?? "https://gedushop.com";
 
 // Prerender an SEO-friendly page per category (indexable HTML with products).
 export async function generateStaticParams() {
-  const cats = await getCategories().catch(() => []);
+  // Deliberately unguarded. getCategories already retries 8 times behind
+  // fetchRetry, so anything reaching here is a real outage, not a blip — and
+  // returning [] would hand Next an empty param list, which under
+  // `output: export` it reports as "missing generateStaticParams()". That
+  // message sent someone hunting for a deleted function twice.
+  const cats = await getCategories();
+  if (!cats.length) {
+    throw new Error(
+      "Store API returned no categories — refusing to build a site with no category pages",
+    );
+  }
   return cats.map((c) => ({ slug: c.slug }));
 }
 
@@ -40,7 +50,9 @@ export default async function CategoryPage({ params }: Props) {
   const category = await getCategoryBySlug(slug);
   if (!category) notFound();
 
-  const products = await getProducts({ category: String(category.id), perPage: 24 }).catch(() => []);
+  // Unguarded: an empty category page is indistinguishable from a genuinely
+  // empty category, so a swallowed failure would publish a dead page.
+  const products = await getProducts({ category: String(category.id), perPage: 24 });
 
   const breadcrumbLd = {
     "@context": "https://schema.org",

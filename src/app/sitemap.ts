@@ -6,9 +6,13 @@ const SITE = process.env.NEXT_PUBLIC_SITE_URL ?? "https://gedushop.com";
 export const dynamic = "force-static";
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
+  // Unguarded: a swallowed failure here publishes a sitemap listing only the
+  // static pages, telling search engines every product and category URL is
+  // gone. That is silent — nothing in the build output would say so — and it
+  // is the worst outcome of the three. Better to fail the deploy.
   const [products, categories] = await Promise.all([
-    getProducts({ perPage: 100 }).catch(() => []),
-    getCategories().catch(() => []),
+    getProducts({ perPage: 100 }),
+    getCategories(),
   ]);
 
   const staticRoutes: MetadataRoute.Sitemap = [
