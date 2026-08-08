@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { Suspense, useEffect, useRef, useState } from "react";
 import { CircleCheckBig, MapPin, Phone } from "lucide-react";
-import { fbTrack } from "@/lib/pixel";
+import { fbSetUserData, fbTrack } from "@/lib/pixel";
 
 interface OrderSnapshot {
   id: number | string;
@@ -94,6 +94,9 @@ function SuccessInner() {
     // storage-unavailable path both land here with nothing to report — send the
     // event anyway rather than losing the conversion entirely.
     const lines = (snap?.items ?? []).filter((i) => typeof i.productId === "number");
+    // Before the event, not after: advanced matching only applies to what the
+    // pixel sends once the identifiers are set.
+    if (snap) fbSetUserData({ name: snap.name, phone: snap.phone });
     fbTrack(
       "Purchase",
       {
