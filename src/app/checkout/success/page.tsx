@@ -29,6 +29,36 @@ interface OrderSnapshot {
   address: string;
 }
 
+/**
+ * Order ids whose Purchase has already been reported.
+ *
+ * The in-component ref only survives one mount, so a refresh of the success
+ * page — or reopening it from history — used to send Purchase again. Over
+ * Aug 1-8 that produced 26 browser Purchase events against 17 real orders.
+ * localStorage, not sessionStorage: the duplicate arrives in a fresh tab just
+ * as easily as in this one.
+ */
+const TRACKED_KEY = "gedu_purchase_tracked";
+const TRACKED_KEEP = 20;
+
+function readTracked(): string[] {
+  try {
+    const raw = JSON.parse(localStorage.getItem(TRACKED_KEY) || "[]");
+    return Array.isArray(raw) ? raw.map(String) : [];
+  } catch {
+    return [];
+  }
+}
+
+function markTracked(order: string) {
+  try {
+    const next = [order, ...readTracked().filter((o) => o !== order)].slice(0, TRACKED_KEEP);
+    localStorage.setItem(TRACKED_KEY, JSON.stringify(next));
+  } catch {
+    // storage unavailable — the eventID still lets Meta dedupe its side
+  }
+}
+
 function SuccessInner() {
   const params = useSearchParams();
   const order = params.get("order");
@@ -59,27 +89,37 @@ function SuccessInner() {
   useEffect(() => {
     if (tracked.current || !order || !snapReady) return;
     tracked.current = true;
+    if (readTracked().includes(order)) return; // already reported on an earlier visit
     // Older snapshots (written before productId existed) and the
     // storage-unavailable path both land here with nothing to report — send the
     // event anyway rather than losing the conversion entirely.
     const lines = (snap?.items ?? []).filter((i) => typeof i.productId === "number");
-    fbTrack("Purchase", {
-      currency: "BDT",
-      value: value ? Number(value) : 0,
-      content_type: "product",
-      order_id: order,
-      ...(lines.length
-        ? {
-            content_ids: lines.map((i) => i.productId),
-            contents: lines.map((i) => ({
-              id: i.productId,
-              quantity: i.qty,
-              ...(typeof i.unitPrice === "number" ? { item_price: i.unitPrice } : {}),
-            })),
-            num_items: lines.reduce((n, i) => n + i.qty, 0),
-          }
-        : {}),
-    });
+    fbTrack(
+      "Purchase",
+      {
+        currency: "BDT",
+        value: value ? Number(value) : 0,
+        content_type: "product",
+        order_id: order,
+        ...(lines.length
+          ? {
+              content_ids: lines.map((i) => i.productId),
+              contents: lines.map((i) => ({
+                id: i.productId,
+                quantity: i.qty,
+                ...(typeof i.unitPrice === "number" ? { item_price: i.unitPrice } : {}),
+              })),
+              num_items: lines.reduce((n, i) => n + i.qty, 0),
+            }
+          : {}),
+      },
+      // Derived from the order id so every channel that reports this purchase
+      // can agree on it. Anything server-side must send the identical string as
+      // `event_id` for Meta to collapse the pair — see the PixelYourSite note in
+      // gedushop-ads-context.md.
+      `purchase_${order}`,
+    );
+    markTracked(order);
   }, [order, value, snap, snapReady]);
 
   const isBkash = snap?.method === "bKash";
