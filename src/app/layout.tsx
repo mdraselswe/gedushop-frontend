@@ -79,7 +79,9 @@ export default async function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const categories = await getCategories().catch(() => []);
+  // Unguarded: this feeds the nav on every page, so swallowing a failure ships
+  // the whole site with an empty menu and no warning.
+  const categories = await getCategories();
 
   return (
     <html lang="en" className={`${fredoka.variable} ${nunito.variable} ${bengali.variable} h-full antialiased`}>
