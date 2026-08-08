@@ -34,7 +34,7 @@ interface OrderSnapshot {
  *
  * The in-component ref only survives one mount, so a refresh of the success
  * page — or reopening it from history — used to send Purchase again. Over
- * Aug 1-8 that produced 26 browser Purchase events against 17 real orders.
+ * Aug 1-8 that produced 46 Purchase events against 17 real orders.
  * localStorage, not sessionStorage: the duplicate arrives in a fresh tab just
  * as easily as in this one.
  */
@@ -113,10 +113,9 @@ function SuccessInner() {
             }
           : {}),
       },
-      // Derived from the order id so every channel that reports this purchase
-      // can agree on it. Anything server-side must send the identical string as
-      // `event_id` for Meta to collapse the pair — see the PixelYourSite note in
-      // gedushop-ads-context.md.
+      // Derived from the order rather than random, so that anything added
+      // server-side later can agree on the value: Meta only collapses a pair
+      // when both sides send the identical string.
       `purchase_${order}`,
     );
     markTracked(order);
