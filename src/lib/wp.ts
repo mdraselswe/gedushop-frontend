@@ -94,10 +94,27 @@ async function getAllProducts(): Promise<StoreProduct[]> {
   if (!allProductsCache) {
     allProductsCache = (async () => {
       const all: StoreProduct[] = [];
+      let expected: number | null = null;
       for (let page = 1; page <= 20; page++) {
-        const list = await storeGet<StoreProduct[]>(`/products?per_page=100&page=${page}`);
+        // The header, not the row count, decides when to stop. A short page
+        // used to end the loop, and a short page is exactly what an hCDN blip
+        // produces — 81 rows where 82 exist, indistinguishable from the last
+        // page. The build then carried on with a product missing: its page
+        // never generated, its category counted one short, and nothing failed.
+        const res = await fetchRetry(`${STORE_API}/products?per_page=100&page=${page}`);
+        if (!res.ok) throw new Error(`Store API ${res.status} on /products page ${page}`);
+        const list = (await res.json()) as StoreProduct[];
         all.push(...list.map(decodeProduct));
-        if (list.length < 100) break;
+        if (expected === null) expected = Number(res.headers.get("x-wp-total") ?? 0);
+        if (all.length >= expected || list.length === 0) break;
+      }
+      // Louder than a quietly incomplete catalogue. Everything downstream —
+      // product pages, category counts, the sitemap — treats this list as the
+      // whole shop, so a build missing rows publishes a site missing products.
+      if (expected && all.length < expected) {
+        throw new Error(
+          `Store API returned ${all.length} of ${expected} products — refusing to build an incomplete catalogue`,
+        );
       }
       return all;
     })();
@@ -110,9 +127,38 @@ export async function getProductBySlug(slug: string): Promise<StoreProduct | nul
   return all.find((p) => p.slug === slug) ?? null;
 }
 
+/**
+ * Categories, counted from the products themselves rather than from the term
+ * count WooCommerce reports.
+ *
+ * That count is a cached column, and WordPress only refreshes it when terms are
+ * assigned through the paths that bother to call wp_update_term_count(). Import
+ * a batch of products, or set categories programmatically, and it silently
+ * stops matching: Education said 1 with 7 products behind it, Toys said 29 with
+ * 36. Every number on the site came from it — the sidebar badges, the category
+ * hero, the meta description Google indexes.
+ *
+ * Worse than any wrong number, `count > 0` is also what decides whether a
+ * category exists here at all. A stale zero would have taken the category out
+ * of the nav and out of generateStaticParams, so its page would never have been
+ * built — a live category, silently gone from the whole site.
+ *
+ * The product list is already fetched and memoised for the build, so counting
+ * it costs nothing and can't drift: the badge and what you find inside come
+ * from the same data.
+ */
 export async function getCategories(): Promise<StoreCategory[]> {
-  const cats = await storeGet<StoreCategory[]>(`/products/categories?per_page=50`);
-  return cats.filter((c) => c.count > 0).map(decodeCategory);
+  const [cats, products] = await Promise.all([
+    storeGet<StoreCategory[]>(`/products/categories?per_page=50`),
+    getAllProducts(),
+  ]);
+  const real = new Map<number, number>();
+  for (const p of products) {
+    for (const c of p.categories ?? []) real.set(c.id, (real.get(c.id) ?? 0) + 1);
+  }
+  return cats
+    .map((c) => ({ ...decodeCategory(c), count: real.get(c.id) ?? 0 }))
+    .filter((c) => c.count > 0);
 }
 
 export async function getCategoryBySlug(slug: string): Promise<StoreCategory | null> {

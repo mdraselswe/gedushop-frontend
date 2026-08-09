@@ -4,7 +4,7 @@ import Breadcrumbs from "@/components/Breadcrumbs";
 import ProductBrowser from "@/components/ProductBrowser";
 import { categoryIcon } from "@/lib/categoryIcons";
 import { decodeEntities } from "@/lib/decode";
-import { getCategories, getCategoryBySlug, getProducts } from "@/lib/wp";
+import { getCategories, getCategoryBySlug, getProductsPaged } from "@/lib/wp";
 
 interface Props {
   params: Promise<{ slug: string }>;
@@ -52,7 +52,15 @@ export default async function CategoryPage({ params }: Props) {
 
   // Unguarded: an empty category page is indistinguishable from a genuinely
   // empty category, so a swallowed failure would publish a dead page.
-  const products = await getProducts({ category: String(category.id), perPage: 24 });
+  //
+  // Paged, so the total comes from the same query that produced these rows.
+  // Seeding it from the category's own term count meant Education's stale 1
+  // became `totalPages: 1`, and the other six products had no page to be on
+  // until something else triggered a refetch.
+  const { products, total } = await getProductsPaged({
+    category: String(category.id),
+    perPage: 24,
+  });
 
   const breadcrumbLd = {
     "@context": "https://schema.org",
@@ -92,7 +100,7 @@ export default async function CategoryPage({ params }: Props) {
       <ProductBrowser
         categoryId={String(category.id)}
         initialProducts={products}
-        initialTotal={category.count}
+        initialTotal={total}
       />
     </div>
   );
