@@ -7,6 +7,7 @@ import SearchBar from "./SearchBar";
 import HeaderNav from "./HeaderNav";
 import HeaderCartButton from "./HeaderCartButton";
 import HeaderWishlistButton from "./HeaderWishlistButton";
+import HeaderCallButton from "./HeaderCallButton";
 
 export default function Header() {
   const [scrolled, setScrolled] = useState(false);
@@ -34,7 +35,10 @@ export default function Header() {
           <SearchBar />
         </div>
 
-        <div className="ml-auto flex items-center gap-1 md:ml-0">
+        {/* Call first, then wishlist and cart. Reading order on a wide screen
+            is the order of intent: ask, save, buy. */}
+        <div className="ml-auto flex items-center gap-1 md:ml-0 md:gap-2">
+          <HeaderCallButton />
           <HeaderWishlistButton />
           <HeaderCartButton />
         </div>

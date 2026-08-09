@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Mail, MapPin, MessageCircle, Phone } from "lucide-react";
+import { PHONE, PHONE_DISPLAY, WHATSAPP } from "@/lib/contact";
 
 // lucide dropped brand icons — inline the Facebook mark.
 function Facebook({ className, strokeWidth }: { className?: string; strokeWidth?: number }) {
@@ -15,9 +16,6 @@ export const metadata: Metadata = {
   description: "Get in touch with GeduShop — call, WhatsApp, email or message us on Facebook.",
 };
 
-const PHONE = "+8801552958606";
-const PHONE_DISPLAY = "+880 1552-958606";
-const WHATSAPP = "8801552958606";
 const EMAIL = "gedu.shop@gmail.com";
 const FACEBOOK = "https://facebook.com/gedushop";
 

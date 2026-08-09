@@ -1,3 +1,5 @@
+import { PHONE } from "@/lib/contact";
+
 const SITE = process.env.NEXT_PUBLIC_SITE_URL ?? "https://gedushop.com";
 
 /** Sitewide Organization + WebSite structured data (helps brand knowledge panel
@@ -12,7 +14,7 @@ export default function SiteJsonLd() {
       logo: `${SITE}/icon.png`,
       description: "Baby items, toys and kids essentials in Bangladesh. Cash on delivery.",
       email: "gedu.shop@gmail.com",
-      telephone: "+8801552958606",
+      telephone: PHONE,
       areaServed: "BD",
       sameAs: ["https://facebook.com/gedushop"],
     },

@@ -2,9 +2,8 @@ import Image from "next/image";
 import Link from "next/link";
 import { Mail, MapPin, MessageCircle, Phone } from "lucide-react";
 import type { StoreCategory } from "@/lib/types";
+import { PHONE, PHONE_DISPLAY, WHATSAPP } from "@/lib/contact";
 
-const PHONE = "+8801552958606";
-const WHATSAPP = "8801552958606";
 const EMAIL = "gedu.shop@gmail.com";
 
 export default function Footer({ categories }: { categories: StoreCategory[] }) {
@@ -56,7 +55,7 @@ export default function Footer({ categories }: { categories: StoreCategory[] }) 
           <ul className="mt-3 space-y-2 text-sm text-plum-500">
             <li>
               <a href={`tel:${PHONE}`} className="flex items-center gap-2 hover:text-coral-500">
-                <Phone className="size-4 text-coral-500" strokeWidth={2.25} /> +880 1552-958606
+                <Phone className="size-4 text-coral-500" strokeWidth={2.25} /> {PHONE_DISPLAY}
               </a>
             </li>
             <li>
