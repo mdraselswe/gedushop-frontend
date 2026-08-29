@@ -19,6 +19,7 @@ import {
   getCombosContaining,
   getProductBySlug,
   getRelatedProducts,
+  primaryCategory,
 } from "@/lib/wp";
 
 interface Props {
@@ -80,7 +81,8 @@ export default async function ProductPage({ params }: Props) {
   // suggestion strip. Losing them costs a little browsing, while failing the
   // build would cost the whole deploy. Everything structural — which pages
   // exist, the nav, the sitemap — is deliberately unguarded instead.
-  const related = await getRelatedProducts(product.categories[0]?.id, product.id).catch(() => []);
+  const homeCategory = primaryCategory(product);
+  const related = await getRelatedProducts(homeCategory?.id, product.id).catch(() => []);
   const discount = discountPercent(product.prices);
 
   // Two sides of the same feature. A combo shows what is in the box; an
@@ -125,10 +127,10 @@ export default async function ProductPage({ params }: Props) {
     itemListElement: [
       { "@type": "ListItem", position: 1, name: "Home", item: SITE },
       { "@type": "ListItem", position: 2, name: "Shop", item: `${SITE}/shop` },
-      ...(product.categories[0]
-        ? [{ "@type": "ListItem", position: 3, name: product.categories[0].name, item: `${SITE}/category/${product.categories[0].slug}` }]
+      ...(homeCategory
+        ? [{ "@type": "ListItem", position: 3, name: homeCategory.name, item: `${SITE}/category/${homeCategory.slug}` }]
         : []),
-      { "@type": "ListItem", position: product.categories[0] ? 4 : 3, name: product.name, item: `${SITE}/product/${product.slug}` },
+      { "@type": "ListItem", position: homeCategory ? 4 : 3, name: product.name, item: `${SITE}/product/${product.slug}` },
     ],
   };
 
@@ -140,8 +142,8 @@ export default async function ProductPage({ params }: Props) {
         items={[
           { label: "Home", href: "/" },
           { label: "Shop", href: "/shop" },
-          ...(product.categories[0]
-            ? [{ label: product.categories[0].name, href: `/category/${product.categories[0].slug}` }]
+          ...(homeCategory
+            ? [{ label: homeCategory.name, href: `/category/${homeCategory.slug}` }]
             : []),
           { label: product.name },
         ]}
@@ -173,14 +175,14 @@ export default async function ProductPage({ params }: Props) {
                 Be the first to review
               </a>
             )}
-            {product.categories[0] && (
+            {homeCategory && (
               <>
                 <span className="text-plum-200">·</span>
                 <Link
-                  href={`/category/${product.categories[0].slug}`}
+                  href={`/category/${homeCategory.slug}`}
                   className="text-sm font-bold text-plum-400 hover:text-coral-500"
                 >
-                  {product.categories[0].name}
+                  {homeCategory.name}
                 </Link>
               </>
             )}

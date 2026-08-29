@@ -159,6 +159,21 @@ export async function getCombosContaining(productId: number): Promise<StoreProdu
   );
 }
 
+/** The slug the WordPress plugin files every combo under. */
+export const COMBO_CATEGORY_SLUG = "combo-offers";
+
+/**
+ * The category to treat as a product's home: breadcrumb, related products.
+ *
+ * Every combo is also in "Combo Offers", and that term sorts before most real
+ * ones — so taking categories[0] would breadcrumb a combo to a category that
+ * contains only combos, and pull its "you may also like" from a shelf holding
+ * one product: itself. The real category is the one that answers both.
+ */
+export function primaryCategory(p: StoreProduct) {
+  return p.categories.find((c) => c.slug !== COMBO_CATEGORY_SLUG) ?? p.categories[0];
+}
+
 /** What a combo saves against buying its contents separately, in minor units. */
 export function comboSaving(p: StoreProduct): number {
   const combo = p.extensions?.gedushop?.combo;
