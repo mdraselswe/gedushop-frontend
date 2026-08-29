@@ -155,6 +155,7 @@ export default async function ProductPage({ params }: Props) {
           discount={discount}
           slug={product.slug}
           video={product.extensions?.gedushop?.video}
+          product={product}
         />
 
         <div className="flex min-w-0 flex-col">
@@ -202,7 +203,7 @@ export default async function ProductPage({ params }: Props) {
         </div>
       </div>
 
-      {combo && <ComboContents combo={combo} prices={product.prices} />}
+      {combo && <ComboContents product={product} />}
 
       {product.description && (
         <section className="mt-8 rounded-3xl bg-white p-6 shadow-[var(--shadow-soft)] ring-1 ring-plum-100/50">

@@ -4,7 +4,9 @@ import Image from "next/image";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { ChevronLeft, ChevronRight, ImageOff, Maximize2, Minus, Play, Plus, X } from "lucide-react";
 import ShareButton from "./ShareButton";
-import type { StoreImage } from "@/lib/types";
+import type { StoreImage, StoreProduct } from "@/lib/types";
+import { useLiveProduct } from "@/lib/liveProduct";
+import { discountPercent } from "@/lib/format";
 
 const MIN_ZOOM = 1;
 const MAX_ZOOM = 4;
@@ -22,9 +24,26 @@ interface Props {
   discount: number | null;
   slug?: string;
   video?: string;
+  /**
+   * When given, the badge follows the shop rather than the build.
+   *
+   * "-19% OFF" is a claim about the price, and the price beside it is fetched
+   * live — so a build-time badge can end up advertising a discount that no
+   * longer exists next to the figure that disproves it.
+   */
+  product?: StoreProduct;
 }
 
-export default function ProductGallery({ images, name, discount, slug, video }: Props) {
+export default function ProductGallery({
+  images,
+  name,
+  discount: initialDiscount,
+  slug,
+  video,
+  product,
+}: Props) {
+  const live = useLiveProduct(product ?? null);
+  const discount = live ? discountPercent(live.prices) : initialDiscount;
   const [index, setIndex] = useState(0);
   const [hoverZoom, setHoverZoom] = useState(false);
   const [origin, setOrigin] = useState("50% 50%");

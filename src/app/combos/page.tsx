@@ -1,8 +1,7 @@
 import type { Metadata } from "next";
-import Link from "next/link";
 import { PackageCheck } from "lucide-react";
 import Breadcrumbs from "@/components/Breadcrumbs";
-import ProductCard from "@/components/ProductCard";
+import CombosGrid from "@/components/CombosGrid";
 import { getCombos, comboSaving } from "@/lib/wp";
 
 export const metadata: Metadata = {
@@ -54,23 +53,7 @@ export default async function CombosPage() {
         </p>
       </div>
 
-      {sorted.length === 0 ? (
-        <div className="rounded-3xl bg-white p-8 text-center shadow-[var(--shadow-soft)] ring-1 ring-plum-100/50">
-          <p className="font-semibold text-plum-700">No combo offers running right now.</p>
-          <Link
-            href="/shop"
-            className="mt-3 inline-block rounded-full bg-plum-600 px-5 py-2.5 text-sm font-extrabold text-white transition-colors hover:bg-plum-700"
-          >
-            Browse the shop
-          </Link>
-        </div>
-      ) : (
-        <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:gap-4 lg:grid-cols-4">
-          {sorted.map((p) => (
-            <ProductCard key={p.id} product={p} />
-          ))}
-        </div>
-      )}
+      <CombosGrid initial={sorted} />
     </div>
   );
 }

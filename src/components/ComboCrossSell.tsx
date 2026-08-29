@@ -1,26 +1,46 @@
+"use client";
+
 import Link from "next/link";
+import { useEffect, useState } from "react";
 import { ImageOff, Sparkles } from "lucide-react";
 import type { StoreProduct } from "@/lib/types";
 import { comboSaving } from "@/lib/wp";
 import { formatPrice } from "@/lib/format";
+import { fetchLiveProduct } from "@/lib/liveProduct";
 
 /**
  * "There is a cheaper way to buy this" — on the product's own page.
  *
  * The one place a combo actually gets sold. Nobody browses a combo listing;
  * they arrive at the aeroplane they came for, and this is what tells them the
- * aeroplane plus its batteries costs less as a set. Everything here is known
- * at build time from the catalogue that was fetched anyway, so it adds no
- * request and no client JavaScript.
+ * aeroplane plus its batteries costs less as a set.
+ *
+ * The saving is refetched rather than taken from the build. This panel quotes
+ * a price for a product the shopper is about to click through to, and a stale
+ * one sends them to a page showing something else — the worst version of which
+ * is advertising a saving on a combo whose price has since gone up.
  */
 export default function ComboCrossSell({
-  combos,
+  combos: initial,
   currency,
 }: {
   combos: StoreProduct[];
   /** Any product's prices — only the minor-unit scale is read from it. */
   currency: StoreProduct["prices"];
 }) {
+  const [combos, setCombos] = useState(initial);
+
+  useEffect(() => {
+    let live = true;
+    void Promise.all(initial.map((c) => fetchLiveProduct(c.id))).then((fresh) => {
+      // Each combo keeps its build copy if its own fetch failed.
+      if (live) setCombos(initial.map((c, i) => fresh[i] ?? c));
+    });
+    return () => {
+      live = false;
+    };
+  }, [initial]);
+
   const offers = combos
     .map((c) => ({ combo: c, saving: comboSaving(c) }))
     // A "combo" that saves nothing is not an offer, and dressing it up as one

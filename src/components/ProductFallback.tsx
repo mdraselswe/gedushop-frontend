@@ -80,6 +80,7 @@ export default function ProductFallback({ onMiss }: { onMiss: () => void }) {
           discount={discountPercent(product.prices)}
           slug={product.slug}
           video={product.extensions?.gedushop?.video}
+          product={product}
         />
 
         <div className="space-y-4">
@@ -95,7 +96,7 @@ export default function ProductFallback({ onMiss }: { onMiss: () => void }) {
         </div>
       </div>
 
-      {combo && <ComboContents combo={combo} prices={product.prices} />}
+      {combo && <ComboContents product={product} />}
 
       {product.description && (
         <section className="mt-8 rounded-3xl bg-white p-6 shadow-[var(--shadow-soft)] ring-1 ring-plum-100/50">

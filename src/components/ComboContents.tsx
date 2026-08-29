@@ -1,7 +1,10 @@
+"use client";
+
 import Link from "next/link";
 import { ImageOff, PackageCheck, Truck } from "lucide-react";
-import type { StoreCombo, StorePrices } from "@/lib/types";
+import type { StoreProduct } from "@/lib/types";
 import { formatPrice } from "@/lib/format";
+import { useLiveProduct } from "@/lib/liveProduct";
 
 /**
  * What is actually in a combo, on the combo's own page.
@@ -11,14 +14,19 @@ import { formatPrice } from "@/lib/format";
  * way to know whether the set contains the thing they came for. The saving is
  * the other half: a combo that doesn't say what it saves is just a product
  * with a confusing name.
+ *
+ * Reads the live product rather than the build's copy, for the same reason the
+ * buy box does. A combo whose price or recipe changed used to show the new
+ * price at the top of the page and the old price, old saving and old contents
+ * in this box — a shopper being quoted two different prices for one thing.
  */
-export default function ComboContents({
-  combo,
-  prices,
-}: {
-  combo: StoreCombo;
-  prices: StorePrices;
-}) {
+export default function ComboContents({ product: initial }: { product: StoreProduct }) {
+  const product = useLiveProduct(initial);
+  const combo = product.extensions?.gedushop?.combo;
+  const prices = product.prices;
+  // The recipe was taken off the product between the build and now.
+  if (!combo) return null;
+
   const price = Number(prices.price);
   const saving = Math.max(0, combo.components_total - price);
   const percent = combo.components_total > 0 ? Math.round((saving / combo.components_total) * 100) : 0;
