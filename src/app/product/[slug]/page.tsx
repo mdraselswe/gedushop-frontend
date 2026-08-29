@@ -4,6 +4,8 @@ import { notFound } from "next/navigation";
 import Breadcrumbs from "@/components/Breadcrumbs";
 import ProductBuyBox from "@/components/ProductBuyBox";
 import ProductGallery from "@/components/ProductGallery";
+import ComboContents from "@/components/ComboContents";
+import ComboCrossSell from "@/components/ComboCrossSell";
 import ProductCard from "@/components/ProductCard";
 import ProductReviews from "@/components/ProductReviews";
 import RecentlyViewed from "@/components/RecentlyViewed";
@@ -12,7 +14,12 @@ import Highlights from "@/components/Highlights";
 import StickyBuyBar from "@/components/StickyBuyBar";
 import Stars from "@/components/Stars";
 import { discountPercent } from "@/lib/format";
-import { getProductBySlug, getProducts, getRelatedProducts } from "@/lib/wp";
+import {
+  getAllProducts,
+  getCombosContaining,
+  getProductBySlug,
+  getRelatedProducts,
+} from "@/lib/wp";
 
 interface Props {
   params: Promise<{ slug: string }>;
@@ -25,7 +32,7 @@ export async function generateStaticParams() {
   // worse still: `g:id` in the catalogue feed has to keep matching a real
   // product page, so a build that quietly dropped every product would point
   // Meta's catalogue ads at 404s.
-  const products = await getProducts({ perPage: 100 });
+  const products = await getAllProducts();
   if (!products.length) {
     throw new Error(
       "Store API returned no products — refusing to build a storefront with no product pages",
@@ -75,6 +82,14 @@ export default async function ProductPage({ params }: Props) {
   // exist, the nav, the sitemap — is deliberately unguarded instead.
   const related = await getRelatedProducts(product.categories[0]?.id, product.id).catch(() => []);
   const discount = discountPercent(product.prices);
+
+  // Two sides of the same feature. A combo shows what is in the box; an
+  // ordinary product shows the sets it belongs to — which is the one that
+  // actually sells combos, since nobody arrives looking for a combo.
+  const combo = product.extensions?.gedushop?.combo;
+  // Same reasoning as `related` above: a missing cross-sell costs a little
+  // basket size, a failed build costs the whole deploy.
+  const inCombos = combo ? [] : await getCombosContaining(product.id).catch(() => []);
 
   const minor = product.prices.currency_minor_unit ?? 2;
   const jsonLd = {
@@ -175,11 +190,17 @@ export default async function ProductPage({ params }: Props) {
 
           <ProductBuyBox product={product} />
 
+          {inCombos.length > 0 && (
+            <ComboCrossSell combos={inCombos} currency={product.prices} />
+          )}
+
           <ProductAssurance />
 
           <Highlights html={product.short_description} />
         </div>
       </div>
+
+      {combo && <ComboContents combo={combo} prices={product.prices} />}
 
       {product.description && (
         <section className="mt-8 rounded-3xl bg-white p-6 shadow-[var(--shadow-soft)] ring-1 ring-plum-100/50">

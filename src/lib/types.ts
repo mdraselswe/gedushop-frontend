@@ -46,8 +46,35 @@ export interface StoreProduct {
       video?: string;
       /** Swatch hex by taxonomy then term slug, e.g. { pa_color: { blue: "#1e73be" } } */
       attribute_colors?: Record<string, Record<string, string>>;
+      /**
+       * Present only on a combo — several products sold together at one price.
+       *
+       * The combo IS an ordinary product here: its own page, its own price, one
+       * line in the cart. This is the recipe behind it, so the page can show
+       * what is in the box and what the set saves, and so each component's own
+       * page can point back at it.
+       */
+      combo?: StoreCombo;
     };
   };
+}
+
+export interface StoreComboItem {
+  id: number;
+  name: string;
+  slug: string;
+  /** Pieces of this product in ONE set. */
+  qty: number;
+  /** Minor units, like every other price the Store API sends. */
+  price: number;
+  image: string | null;
+}
+
+export interface StoreCombo {
+  items: StoreComboItem[];
+  /** What the same goods list for bought separately, in minor units. */
+  components_total: number;
+  free_shipping: boolean;
 }
 
 export interface StoreAttribute {
@@ -100,6 +127,16 @@ export interface CartItem {
   images: StoreImage[];
   prices: StorePrices;
   totals: CartItemTotals;
+  extensions?: {
+    gedushop?: {
+      /** Present when this basket line is a combo. */
+      combo?: {
+        /** "Robotic Aeroplane x1", "AA Battery Pack x3" — what is in the box. */
+        includes: string[];
+        free_shipping: boolean;
+      };
+    };
+  };
 }
 
 export interface CartTotals {

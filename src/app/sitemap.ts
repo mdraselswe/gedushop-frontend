@@ -1,5 +1,5 @@
 import type { MetadataRoute } from "next";
-import { getCategories, getProducts } from "@/lib/wp";
+import { getAllProducts, getCategories } from "@/lib/wp";
 
 const SITE = process.env.NEXT_PUBLIC_SITE_URL ?? "https://gedushop.com";
 
@@ -11,13 +11,14 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   // gone. That is silent — nothing in the build output would say so — and it
   // is the worst outcome of the three. Better to fail the deploy.
   const [products, categories] = await Promise.all([
-    getProducts({ perPage: 100 }),
+    getAllProducts(),
     getCategories(),
   ]);
 
   const staticRoutes: MetadataRoute.Sitemap = [
     { url: `${SITE}/`, changeFrequency: "daily", priority: 1 },
     { url: `${SITE}/shop`, changeFrequency: "daily", priority: 0.9 },
+    { url: `${SITE}/combos`, changeFrequency: "weekly", priority: 0.8 },
     { url: `${SITE}/track`, changeFrequency: "monthly", priority: 0.4 },
     { url: `${SITE}/about`, changeFrequency: "yearly", priority: 0.3 },
     { url: `${SITE}/contact`, changeFrequency: "yearly", priority: 0.3 },

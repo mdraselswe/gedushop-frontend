@@ -95,6 +95,11 @@ export default function CartDrawer() {
                         {item.variation.map((v) => `${v.attribute}: ${v.value}`).join(" · ")}
                       </p>
                     )}
+                    {item.extensions?.gedushop?.combo && (
+                      <p className="mt-0.5 text-[11px] font-semibold text-plum-400">
+                        {item.extensions.gedushop.combo.includes.join(" · ")}
+                      </p>
+                    )}
                     <p className="mt-0.5 text-xs font-extrabold text-plum-600 tabular-nums">
                       {formatPrice(item.totals.line_subtotal, item.totals)}
                       {Number(item.prices.regular_price) > Number(item.prices.price) && (
@@ -145,7 +150,7 @@ export default function CartDrawer() {
       {cart && cart.items.length > 0 && (
         <div className="border-t border-plum-100 p-3">
           <div className="mb-3">
-            <FreeShippingBar totals={cart.totals} />
+            <FreeShippingBar totals={cart.totals} items={cart.items} />
           </div>
           <div className="mb-3">
             <CouponField />

@@ -1,0 +1,2 @@
+# Built from the folder next to it — a stale zip in git is worse than none.
+*.zip

@@ -1,7 +1,34 @@
+"use client";
+
+import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
 import { PackageX } from "lucide-react";
+import ProductFallback from "@/components/ProductFallback";
 
+/**
+ * The 404 page, which is also the front door for products this build predates.
+ *
+ * A static export has one HTML file per product, written at build time, while
+ * the listing pages fetch live. Between publishing a product and the next
+ * build, the shop lists something whose page does not exist — so before showing
+ * anybody "page not found", check whether the address names a real product and
+ * render it if it does. See ProductFallback.
+ */
 export default function NotFound() {
+  const [showNotFound, setShowNotFound] = useState(false);
+  const [isProductUrl, setIsProductUrl] = useState<boolean | null>(null);
+
+  useEffect(() => {
+    setIsProductUrl(/^\/product\/[^/]+\/?$/.test(window.location.pathname));
+  }, []);
+
+  const onMiss = useCallback(() => setShowNotFound(true), []);
+
+  // Nothing until the path is known: rendering "page not found" for a split
+  // second before a product appears is worse than rendering nothing.
+  if (isProductUrl === null) return null;
+  if (isProductUrl && !showNotFound) return <ProductFallback onMiss={onMiss} />;
+
   return (
     <div className="mx-auto flex max-w-md flex-col items-center px-4 pt-16 text-center">
       <span className="flex size-20 items-center justify-center rounded-full bg-plum-50">

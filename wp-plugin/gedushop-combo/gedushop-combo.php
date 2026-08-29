@@ -1,0 +1,852 @@
+<?php
+/**
+ * Plugin Name: GeduShop Combo Sets
+ * Description: Sell several products together at one price, with the combo's stock derived from the products inside it rather than kept as a second number.
+ * Version:     1.0.0
+ * Author:      GeduShop
+ * Requires PHP: 7.4
+ *
+ * ---------------------------------------------------------------------------
+ * THE ONE RULE
+ *
+ * A combo never holds its own stock. Its `_stock` is written, but only ever by
+ * this plugin, and always as a figure computed from its components:
+ *
+ *     buildable = min over components of floor( component stock / qty per set )
+ *
+ * That is what makes the same piece sellable twice — once on its own, once
+ * inside every combo containing it — without two counts that drift apart. Sell
+ * the last aeroplane on its own and every combo containing one goes to zero;
+ * sell that combo and the aeroplane's own listing goes to zero.
+ *
+ * Why the figure is STORED rather than filtered on read: the storefront asks
+ * the Store API for `?stock_status=instock`, and that is a postmeta query, not
+ * a runtime filter. A combo whose components had run out would keep turning up
+ * in listings — filtered out one page at a time and counted in none of the
+ * totals. So the number is kept true by writing it, not by intercepting reads.
+ *
+ * Nothing here is the source of truth for the business. GeduSuite holds that,
+ * derives its own stock the same way from its own purchase and sale records,
+ * and never reads these numbers. This side exists so the shop cannot sell what
+ * the shelf cannot supply.
+ * ---------------------------------------------------------------------------
+ */
+
+if ( ! defined( 'ABSPATH' ) ) {
+	exit;
+}
+
+define( 'GEDU_COMBO_ITEMS_META', '_gedu_combo_items' );
+define( 'GEDU_COMBO_FREE_SHIPPING_META', '_gedu_combo_free_shipping' );
+/** Guards against reducing a combo's components twice for one order. */
+define( 'GEDU_COMBO_REDUCED_META', '_gedu_combo_stock_reduced' );
+/** component product id => [ combo product ids ]. Rebuilt whenever a combo is saved. */
+define( 'GEDU_COMBO_INDEX_OPTION', 'gedu_combo_index' );
+
+/* ===========================================================================
+ * Reading the recipe
+ * ======================================================================== */
+
+/**
+ * A combo's components, or an empty array for an ordinary product.
+ *
+ * Returns [ [ 'id' => int, 'qty' => int ], ... ]. Everything else in this file
+ * goes through here, so a malformed meta value degrades to "not a combo"
+ * rather than to a fatal on the shop front.
+ */
+function gedu_combo_items( $product_id ) {
+	$raw = get_post_meta( $product_id, GEDU_COMBO_ITEMS_META, true );
+	if ( empty( $raw ) || ! is_array( $raw ) ) {
+		return array();
+	}
+	$items = array();
+	foreach ( $raw as $row ) {
+		$id  = isset( $row['id'] ) ? absint( $row['id'] ) : 0;
+		$qty = isset( $row['qty'] ) ? absint( $row['qty'] ) : 0;
+		// A component that no longer exists, or a zero quantity, would make the
+		// buildable count meaningless. Dropping the row would quietly make the
+		// combo MORE available; keeping it as an unsatisfiable line is wrong
+		// too. Neither: an invalid recipe is not a combo (see below).
+		if ( $id > 0 && $qty > 0 ) {
+			$items[] = array(
+				'id'  => $id,
+				'qty' => $qty,
+			);
+		}
+	}
+	// Any bad row and the whole recipe is refused, because a partially-read
+	// recipe would sell a box with something missing from it.
+	return count( $items ) === count( $raw ) ? $items : array();
+}
+
+function gedu_is_combo( $product_id ) {
+	return count( gedu_combo_items( $product_id ) ) > 0;
+}
+
+function gedu_combo_free_shipping( $product_id ) {
+	return 'yes' === get_post_meta( $product_id, GEDU_COMBO_FREE_SHIPPING_META, true );
+}
+
+/* ===========================================================================
+ * Derived stock
+ * ======================================================================== */
+
+/**
+ * How many complete sets the components on hand can make.
+ *
+ * A component that does not manage stock is treated as unlimited rather than
+ * as zero: WooCommerce already sells it without counting, and a combo should
+ * not be the one place that suddenly starts.
+ */
+function gedu_combo_buildable( $product_id ) {
+	$items = gedu_combo_items( $product_id );
+	if ( empty( $items ) ) {
+		return null;
+	}
+	$buildable = null;
+	foreach ( $items as $item ) {
+		$component = wc_get_product( $item['id'] );
+		if ( ! $component ) {
+			// A deleted component means the box cannot be packed at all. Zero,
+			// loudly, rather than an unlimited supply of an incomplete set.
+			return 0;
+		}
+		if ( ! $component->managing_stock() ) {
+			if ( ! $component->is_in_stock() ) {
+				return 0;
+			}
+			continue;
+		}
+		$have  = (int) $component->get_stock_quantity();
+		$sets  = (int) floor( $have / $item['qty'] );
+		$sets  = max( 0, $sets );
+		$buildable = ( null === $buildable ) ? $sets : min( $buildable, $sets );
+	}
+	// Every component sells without counting — nothing limits the combo either.
+	return null === $buildable ? null : $buildable;
+}
+
+/**
+ * Write a combo's derived stock onto the combo product.
+ *
+ * Idempotent and authoritative: whatever WooCommerce may have done to this
+ * product's `_stock` a moment earlier (it reduces the combo's own count on an
+ * order like any other line) is overwritten with the figure the components
+ * actually support. That is deliberate — it means the two paths cannot
+ * disagree no matter which ran first.
+ */
+function gedu_combo_sync_stock( $combo_id ) {
+	$combo = wc_get_product( $combo_id );
+	if ( ! $combo || ! gedu_is_combo( $combo_id ) ) {
+		return;
+	}
+	$buildable = gedu_combo_buildable( $combo_id );
+
+	if ( null === $buildable ) {
+		// Nothing inside is counted, so counting the combo would invent a
+		// limit. Leave it uncounted and in stock.
+		$combo->set_manage_stock( false );
+		$combo->set_stock_status( 'instock' );
+		$combo->save();
+		return;
+	}
+
+	$combo->set_manage_stock( true );
+	$combo->set_stock_quantity( $buildable );
+	$combo->set_stock_status( $buildable > 0 ? 'instock' : 'outofstock' );
+	// Never let a combo be backordered: there is no such thing as owing a set
+	// whose parts do not exist, and a backorder here would sell components
+	// that other orders are relying on.
+	$combo->set_backorders( 'no' );
+	$combo->save();
+
+	wc_delete_product_transients( $combo_id );
+}
+
+/** Every combo that contains this product, from the index. */
+function gedu_combos_containing( $product_id ) {
+	$index = get_option( GEDU_COMBO_INDEX_OPTION, array() );
+	if ( ! is_array( $index ) || empty( $index[ $product_id ] ) ) {
+		return array();
+	}
+	return array_map( 'absint', (array) $index[ $product_id ] );
+}
+
+/**
+ * Rebuild the component -> combos index.
+ *
+ * A stored index rather than a meta_query on every stock movement: the query
+ * would be a LIKE over serialised postmeta, run on every sale of every product
+ * in the shop. This is rebuilt only when a combo is saved or deleted, which is
+ * rare, and read on every stock change, which is not.
+ */
+function gedu_combo_rebuild_index() {
+	$index  = array();
+	$combos = get_posts(
+		array(
+			'post_type'      => 'product',
+			'post_status'    => array( 'publish', 'private', 'draft', 'pending' ),
+			'posts_per_page' => -1,
+			'fields'         => 'ids',
+			'meta_key'       => GEDU_COMBO_ITEMS_META,
+			'meta_compare'   => 'EXISTS',
+		)
+	);
+	foreach ( $combos as $combo_id ) {
+		foreach ( gedu_combo_items( $combo_id ) as $item ) {
+			$index[ $item['id'] ][] = (int) $combo_id;
+		}
+	}
+	update_option( GEDU_COMBO_INDEX_OPTION, $index, false );
+	return $index;
+}
+
+/**
+ * A component's stock moved — bring every combo containing it back in line.
+ *
+ * This is the half of the rule that handles "sell the single, the combo goes
+ * out of stock". The other half — "sell the combo, the single goes out of
+ * stock" — is the order hook below, which reduces components and lands back
+ * here.
+ */
+function gedu_combo_on_component_stock_change( $product_id ) {
+	static $syncing = false;
+	if ( $syncing ) {
+		// Syncing a combo writes that combo's own stock, which fires this hook
+		// again. A combo is never a component of another combo here, so this
+		// is belt and braces — but a stock loop on a live shop is not
+		// something to leave to a convention.
+		return;
+	}
+	$product_id = absint( is_object( $product_id ) ? $product_id->get_id() : $product_id );
+	$combos     = gedu_combos_containing( $product_id );
+	if ( empty( $combos ) ) {
+		return;
+	}
+	$syncing = true;
+	foreach ( $combos as $combo_id ) {
+		gedu_combo_sync_stock( $combo_id );
+	}
+	$syncing = false;
+}
+add_action( 'woocommerce_updated_product_stock', 'gedu_combo_on_component_stock_change', 20 );
+add_action( 'woocommerce_variation_set_stock', 'gedu_combo_on_component_stock_change', 20 );
+add_action( 'woocommerce_product_set_stock', 'gedu_combo_on_component_stock_change', 20 );
+
+/**
+ * A recipe that arrived without anybody opening the editor.
+ *
+ * gedusuite writes combos over the WooCommerce REST API, so the metabox save
+ * handler — which needs a form nonce — never runs for them. Without this the
+ * index would not know the new combo existed and its stock figure would stay
+ * whatever WooCommerce happened to leave there until the nightly sync, which
+ * is to say the shop would sell a set it could not build.
+ *
+ * Fires after the product has been saved, for both create and update.
+ */
+add_action(
+	'woocommerce_rest_insert_product_object',
+	function ( $object ) {
+		$product_id = $object->get_id();
+		if ( ! gedu_is_combo( $product_id ) ) {
+			// It may have just STOPPED being one — an emptied recipe still has
+			// to leave the index, or a component change would keep syncing a
+			// product that is now an ordinary one.
+			gedu_combo_rebuild_index();
+			return;
+		}
+		gedu_combo_rebuild_index();
+		gedu_combo_sync_stock( $product_id );
+	},
+	20,
+	1
+);
+
+/**
+ * The same safety net for every other way the meta could change: WP-CLI, an
+ * importer, a direct update_post_meta from some other plugin.
+ *
+ * Deferred to shutdown rather than run in place. The meta is written from
+ * inside WC_Data::save(), and recalculating stock in the middle of a save is
+ * how re-entrant writes and half-written products happen. By shutdown the
+ * product is whole.
+ */
+function gedu_combo_queue_resync( $product_id ) {
+	static $queued = array();
+	$product_id = absint( $product_id );
+	if ( ! $product_id || isset( $queued[ $product_id ] ) ) {
+		return;
+	}
+	$queued[ $product_id ] = true;
+	add_action(
+		'shutdown',
+		function () use ( $product_id ) {
+			gedu_combo_rebuild_index();
+			if ( gedu_is_combo( $product_id ) ) {
+				gedu_combo_sync_stock( $product_id );
+			}
+		}
+	);
+}
+
+add_action(
+	'updated_post_meta',
+	function ( $meta_id, $object_id, $meta_key ) {
+		if ( GEDU_COMBO_ITEMS_META === $meta_key ) {
+			gedu_combo_queue_resync( $object_id );
+		}
+	},
+	20,
+	3
+);
+add_action(
+	'added_post_meta',
+	function ( $meta_id, $object_id, $meta_key ) {
+		if ( GEDU_COMBO_ITEMS_META === $meta_key ) {
+			gedu_combo_queue_resync( $object_id );
+		}
+	},
+	20,
+	3
+);
+
+/* ===========================================================================
+ * Orders: a combo takes its components off the shelf, not itself
+ * ======================================================================== */
+
+/**
+ * Reduce the components of every combo on this order.
+ *
+ * Runs after WooCommerce has done its own reduction. It does NOT try to stop
+ * Woo reducing the combo product's own count — that number is derived, and
+ * gedu_combo_sync_stock (reached through the component change above)
+ * overwrites whatever Woo left there with the truth.
+ *
+ * The order meta guard matters: this hook fires again on a status change that
+ * re-triggers reduction, and without it a retried webhook or a manual status
+ * flip would take the components off the shelf twice.
+ */
+function gedu_combo_reduce_order_stock( $order ) {
+	if ( ! $order instanceof WC_Order ) {
+		return;
+	}
+	if ( $order->get_meta( GEDU_COMBO_REDUCED_META ) ) {
+		return;
+	}
+	$touched = array();
+	foreach ( $order->get_items() as $line ) {
+		$product_id = $line->get_product_id();
+		$items      = gedu_combo_items( $product_id );
+		if ( empty( $items ) ) {
+			continue;
+		}
+		$sets = max( 1, (int) $line->get_quantity() );
+		foreach ( $items as $item ) {
+			$component = wc_get_product( $item['id'] );
+			if ( ! $component || ! $component->managing_stock() ) {
+				continue;
+			}
+			wc_update_product_stock( $component, $item['qty'] * $sets, 'decrease' );
+			$touched[] = $item['id'];
+			$order->add_order_note(
+				sprintf(
+					/* translators: 1: component name, 2: pieces taken, 3: combo name */
+					__( 'Combo stock: %1$s reduced by %2$d (part of %3$s)', 'gedushop-combo' ),
+					$component->get_name(),
+					$item['qty'] * $sets,
+					$line->get_name()
+				)
+			);
+		}
+	}
+	if ( ! empty( $touched ) ) {
+		$order->update_meta_data( GEDU_COMBO_REDUCED_META, 'yes' );
+		$order->save();
+	}
+}
+add_action( 'woocommerce_reduce_order_stock', 'gedu_combo_reduce_order_stock', 20 );
+
+/** The same, backwards, when an order is cancelled or refunded. */
+function gedu_combo_restore_order_stock( $order ) {
+	if ( ! $order instanceof WC_Order ) {
+		return;
+	}
+	if ( ! $order->get_meta( GEDU_COMBO_REDUCED_META ) ) {
+		return;
+	}
+	foreach ( $order->get_items() as $line ) {
+		$items = gedu_combo_items( $line->get_product_id() );
+		if ( empty( $items ) ) {
+			continue;
+		}
+		$sets = max( 1, (int) $line->get_quantity() );
+		foreach ( $items as $item ) {
+			$component = wc_get_product( $item['id'] );
+			if ( ! $component || ! $component->managing_stock() ) {
+				continue;
+			}
+			wc_update_product_stock( $component, $item['qty'] * $sets, 'increase' );
+		}
+	}
+	$order->delete_meta_data( GEDU_COMBO_REDUCED_META );
+	$order->save();
+}
+add_action( 'woocommerce_restore_order_stock', 'gedu_combo_restore_order_stock', 20 );
+
+/* ===========================================================================
+ * The cart: one shelf, however the pieces were picked
+ * ======================================================================== */
+
+/**
+ * What this cart is asking of each component, combos expanded.
+ *
+ * The reason cart-level validation exists at all. Two combos each containing
+ * an aeroplane, plus an aeroplane on its own, is a demand of three aeroplanes
+ * — and WooCommerce checks each line against stock separately, so all three
+ * lines pass while the cart as a whole cannot be packed. Per-item validation
+ * cannot see this; only a sum over the whole cart can.
+ *
+ * Returns [ product_id => pieces wanted ].
+ */
+function gedu_combo_cart_demand( $cart ) {
+	$demand = array();
+	foreach ( $cart->get_cart() as $cart_item ) {
+		$product_id = (int) $cart_item['product_id'];
+		$qty        = max( 1, (int) $cart_item['quantity'] );
+		$items      = gedu_combo_items( $product_id );
+		if ( empty( $items ) ) {
+			// A variation is its own stock-keeping thing; count it, not the parent.
+			$id = ! empty( $cart_item['variation_id'] ) ? (int) $cart_item['variation_id'] : $product_id;
+			$demand[ $id ] = ( isset( $demand[ $id ] ) ? $demand[ $id ] : 0 ) + $qty;
+			continue;
+		}
+		foreach ( $items as $item ) {
+			$demand[ $item['id'] ] = ( isset( $demand[ $item['id'] ] ) ? $demand[ $item['id'] ] : 0 )
+				+ ( $item['qty'] * $qty );
+		}
+	}
+	return $demand;
+}
+
+/** Components this cart wants more of than exist, as readable sentences. */
+function gedu_combo_cart_shortfalls( $cart ) {
+	$problems = array();
+	foreach ( gedu_combo_cart_demand( $cart ) as $product_id => $wanted ) {
+		$product = wc_get_product( $product_id );
+		if ( ! $product || ! $product->managing_stock() ) {
+			continue;
+		}
+		if ( 'no' !== $product->get_backorders() ) {
+			continue;
+		}
+		$have = (int) $product->get_stock_quantity();
+		if ( $wanted > $have ) {
+			$problems[] = sprintf(
+				/* translators: 1: product name, 2: pieces in stock, 3: pieces the cart wants */
+				__( 'Only %2$d of %1$s left — your basket needs %3$d, counting what is inside your combos.', 'gedushop-combo' ),
+				$product->get_name(),
+				$have,
+				$wanted
+			);
+		}
+	}
+	return $problems;
+}
+
+/**
+ * Store API cart validation.
+ *
+ * `woocommerce_store_api_cart_errors` is the cart-level hook — it runs with
+ * the whole cart in hand, which is the only place the sum above can be
+ * checked. The headless storefront reads the message straight out of the
+ * response, so it is written for a shopper rather than for a log.
+ */
+add_action(
+	'woocommerce_store_api_cart_errors',
+	function ( $errors, $cart ) {
+		foreach ( gedu_combo_cart_shortfalls( $cart ) as $message ) {
+			$errors->add( 'gedu_combo_stock', $message );
+		}
+	},
+	10,
+	2
+);
+
+/**
+ * The classic checkout path, for the admin's own order-editing screens and
+ * anything that still goes through WC()->cart. Same sum, same sentences.
+ */
+add_action(
+	'woocommerce_check_cart_items',
+	function () {
+		if ( ! function_exists( 'WC' ) || ! WC()->cart ) {
+			return;
+		}
+		foreach ( gedu_combo_cart_shortfalls( WC()->cart ) as $message ) {
+			wc_add_notice( $message, 'error' );
+		}
+	}
+);
+
+/**
+ * Free delivery, when a combo in the basket carries it.
+ *
+ * Zeroing the rates rather than adding a coupon: a coupon can be removed while
+ * the combo stays, and then the offer the customer was shown is not the offer
+ * they get. This follows the goods.
+ */
+add_filter(
+	'woocommerce_package_rates',
+	function ( $rates, $package ) {
+		$free = false;
+		foreach ( $package['contents'] as $cart_item ) {
+			if ( gedu_combo_free_shipping( (int) $cart_item['product_id'] ) ) {
+				$free = true;
+				break;
+			}
+		}
+		if ( ! $free ) {
+			return $rates;
+		}
+		foreach ( $rates as $rate ) {
+			$rate->set_cost( 0 );
+			$rate->set_taxes( array() );
+		}
+		return $rates;
+	},
+	20,
+	2
+);
+
+/* ===========================================================================
+ * What the storefront and the order see
+ * ======================================================================== */
+
+/** One component, as the storefront wants to render it. */
+function gedu_combo_component_payload( $item ) {
+	$product = wc_get_product( $item['id'] );
+	if ( ! $product ) {
+		return null;
+	}
+	$image_id = $product->get_image_id();
+	// Minor units, and the shop's own number of them rather than an assumed
+	// two: everything else the Store API sends is scaled by this, and the
+	// storefront divides by currency_minor_unit to get taka back.
+	$scale = pow( 10, wc_get_price_decimals() );
+	return array(
+		'id'    => (int) $product->get_id(),
+		'name'  => wp_specialchars_decode( $product->get_name(), ENT_QUOTES ),
+		'slug'  => $product->get_slug(),
+		'qty'   => (int) $item['qty'],
+		'price' => (int) round( (float) wc_get_price_to_display( $product ) * $scale ),
+		'image' => $image_id ? wp_get_attachment_image_url( $image_id, 'woocommerce_thumbnail' ) : null,
+	);
+}
+
+/**
+ * `extensions.gedushop.combo` on the Store API product response.
+ *
+ * The storefront is a static export that talks to this API directly, so
+ * everything it needs to render "what is in this combo", the saving, and the
+ * cross-sell on each component's own page has to arrive here.
+ */
+add_action(
+	'woocommerce_blocks_loaded',
+	function () {
+		if ( ! function_exists( 'woocommerce_store_api_register_endpoint_data' ) ) {
+			return;
+		}
+		// The same recipe on the CART item, so the basket can say "free delivery
+		// with this combo" before a district has been chosen and there is any
+		// shipping figure to read it from. The storefront's free-delivery
+		// progress bar is the one thing that has to know without asking.
+		woocommerce_store_api_register_endpoint_data(
+			array(
+				'endpoint'        => Automattic\WooCommerce\StoreApi\Schemas\V1\CartItemSchema::IDENTIFIER,
+				'namespace'       => 'gedushop',
+				'data_callback'   => function ( $cart_item ) {
+					$product_id = isset( $cart_item['product_id'] ) ? (int) $cart_item['product_id'] : 0;
+					$items      = gedu_combo_items( $product_id );
+					if ( empty( $items ) ) {
+						return array();
+					}
+					$names = array();
+					foreach ( $items as $item ) {
+						$product = wc_get_product( $item['id'] );
+						if ( $product ) {
+							$names[] = sprintf( '%s x%d', $product->get_name(), $item['qty'] );
+						}
+					}
+					return array(
+						'combo' => array(
+							'includes'      => $names,
+							'free_shipping' => gedu_combo_free_shipping( $product_id ),
+						),
+					);
+				},
+				'schema_callback' => function () {
+					return array(
+						'combo' => array(
+							'description' => __( 'Combo details for this basket line.', 'gedushop-combo' ),
+							'type'        => array( 'object', 'null' ),
+							'readonly'    => true,
+						),
+					);
+				},
+			)
+		);
+
+		woocommerce_store_api_register_endpoint_data(
+			array(
+				'endpoint'        => Automattic\WooCommerce\StoreApi\Schemas\V1\ProductSchema::IDENTIFIER,
+				'namespace'       => 'gedushop',
+				'data_callback'   => function ( $product ) {
+					$items = gedu_combo_items( $product->get_id() );
+					if ( empty( $items ) ) {
+						return array();
+					}
+					$components = array();
+					$total      = 0;
+					foreach ( $items as $item ) {
+						$payload = gedu_combo_component_payload( $item );
+						if ( ! $payload ) {
+							continue;
+						}
+						$components[] = $payload;
+						$total       += $payload['price'] * $payload['qty'];
+					}
+					return array(
+						'combo' => array(
+							'items'            => $components,
+							// What the same goods list for bought separately —
+							// the storefront shows the difference as the saving,
+							// and computing it here keeps one definition of it.
+							'components_total' => $total,
+							'free_shipping'    => gedu_combo_free_shipping( $product->get_id() ),
+						),
+					);
+				},
+				'schema_callback' => function () {
+					return array(
+						'combo' => array(
+							'description' => __( 'Products inside this combo set.', 'gedushop-combo' ),
+							'type'        => array( 'object', 'null' ),
+							'readonly'    => true,
+						),
+					);
+				},
+			)
+		);
+	}
+);
+
+/**
+ * What a combo line says on the order.
+ *
+ * Two pieces of meta, doing different jobs. `_gedu_combo` is underscore-
+ * prefixed, so WooCommerce hides it from the customer AND GeduSuite's lead
+ * importer skips it when it builds the readable item line — it is there for
+ * the machine. `Includes` is visible, so the order email, the admin screen and
+ * that same lead line all say what was in the box without anyone looking the
+ * combo up.
+ */
+add_action(
+	'woocommerce_checkout_create_order_line_item',
+	function ( $line, $cart_item_key, $values, $order ) {
+		$product_id = (int) $values['product_id'];
+		$items      = gedu_combo_items( $product_id );
+		if ( empty( $items ) ) {
+			return;
+		}
+		$readable = array();
+		$machine  = array();
+		foreach ( $items as $item ) {
+			$product = wc_get_product( $item['id'] );
+			if ( ! $product ) {
+				continue;
+			}
+			$readable[] = sprintf( '%s x%d', $product->get_name(), $item['qty'] );
+			$machine[]  = array(
+				'id'  => (int) $item['id'],
+				'qty' => (int) $item['qty'],
+			);
+		}
+		$line->add_meta_data( '_gedu_combo', wp_json_encode( $machine ), true );
+		$line->add_meta_data( __( 'Includes', 'gedushop-combo' ), implode( ', ', $readable ), true );
+	},
+	10,
+	4
+);
+
+/* ===========================================================================
+ * Admin: building a combo
+ * ======================================================================== */
+
+add_action(
+	'add_meta_boxes',
+	function () {
+		add_meta_box(
+			'gedu-combo-box',
+			__( 'GeduShop Combo Set', 'gedushop-combo' ),
+			'gedu_combo_render_metabox',
+			'product',
+			'normal',
+			'default'
+		);
+	}
+);
+
+function gedu_combo_render_metabox( $post ) {
+	wp_nonce_field( 'gedu_combo_save', 'gedu_combo_nonce' );
+	$items = gedu_combo_items( $post->ID );
+	$lines = array();
+	foreach ( $items as $item ) {
+		$product = wc_get_product( $item['id'] );
+		$lines[] = sprintf(
+			'%d x %d%s',
+			$item['id'],
+			$item['qty'],
+			$product ? '   # ' . $product->get_name() : '   # (product not found)'
+		);
+	}
+	$buildable = gedu_combo_buildable( $post->ID );
+	?>
+	<p>
+		<strong><?php esc_html_e( 'One component per line, as', 'gedushop-combo' ); ?></strong>
+		<code>product_id x quantity</code>.
+		<?php esc_html_e( 'Anything after a # is a note and is ignored. Leave this box empty for an ordinary product.', 'gedushop-combo' ); ?>
+	</p>
+	<textarea name="gedu_combo_items" rows="6" style="width:100%;font-family:monospace"
+		placeholder="412 x 1&#10;388 x 3"><?php echo esc_textarea( implode( "\n", $lines ) ); ?></textarea>
+	<p>
+		<label>
+			<input type="checkbox" name="gedu_combo_free_shipping" value="yes"
+				<?php checked( gedu_combo_free_shipping( $post->ID ) ); ?> />
+			<?php esc_html_e( 'Free delivery with this combo', 'gedushop-combo' ); ?>
+		</label>
+	</p>
+	<?php if ( ! empty( $items ) ) : ?>
+		<p style="padding:8px;background:#f6f7f7;border-left:4px solid #2271b1">
+			<?php
+			printf(
+				/* translators: %s: number of complete sets, or "unlimited" */
+				esc_html__( 'Sets that can be made from stock right now: %s.', 'gedushop-combo' ),
+				null === $buildable ? esc_html__( 'unlimited', 'gedushop-combo' ) : esc_html( (string) $buildable )
+			);
+			?>
+			<br />
+			<em>
+				<?php esc_html_e( "This product's own stock figure is written by the plugin and recalculated whenever a component moves. Do not edit it by hand — it will be overwritten.", 'gedushop-combo' ); ?>
+			</em>
+		</p>
+	<?php endif; ?>
+	<?php
+}
+
+add_action(
+	'save_post_product',
+	function ( $post_id ) {
+		if ( ! isset( $_POST['gedu_combo_nonce'] ) ) {
+			return;
+		}
+		if ( ! wp_verify_nonce( sanitize_key( wp_unslash( $_POST['gedu_combo_nonce'] ) ), 'gedu_combo_save' ) ) {
+			return;
+		}
+		if ( defined( 'DOING_AUTOSAVE' ) && DOING_AUTOSAVE ) {
+			return;
+		}
+		if ( ! current_user_can( 'edit_product', $post_id ) ) {
+			return;
+		}
+
+		$raw   = isset( $_POST['gedu_combo_items'] ) ? sanitize_textarea_field( wp_unslash( $_POST['gedu_combo_items'] ) ) : '';
+		$items = array();
+		foreach ( preg_split( '/\r\n|\r|\n/', $raw ) as $line ) {
+			$line = trim( preg_replace( '/#.*$/', '', $line ) );
+			if ( '' === $line ) {
+				continue;
+			}
+			if ( preg_match( '/^(\d+)\s*[xX*]\s*(\d+)$/', $line, $m ) ) {
+				$items[] = array(
+					'id'  => absint( $m[1] ),
+					'qty' => absint( $m[2] ),
+				);
+			}
+		}
+
+		if ( empty( $items ) ) {
+			delete_post_meta( $post_id, GEDU_COMBO_ITEMS_META );
+			delete_post_meta( $post_id, GEDU_COMBO_FREE_SHIPPING_META );
+		} else {
+			update_post_meta( $post_id, GEDU_COMBO_ITEMS_META, $items );
+			update_post_meta(
+				$post_id,
+				GEDU_COMBO_FREE_SHIPPING_META,
+				isset( $_POST['gedu_combo_free_shipping'] ) ? 'yes' : 'no'
+			);
+		}
+
+		gedu_combo_rebuild_index();
+		// Sync last: the index has to know about this combo before its stock is
+		// worked out, and its stock has to be right before the shop is shown.
+		gedu_combo_sync_stock( $post_id );
+	},
+	20
+);
+
+/** A deleted combo must not stay in the index pointing at nothing. */
+add_action(
+	'before_delete_post',
+	function ( $post_id ) {
+		if ( 'product' === get_post_type( $post_id ) && gedu_is_combo( $post_id ) ) {
+			delete_post_meta( $post_id, GEDU_COMBO_ITEMS_META );
+			gedu_combo_rebuild_index();
+		}
+	}
+);
+
+/* ===========================================================================
+ * Housekeeping
+ * ======================================================================== */
+
+/**
+ * A nightly re-sync.
+ *
+ * Everything above keeps the numbers right as things happen. This is for the
+ * things that happen outside it — a stock figure corrected straight in the
+ * database, an import, a plugin update that ran while a hook was unhooked.
+ * Cheap at this catalogue's size, and it means a drifted combo fixes itself
+ * overnight instead of being discovered by a customer.
+ */
+add_action(
+	'gedu_combo_daily_sync',
+	function () {
+		$index = gedu_combo_rebuild_index();
+		$combos = array();
+		foreach ( $index as $combo_ids ) {
+			foreach ( $combo_ids as $combo_id ) {
+				$combos[ $combo_id ] = true;
+			}
+		}
+		foreach ( array_keys( $combos ) as $combo_id ) {
+			gedu_combo_sync_stock( $combo_id );
+		}
+	}
+);
+
+register_activation_hook(
+	__FILE__,
+	function () {
+		gedu_combo_rebuild_index();
+		if ( ! wp_next_scheduled( 'gedu_combo_daily_sync' ) ) {
+			wp_schedule_event( time() + HOUR_IN_SECONDS, 'daily', 'gedu_combo_daily_sync' );
+		}
+	}
+);
+
+register_deactivation_hook(
+	__FILE__,
+	function () {
+		wp_clear_scheduled_hook( 'gedu_combo_daily_sync' );
+	}
+);

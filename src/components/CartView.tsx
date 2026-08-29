@@ -53,7 +53,7 @@ export default function CartView() {
 
   return (
     <div className="mt-4 space-y-3 pb-6">
-      <FreeShippingBar totals={cart.totals} />
+      <FreeShippingBar totals={cart.totals} items={cart.items} />
       {cart.items.map((item) => {
         const busy = pendingIds.has(item.id);
         const slug = productSlug(item.permalink);
@@ -77,6 +77,11 @@ export default function CartView() {
               {item.variation && item.variation.length > 0 && (
                 <p className="mt-0.5 text-xs font-semibold text-plum-400">
                   {item.variation.map((v) => `${v.attribute}: ${v.value}`).join(" · ")}
+                </p>
+              )}
+              {item.extensions?.gedushop?.combo && (
+                <p className="mt-0.5 text-xs font-semibold text-plum-400">
+                  {item.extensions.gedushop.combo.includes.join(" · ")}
                 </p>
               )}
               <p className="mt-0.5 text-sm font-extrabold text-plum-600 tabular-nums">

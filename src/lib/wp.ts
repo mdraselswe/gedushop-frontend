@@ -90,7 +90,7 @@ export async function getProductsPaged(params: Parameters<typeof getProducts>[0]
 // per-page requests (product + related pages) that trip Hostinger's hCDN rate
 // limiting and fail the export with socket errors.
 let allProductsCache: Promise<StoreProduct[]> | null = null;
-async function getAllProducts(): Promise<StoreProduct[]> {
+export async function getAllProducts(): Promise<StoreProduct[]> {
   if (!allProductsCache) {
     allProductsCache = (async () => {
       const all: StoreProduct[] = [];
@@ -125,6 +125,45 @@ async function getAllProducts(): Promise<StoreProduct[]> {
 export async function getProductBySlug(slug: string): Promise<StoreProduct | null> {
   const all = await getAllProducts();
   return all.find((p) => p.slug === slug) ?? null;
+}
+
+/** Is this product a combo — several products sold together at one price? */
+export function isCombo(p: StoreProduct): boolean {
+  return (p.extensions?.gedushop?.combo?.items?.length ?? 0) > 0;
+}
+
+/** Every combo on sale, cheapest saving last. */
+export async function getCombos(): Promise<StoreProduct[]> {
+  const all = await getAllProducts();
+  return all.filter(isCombo);
+}
+
+/**
+ * Combos that contain this product.
+ *
+ * The cross-sell on an ordinary product page — "you can get this in the Flight
+ * Starter Combo and save 350" — which is what actually sells a combo: nobody
+ * browses a combo listing, they arrive at a product and find out there is a
+ * better way to buy it.
+ *
+ * Built from the catalogue already fetched and memoised for the build, so it
+ * costs no extra request no matter how many product pages ask.
+ */
+export async function getCombosContaining(productId: number): Promise<StoreProduct[]> {
+  const all = await getAllProducts();
+  return all.filter(
+    (p) =>
+      p.id !== productId &&
+      isCombo(p) &&
+      p.extensions!.gedushop!.combo!.items.some((i) => i.id === productId),
+  );
+}
+
+/** What a combo saves against buying its contents separately, in minor units. */
+export function comboSaving(p: StoreProduct): number {
+  const combo = p.extensions?.gedushop?.combo;
+  if (!combo) return 0;
+  return Math.max(0, combo.components_total - Number(p.prices.price));
 }
 
 /**
