@@ -38,6 +38,17 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 define( 'GEDU_COMBO_ITEMS_META', '_gedu_combo_items' );
 define( 'GEDU_COMBO_FREE_SHIPPING_META', '_gedu_combo_free_shipping' );
+
+/**
+ * What the combo sells for, as decided in gedusuite.
+ *
+ * Kept apart from WooCommerce's own price fields on purpose. Those two say how
+ * the price is *presented* — a regular price with a sale price under it is a
+ * discount, one alone is not — and that presentation is worked out here from
+ * what the contents come to. If the selling price lived only in them there
+ * would be nothing left to work it out from.
+ */
+define( 'GEDU_COMBO_PRICE_META', '_gedu_combo_price' );
 /** Guards against reducing a combo's components twice for one order. */
 define( 'GEDU_COMBO_REDUCED_META', '_gedu_combo_stock_reduced' );
 /** component product id => [ combo product ids ]. Rebuilt whenever a combo is saved. */
@@ -327,6 +338,7 @@ add_action(
 	function ( $object ) {
 		$product_id = $object->get_id();
 		gedu_combo_apply_category( $product_id );
+		gedu_combo_sync_price( $product_id );
 		if ( ! gedu_is_combo( $product_id ) ) {
 			// It may have just STOPPED being one — an emptied recipe still has
 			// to leave the index, or a component change would keep syncing a
@@ -363,6 +375,7 @@ function gedu_combo_queue_resync( $product_id ) {
 			gedu_combo_rebuild_index();
 			gedu_combo_apply_category( $product_id );
 			if ( gedu_is_combo( $product_id ) ) {
+				gedu_combo_sync_price( $product_id );
 				gedu_combo_sync_stock( $product_id );
 			}
 		}
@@ -603,6 +616,89 @@ add_filter(
  * ======================================================================== */
 
 /** One component, as the storefront wants to render it. */
+/**
+ * What the contents come to when bought one by one.
+ *
+ * The same figure the storefront prints as "bought separately", so the crossed
+ * out price and that line can never be two different numbers. In shop money,
+ * not minor units.
+ */
+function gedu_combo_components_total( $product_id ) {
+	$total = 0.0;
+	foreach ( gedu_combo_items( $product_id ) as $item ) {
+		$component = wc_get_product( $item['id'] );
+		if ( ! $component ) {
+			continue;
+		}
+		$total += (float) wc_get_price_to_display( $component ) * (int) $item['qty'];
+	}
+	return $total;
+}
+
+/**
+ * Write the combo's price the way a set should read: contents struck through,
+ * the set's own price beside it.
+ *
+ * A combo that saves nothing gets no struck price. Inventing one would mean
+ * printing a number nobody was ever asked to pay, which is the kind of thing
+ * that makes every other discount on the shop worth ignoring.
+ */
+function gedu_combo_sync_price( $combo_id ) {
+	$selling = get_post_meta( $combo_id, GEDU_COMBO_PRICE_META, true );
+	if ( '' === $selling || ! is_numeric( $selling ) ) {
+		// Nothing has told us what it sells for — a combo built by hand here.
+		// Leave whatever prices the shop set alone.
+		return;
+	}
+	$product = wc_get_product( $combo_id );
+	if ( ! $product || ! gedu_is_combo( $combo_id ) ) {
+		return;
+	}
+
+	$selling = (float) $selling;
+	$total   = gedu_combo_components_total( $combo_id );
+
+	if ( $total > $selling ) {
+		$product->set_regular_price( wc_format_decimal( $total ) );
+		$product->set_sale_price( wc_format_decimal( $selling ) );
+	} else {
+		$product->set_regular_price( wc_format_decimal( $selling ) );
+		$product->set_sale_price( '' );
+	}
+	$product->save();
+	wc_delete_product_transients( $combo_id );
+}
+
+/**
+ * A component's price moved — every set it belongs to is now quoting a saving
+ * against a figure that has changed.
+ *
+ * The stock hooks above have a twin for exactly this reason; a combo derives
+ * two things from its contents and this is the other one.
+ */
+function gedu_combo_on_component_price_change( $product_id ) {
+	static $syncing = false;
+	if ( $syncing ) {
+		return;
+	}
+	$product_id = absint( is_object( $product_id ) ? $product_id->get_id() : $product_id );
+	if ( ! $product_id || gedu_is_combo( $product_id ) ) {
+		// Saving a combo fires this hook for the combo itself.
+		return;
+	}
+	$combos = gedu_combos_containing( $product_id );
+	if ( empty( $combos ) ) {
+		return;
+	}
+	$syncing = true;
+	foreach ( $combos as $combo_id ) {
+		gedu_combo_sync_price( $combo_id );
+	}
+	$syncing = false;
+}
+add_action( 'woocommerce_update_product', 'gedu_combo_on_component_price_change', 20 );
+add_action( 'woocommerce_update_product_variation', 'gedu_combo_on_component_price_change', 20 );
+
 function gedu_combo_component_payload( $item ) {
 	$product = wc_get_product( $item['id'] );
 	if ( ! $product ) {
@@ -693,6 +789,9 @@ add_action(
 							continue;
 						}
 						$components[] = $payload;
+						// Minor units here, because everything the Store API
+						// sends is in them; gedu_combo_components_total works
+						// in shop money for the price fields. Same sum.
 						$total       += $payload['price'] * $payload['qty'];
 					}
 					return array(
@@ -911,6 +1010,7 @@ add_action(
 		}
 		foreach ( array_keys( $combos ) as $combo_id ) {
 			gedu_combo_sync_stock( $combo_id );
+			gedu_combo_sync_price( $combo_id );
 			gedu_combo_apply_category( $combo_id );
 		}
 	}

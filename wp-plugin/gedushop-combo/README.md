@@ -89,12 +89,34 @@ navigation — the sidebar list and the shop filters — where a combo is
 invisible unless it is filed somewhere. Nothing to tick by hand, so a combo
 and the list of combos can never disagree.
 
+## How a combo is priced
+
+gedusuite decides what a set sells for and sends it as `_gedu_combo_price`.
+This plugin decides how that price is *shown*, because it is the thing that
+knows what the contents come to:
+
+| Contents come to | What the shop shows |
+| --- | --- |
+| More than the set's price | contents total struck through, set price beside it |
+| The same or less | just the set price, no struck figure |
+
+Kept apart on purpose. A regular price with a sale price under it reads as a
+discount and one alone does not, so those two fields are a *presentation* of a
+price rather than the price itself — and they are recalculated whenever a
+component's price changes, which is when a saving quoted against a stale total
+would start being wrong. The struck figure and the storefront's "bought
+separately" line come from the same sum, so they cannot disagree.
+
+A combo built by hand here, with no `_gedu_combo_price`, keeps whatever prices
+the shop set. Nothing is taken over that was not handed across.
+
 ## Meta keys
 
 | Key | Meaning |
 | --- | --- |
 | `_gedu_combo_items` | `[{id, qty}, …]` — the recipe |
 | `_gedu_combo_free_shipping` | `yes` / `no` |
+| `_gedu_combo_price` | What the set sells for, as decided in gedusuite |
 | `_gedu_combo_stock_reduced` | Set on an order once its combo lines have been deducted (makes the deduction idempotent) |
 | `gedu_combo_index` (option) | component id → combo ids, so a stock change is O(1) to route |
 
