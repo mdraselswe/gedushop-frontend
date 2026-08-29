@@ -43,6 +43,10 @@ define( 'GEDU_COMBO_REDUCED_META', '_gedu_combo_stock_reduced' );
 /** component product id => [ combo product ids ]. Rebuilt whenever a combo is saved. */
 define( 'GEDU_COMBO_INDEX_OPTION', 'gedu_combo_index' );
 
+/** The product category every combo is filed under, so the shop can list them. */
+define( 'GEDU_COMBO_TERM_SLUG', 'combo-offers' );
+define( 'GEDU_COMBO_TERM_NAME', 'Combo Offers' );
+
 /* ===========================================================================
  * Reading the recipe
  * ======================================================================== */
@@ -244,10 +248,85 @@ add_action( 'woocommerce_product_set_stock', 'gedu_combo_on_component_stock_chan
  *
  * Fires after the product has been saved, for both create and update.
  */
+/* ===========================================================================
+ * The combo category
+ * ======================================================================== */
+
+/**
+ * The Combo Offers term, created the first time it is needed.
+ *
+ * The storefront lists combos from the recipe, which cannot drift. This term
+ * exists for a different job: the shop's own category sidebar and filters,
+ * where a combo is invisible unless it is filed somewhere. Filed by the plugin
+ * rather than by hand, because a category somebody has to remember to tick is
+ * a category that will one day be missing from a combo that still behaves like
+ * one — the listing would disagree with the product, and neither would be
+ * obviously wrong.
+ *
+ * @return int|null Term id, or null if it could not be created.
+ */
+function gedu_combo_term_id() {
+	$term = get_term_by( 'slug', GEDU_COMBO_TERM_SLUG, 'product_cat' );
+	if ( $term && ! is_wp_error( $term ) ) {
+		return (int) $term->term_id;
+	}
+	$created = wp_insert_term(
+		GEDU_COMBO_TERM_NAME,
+		'product_cat',
+		array( 'slug' => GEDU_COMBO_TERM_SLUG )
+	);
+	if ( is_wp_error( $created ) ) {
+		// Almost always "term exists" from a race between two saves.
+		$existing = $created->get_error_data( 'term_exists' );
+		return $existing ? (int) $existing : null;
+	}
+	return (int) $created['term_id'];
+}
+
+/**
+ * File this product under Combo Offers, or take it out if it is not one.
+ *
+ * Appends rather than replaces: a combo usually belongs in a real category too
+ * — the keychain set is still a Gift Box — and the shop's own navigation would
+ * lose it if this became its only home.
+ */
+function gedu_combo_apply_category( $product_id ) {
+	$product_id = absint( $product_id );
+	if ( ! $product_id || 'product' !== get_post_type( $product_id ) ) {
+		return;
+	}
+	$term_id = gedu_combo_term_id();
+	if ( ! $term_id ) {
+		return;
+	}
+
+	$current = wp_get_object_terms( $product_id, 'product_cat', array( 'fields' => 'ids' ) );
+	if ( is_wp_error( $current ) ) {
+		return;
+	}
+	$current = array_map( 'intval', $current );
+	$has     = in_array( $term_id, $current, true );
+	$should  = gedu_is_combo( $product_id );
+
+	if ( $has === $should ) {
+		return;
+	}
+	if ( $should ) {
+		wp_set_object_terms( $product_id, array( $term_id ), 'product_cat', true );
+	} else {
+		wp_remove_object_terms( $product_id, array( $term_id ), 'product_cat' );
+	}
+	// Counts are cached per term; without this the sidebar keeps the old number
+	// until something else happens to clear it.
+	wp_update_term_count_now( array( $term_id ), 'product_cat' );
+	wc_delete_product_transients( $product_id );
+}
+
 add_action(
 	'woocommerce_rest_insert_product_object',
 	function ( $object ) {
 		$product_id = $object->get_id();
+		gedu_combo_apply_category( $product_id );
 		if ( ! gedu_is_combo( $product_id ) ) {
 			// It may have just STOPPED being one — an emptied recipe still has
 			// to leave the index, or a component change would keep syncing a
@@ -282,6 +361,7 @@ function gedu_combo_queue_resync( $product_id ) {
 		'shutdown',
 		function () use ( $product_id ) {
 			gedu_combo_rebuild_index();
+			gedu_combo_apply_category( $product_id );
 			if ( gedu_is_combo( $product_id ) ) {
 				gedu_combo_sync_stock( $product_id );
 			}
@@ -787,6 +867,7 @@ add_action(
 		}
 
 		gedu_combo_rebuild_index();
+		gedu_combo_apply_category( $post_id );
 		// Sync last: the index has to know about this combo before its stock is
 		// worked out, and its stock has to be right before the shop is shown.
 		gedu_combo_sync_stock( $post_id );
@@ -830,6 +911,7 @@ add_action(
 		}
 		foreach ( array_keys( $combos ) as $combo_id ) {
 			gedu_combo_sync_stock( $combo_id );
+			gedu_combo_apply_category( $combo_id );
 		}
 	}
 );
@@ -837,7 +919,19 @@ add_action(
 register_activation_hook(
 	__FILE__,
 	function () {
-		gedu_combo_rebuild_index();
+		$index = gedu_combo_rebuild_index();
+		// Catch up on combos that existed before this version: file each one
+		// under Combo Offers now rather than waiting for somebody to re-save it.
+		$seen = array();
+		foreach ( $index as $combo_ids ) {
+			foreach ( $combo_ids as $combo_id ) {
+				if ( isset( $seen[ $combo_id ] ) ) {
+					continue;
+				}
+				$seen[ $combo_id ] = true;
+				gedu_combo_apply_category( $combo_id );
+			}
+		}
 		if ( ! wp_next_scheduled( 'gedu_combo_daily_sync' ) ) {
 			wp_schedule_event( time() + HOUR_IN_SECONDS, 'daily', 'gedu_combo_daily_sync' );
 		}

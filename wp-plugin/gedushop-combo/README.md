@@ -76,6 +76,19 @@ component movement overwrites it.
 | Store API responses | `extensions.gedushop.combo` on both the product and the cart line |
 | Nightly | Full re-sync, so anything changed outside WordPress heals itself |
 
+## The Combo Offers category
+
+Every combo is filed under a `combo-offers` product category, created the first
+time one is needed and maintained by the plugin: added when a recipe appears,
+removed when it goes. It is **appended**, so a combo keeps whatever real
+category it already had — the keychain set is still a Gift Box.
+
+The storefront's `/combos` page does not read this category; it lists combos
+from the recipe, which cannot drift. The category exists for the shop's own
+navigation — the sidebar list and the shop filters — where a combo is
+invisible unless it is filed somewhere. Nothing to tick by hand, so a combo
+and the list of combos can never disagree.
+
 ## Meta keys
 
 | Key | Meaning |
