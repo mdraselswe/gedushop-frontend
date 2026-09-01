@@ -13,7 +13,12 @@ on:
 
 concurrency:
   group: deploy
-  cancel-in-progress: true
+  # A scheduled run never kills a running one. The cron is a safety net for
+  # content published in WordPress; a push is somebody shipping code. They
+  # collided nine seconds apart once, the push was cancelled, the safety net
+  # then failed on its own, and nothing reached the site for hours. Anything
+  # else still supersedes: the newest content is the only content worth having.
+  cancel-in-progress: ${{ github.event_name != 'schedule' }}
 
 jobs:
   deploy:
@@ -29,7 +34,21 @@ jobs:
       - run: npm ci
 
       - name: Build static site
-        run: npm run build
+        # Retried, because this build reads the live shop and is deliberately
+        # unforgiving about the answers: a category page with no products looks
+        # exactly like a category that is genuinely empty, so the fetch helpers
+        # throw rather than publish a hollow site. That is right for a bad
+        # response and wrong for a slow afternoon — a burst of rebuilds makes
+        # WordPress answer late often enough to lose a deploy until the next
+        # scheduled run, three hours later.
+        shell: bash
+        run: |
+          for attempt in 1 2 3; do
+            if npm run build; then exit 0; fi
+            echo "Build attempt $attempt failed."
+            if [ "$attempt" -lt 3 ]; then sleep 60; fi
+          done
+          exit 1
         env:
           WP_URL: https://wp.gedushop.com
           NEXT_PUBLIC_WP_URL: https://wp.gedushop.com
