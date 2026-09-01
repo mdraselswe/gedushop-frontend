@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import ProductCard from "@/components/ProductCard";
+import { useCart } from "@/context/CartContext";
 import { apiFetch, STORE_API } from "@/lib/api";
 import { comboSaving, isCombo } from "@/lib/wp";
 import type { StoreProduct } from "@/lib/types";
@@ -22,6 +23,7 @@ import type { StoreProduct } from "@/lib/types";
  */
 export default function CombosGrid({ initial }: { initial: StoreProduct[] }) {
   const [combos, setCombos] = useState(initial);
+  const { drawerOpen } = useCart();
 
   useEffect(() => {
     let live = true;
@@ -55,7 +57,11 @@ export default function CombosGrid({ initial }: { initial: StoreProduct[] }) {
   }
 
   return (
-    <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:gap-4 lg:grid-cols-4">
+    <div
+      className={`grid grid-cols-2 gap-3 sm:grid-cols-3 md:gap-4 ${
+        drawerOpen ? "lg:grid-cols-3" : "lg:grid-cols-4"
+      }`}
+    >
       {sorted.map((p) => (
         <ProductCard key={p.id} product={p} />
       ))}

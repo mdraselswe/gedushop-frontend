@@ -94,6 +94,7 @@ export async function getAllProducts(): Promise<StoreProduct[]> {
   if (!allProductsCache) {
     allProductsCache = (async () => {
       const all: StoreProduct[] = [];
+      const seen = new Set<number>();
       let expected: number | null = null;
       for (let page = 1; page <= 20; page++) {
         // The header, not the row count, decides when to stop. A short page
@@ -104,16 +105,39 @@ export async function getAllProducts(): Promise<StoreProduct[]> {
         const res = await fetchRetry(`${STORE_API}/products?per_page=100&page=${page}`);
         if (!res.ok) throw new Error(`Store API ${res.status} on /products page ${page}`);
         const list = (await res.json()) as StoreProduct[];
-        all.push(...list.map(decodeProduct));
-        if (expected === null) expected = Number(res.headers.get("x-wp-total") ?? 0);
+
+        if (expected === null) {
+          // Without the header there is nothing to check completeness against,
+          // and the old `?? 0` turned that into "expected nothing": the loop
+          // stopped after page one and the guard below was skipped, so a blip
+          // that answered page one with 81 of 104 rows shipped an 81-product
+          // catalogue — and the two categories whose only products were in the
+          // missing rows vanished from the site. Missing header, no build.
+          const total = Number(res.headers.get("x-wp-total"));
+          if (!Number.isInteger(total) || total <= 0) {
+            throw new Error(
+              "Store API gave no usable x-wp-total on /products — refusing to build a catalogue whose size cannot be checked",
+            );
+          }
+          expected = total;
+        }
+
+        // Counted by distinct product, not by row: hCDN has answered one page
+        // with another's rows, and 100 + those same 100 clears a 104 check
+        // while four products are missing.
+        for (const p of list) {
+          if (seen.has(p.id)) continue;
+          seen.add(p.id);
+          all.push(decodeProduct(p));
+        }
         if (all.length >= expected || list.length === 0) break;
       }
       // Louder than a quietly incomplete catalogue. Everything downstream —
       // product pages, category counts, the sitemap — treats this list as the
       // whole shop, so a build missing rows publishes a site missing products.
-      if (expected && all.length < expected) {
+      if (expected === null || all.length < expected) {
         throw new Error(
-          `Store API returned ${all.length} of ${expected} products — refusing to build an incomplete catalogue`,
+          `Store API returned ${all.length} of ${expected ?? "an unknown number of"} products — refusing to build an incomplete catalogue`,
         );
       }
       return all;

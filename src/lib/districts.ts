@@ -7,6 +7,29 @@ export interface District {
 
 export const DHAKA_CODE = "BD-13";
 
+/** The one area of the Dhaka district that is inside the city, for delivery. */
+export const DHAKA_SADAR = "Dhaka Sadar";
+
+/**
+ * The Dhaka district's areas, as the couriers divide it.
+ *
+ * Dhaka *district* is not Dhaka *city*: Dhaka Sadar is the city itself, and
+ * the five below it are outlying upazilas that cost the same to reach as any
+ * other district. So only Dhaka Sadar is charged the inside-Dhaka rate — the
+ * rest take the outside rate, even though they share the BD-13 state code.
+ * WooCommerce prices a zone from the state alone, so the rule is enforced on
+ * the WordPress side (the GeduShop Delivery Areas plugin); this list is only
+ * what the customer picks from.
+ */
+export const DHAKA_AREAS: string[] = [
+  DHAKA_SADAR,
+  "Savar",
+  "Dhamrai",
+  "Keraniganj",
+  "Nawabganj",
+  "Dohar",
+];
+
 export const DISTRICTS: District[] = [
   { code: "BD-05", name: "Bagerhat" },
   { code: "BD-01", name: "Bandarban" },

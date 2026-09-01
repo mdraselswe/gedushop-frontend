@@ -16,6 +16,7 @@ import MetaPixel from "@/components/MetaPixel";
 import BottomNav from "@/components/BottomNav";
 import CartDockButton from "@/components/CartDockButton";
 import CartDrawer from "@/components/CartDrawer";
+import PageShell from "@/components/PageShell";
 import Sidebar from "@/components/Sidebar";
 import { getCategories } from "@/lib/wp";
 
@@ -51,7 +52,7 @@ export const metadata: Metadata = {
     siteName: "GeduShop",
     title: "GeduShop — Baby Items & Toys in Bangladesh",
     description: "Baby items, toys and kids essentials. Cash on delivery all over Bangladesh.",
-    images: [{ url: "/og.png", width: 1730, height: 909, alt: "GeduShop — Baby Items, Toys & Kids Essentials" }],
+    images: [{ url: "/og.png", width: 1536, height: 1024, alt: "GeduShop — Baby Items, Toys & Kids Essentials" }],
   },
   twitter: {
     card: "summary_large_image",
@@ -101,13 +102,15 @@ export default async function RootLayout({
         <WishlistProvider>
         <InStockProvider>
         <CartProvider>
-          <AnnouncementBar />
-          <Header />
-          <div className="mx-auto flex w-full max-w-[120rem] flex-1">
-            <Sidebar categories={categories} />
-            <main className="min-w-0 flex-1 overflow-x-clip pb-8">{children}</main>
-          </div>
-          <Footer categories={categories} />
+          <PageShell>
+            <AnnouncementBar />
+            <Header />
+            <div className="mx-auto flex w-full max-w-[120rem] flex-1">
+              <Sidebar categories={categories} />
+              <main className="min-w-0 flex-1 overflow-x-clip pb-8">{children}</main>
+            </div>
+            <Footer categories={categories} />
+          </PageShell>
           <CartDockButton />
           <CartDrawer />
           <BottomNav categories={categories} />

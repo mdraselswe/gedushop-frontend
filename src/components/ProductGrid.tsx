@@ -2,6 +2,7 @@
 
 import { PackageOpen } from "lucide-react";
 import type { StoreProduct } from "@/lib/types";
+import { useCart } from "@/context/CartContext";
 import { useInStock } from "@/context/InStockContext";
 import ProductCard from "./ProductCard";
 import Reveal from "./Reveal";
@@ -16,6 +17,7 @@ export default function ProductGrid({
   respectStockFilter?: boolean;
 }) {
   const { inStockOnly } = useInStock();
+  const { drawerOpen } = useCart();
   const shown =
     respectStockFilter && inStockOnly
       ? products.filter((p) => p.is_in_stock && p.is_purchasable)
@@ -30,7 +32,16 @@ export default function ProductGrid({
     );
   }
   return (
-    <div className="grid grid-cols-1 gap-3 min-[381px]:grid-cols-2 sm:grid-cols-3 md:gap-4 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5">
+    // One column fewer while the cart drawer is open: PageShell has already
+    // taken 21rem off the page, and keeping the full count there would squeeze
+    // the cards past reading size rather than reflowing them.
+    <div
+      className={`grid grid-cols-1 gap-3 min-[381px]:grid-cols-2 sm:grid-cols-3 md:gap-4 ${
+        drawerOpen
+          ? "lg:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4"
+          : "lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5"
+      }`}
+    >
       {shown.map((p, i) =>
         reveal ? (
           <Reveal key={p.id} index={i}>

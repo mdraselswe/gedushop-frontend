@@ -9,7 +9,7 @@ import { decodeEntities } from "@/lib/decode";
 import { formatPrice } from "@/lib/format";
 import { cartItemsTotal } from "@/lib/cart-total";
 import { fbTrack } from "@/lib/pixel";
-import { DISTRICTS } from "@/lib/districts";
+import { DHAKA_AREAS, DHAKA_CODE, DISTRICTS } from "@/lib/districts";
 import { apiFetch, GEDU_API, STORE_API } from "@/lib/api";
 import CouponField from "./CouponField";
 
@@ -44,6 +44,9 @@ export default function CheckoutForm() {
   const [error, setError] = useState<string | null>(null);
   const trackedCheckout = useRef(false);
 
+  // Ticked to begin with: the terms are the ordinary ones, and a customer who
+  // wants to read them can — untick it and the order will not go.
+  const [agreed, setAgreed] = useState(true);
   const [method, setMethod] = useState<"cod" | "bkash">("cod");
   const [trxId, setTrxId] = useState("");
   const [sender, setSender] = useState("");
@@ -85,11 +88,25 @@ export default function CheckoutForm() {
 
   function onDistrictChange(e: React.ChangeEvent<HTMLSelectElement>) {
     const district = e.target.value;
-    setForm((f) => ({ ...f, district }));
-    if (district) {
-      // Recalculate delivery charge for the chosen district
-      updateShipping({ country: "BD", state: district, city: form.area.trim() || undefined });
+    // The area belongs to the district it was picked under — a Dhaka thana is
+    // not an option anywhere else, and free text typed for another district is
+    // not one of Dhaka's — so a district change always clears it.
+    setForm((f) => ({ ...f, district, area: "" }));
+    // Every district but Dhaka is priced by the district alone. Dhaka's charge
+    // depends on which area it is, so it waits for onAreaChange.
+    if (district && district !== DHAKA_CODE) {
+      // Recalculate delivery charge for the chosen district. city is sent
+      // empty on purpose: update-customer merges, so an area left over from a
+      // previous district would otherwise stay on the customer.
+      updateShipping({ country: "BD", state: district, city: "" });
     }
+  }
+
+  function onAreaChange(e: React.ChangeEvent<HTMLSelectElement>) {
+    const area = e.target.value;
+    setForm((f) => ({ ...f, area }));
+    // Inside Dhaka only for Dhaka Sadar; WordPress decides that from the city.
+    if (area) updateShipping({ country: "BD", state: DHAKA_CODE, city: area });
   }
 
   async function submit(e: React.FormEvent) {
@@ -97,6 +114,17 @@ export default function CheckoutForm() {
     setError(null);
     if (!/^01[3-9]\d{8}$/.test(form.phone.trim())) {
       setError("Please enter a valid Bangladeshi mobile number (11 digits, e.g. 01712345678).");
+      return;
+    }
+    // The area is what decides Dhaka's delivery charge, so an order cannot go
+    // without one. The select is `required` too — this is the guard that does
+    // not depend on the browser honouring it.
+    if (form.district === DHAKA_CODE && !DHAKA_AREAS.includes(form.area)) {
+      setError("Please select your area / thana.");
+      return;
+    }
+    if (!agreed) {
+      setError("Please accept the Terms & Conditions to place your order.");
       return;
     }
     if (method === "bkash" && !trxId.trim()) {
@@ -212,13 +240,19 @@ export default function CheckoutForm() {
     "w-full rounded-xl border border-plum-100 bg-white px-4 py-3 text-sm text-plum-800 placeholder:text-plum-300 shadow-[var(--shadow-soft)] outline-none transition focus:border-plum-300 focus:ring-2 focus:ring-plum-200/60";
 
   const shipping = cart.totals.total_shipping;
-  const shippingIsFree = form.district !== "" && !shippingLoading && (shipping === "0" || shipping === null);
+  const isDhaka = form.district === DHAKA_CODE;
+  // Dhaka is the one district the charge cannot be read off: Dhaka Sadar is
+  // inside the city, its other areas are not. So it is priced once the area is
+  // in, and every other district as soon as it is picked.
+  const locationReady = form.district !== "" && (!isDhaka || form.area !== "");
+  const shippingIsFree = locationReady && !shippingLoading && (shipping === "0" || shipping === null);
 
-  // Before a district is picked, Woo applies a default flat rate — don't add that
-  // phantom shipping to the shown Total (it says "Select district"). Once a district
-  // is chosen, use Woo's authoritative total (correct rate / free over ৳2000).
+  // Before the delivery location is known, Woo applies a default flat rate — don't
+  // add that phantom shipping to the shown Total (it says "Select district"/"Select
+  // area"). Once it is known, use Woo's authoritative total (correct rate / free
+  // over ৳2000).
   const totalDisplay =
-    form.district && !shippingLoading ? cart.totals.total_price : cartItemsTotal(cart.totals);
+    locationReady && !shippingLoading ? cart.totals.total_price : cartItemsTotal(cart.totals);
 
   // bKash send-money charge, rounded to whole taka (matches the server-side fee).
   const minorFactor = 10 ** (cart.totals.currency_minor_unit ?? 2);
@@ -230,6 +264,7 @@ export default function CheckoutForm() {
 
   function renderDelivery() {
     if (!form.district) return <span className="text-plum-300">Select district</span>;
+    if (isDhaka && !form.area) return <span className="text-plum-300">Select area</span>;
     if (shippingLoading) return <Loader2 className="size-4 animate-spin text-plum-400" />;
     if (shippingIsFree) return <span className="font-bold text-emerald-600">FREE</span>;
     return <span>{formatPrice(shipping ?? "0", cart!.totals)}</span>;
@@ -276,7 +311,25 @@ export default function CheckoutForm() {
               </option>
             ))}
           </select>
-          <input value={form.area} onChange={set("area")} placeholder="Area / Thana (optional)" className={inputCls} autoComplete="address-level3" />
+          {isDhaka ? (
+            <select
+              required
+              value={form.area}
+              onChange={onAreaChange}
+              className={`${inputCls} ${form.area ? "text-plum-800" : "text-plum-300"}`}
+            >
+              <option value="" disabled>
+                Select area / thana *
+              </option>
+              {DHAKA_AREAS.map((a) => (
+                <option key={a} value={a} className="text-plum-800">
+                  {a}
+                </option>
+              ))}
+            </select>
+          ) : (
+            <input value={form.area} onChange={set("area")} placeholder="Area / Thana (optional)" className={inputCls} autoComplete="address-level3" />
+          )}
         </div>
         <textarea value={form.note} onChange={set("note")} placeholder="Order note (optional)" rows={2} className={inputCls} />
 
@@ -419,6 +472,27 @@ export default function CheckoutForm() {
         <p className="mt-2 text-center text-[11px] font-semibold text-plum-400">
           Free delivery on orders over ৳2,000
         </p>
+        <label className="mt-3 flex cursor-pointer items-start gap-2.5 text-xs font-semibold text-plum-500">
+          <input
+            type="checkbox"
+            checked={agreed}
+            onChange={(e) => setAgreed(e.target.checked)}
+            className="mt-px size-4 shrink-0 accent-coral-500"
+          />
+          <span>
+            I agree to the{" "}
+            {/* New tab on purpose: reading the terms must not throw away a
+                half-filled checkout form. */}
+            <Link
+              href="/terms"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="font-bold text-coral-600 underline underline-offset-2 hover:text-coral-700"
+            >
+              Terms &amp; Conditions
+            </Link>
+          </span>
+        </label>
         {error && <p className="mt-3 rounded-xl bg-red-50 px-3 py-2 text-xs font-bold text-red-600">{error}</p>}
         <button
           type="submit"
