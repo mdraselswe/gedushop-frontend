@@ -80,8 +80,11 @@ export default function ProductBrowser({
       .catch(() => {});
   }, [categoryId, catList.length]);
 
-  const fetchProducts = useCallback(() => {
-    setLoading(true);
+  const fetchProducts = useCallback((quiet = false) => {
+    // A quiet pass refreshes a list that is already on screen. Showing the
+    // skeleton there would replace real products with a loading state to fetch
+    // very nearly the same thing — a step backwards for the reader.
+    if (!quiet) setLoading(true);
     const q = new URLSearchParams({ per_page: String(PER_PAGE), page: String(page) });
     if (cat) q.set("category", cat);
     if (search) q.set("search", search);
@@ -108,17 +111,26 @@ export default function ProductBrowser({
         setTotalPages(pages);
         setTotal(count);
       })
-      .catch(() => setProducts([]))
+      // A failed quiet refresh leaves the build's list standing: slightly old
+      // beats empty. A failed first load has nothing to fall back to.
+      .catch(() => {
+        if (!quiet) setProducts([]);
+      })
       .finally(() => setLoading(false));
   }, [cat, search, onSale, inStockOnly, minPrice, maxPrice, sort, page]);
 
   useEffect(() => {
-    // Category page: first render already has SSR products — don't refetch identical data.
-    if (seeded.current) {
-      seeded.current = false;
-      return;
-    }
-    fetchProducts();
+    // A category page arrives with the products the build knew about, which is
+    // what a crawler should see and what paints first. It is not what the shop
+    // sells now: these pages are written at build time and the catalogue keeps
+    // moving, so a combo published an hour ago was missing from the very page
+    // meant to list it until something else triggered a rebuild.
+    //
+    // So the seeded first pass still fetches — quietly, leaving the build's
+    // products on screen until the shop answers.
+    const quiet = seeded.current;
+    seeded.current = false;
+    fetchProducts(quiet);
   }, [fetchProducts]);
 
   // Any filter/sort change resets to page 1.

@@ -90,8 +90,13 @@ export default async function CategoryPage({ params }: Props) {
               <h1 className="font-heading text-2xl font-semibold leading-tight tracking-tight md:text-3xl">
                 {category.name}
               </h1>
+              {/* No product count here. It would be the term count as it stood
+                  at build time, sitting a few centimetres above a grid that
+                  refreshes itself — so the day a product is published the
+                  banner says "1 products" over two of them. The live count is
+                  already on the toolbar, from the same request as the grid. */}
               <p className="mt-1 text-sm opacity-90">
-                {desc || `${category.count} products · Cash on delivery all over Bangladesh`}
+                {desc || "Cash on delivery all over Bangladesh"}
               </p>
             </div>
           </div>
