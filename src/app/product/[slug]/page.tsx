@@ -197,7 +197,7 @@ export default async function ProductPage({ params }: Props) {
             <ComboCrossSell combos={inCombos} currency={product.prices} />
           )}
 
-          <ProductAssurance />
+          <ProductAssurance product={product} />
 
           <Highlights html={product.short_description} />
         </div>

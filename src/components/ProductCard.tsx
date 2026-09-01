@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ImageOff } from "lucide-react";
+import { ImageOff, Truck } from "lucide-react";
 import type { StoreProduct } from "@/lib/types";
 import { discountPercent, formatPrice } from "@/lib/format";
 import AddToCartButton from "./AddToCartButton";
@@ -24,6 +24,10 @@ export default function ProductCard({ product }: { product: StoreProduct }) {
   })();
   // Sold-out badge takes the top-left slot; discount is moot when unavailable.
   const showDiscount = discount && !soldOut;
+  // A combo can carry its own free delivery, regardless of basket total. Worth
+  // saying on the card: it is part of what the set is worth, and a shopper
+  // comparing two cards cannot see it anywhere else until the cart.
+  const freeDelivery = product.extensions?.gedushop?.combo?.free_shipping === true;
 
   return (
     <article className="group relative flex flex-col overflow-hidden rounded-3xl bg-white shadow-[var(--shadow-soft)] ring-1 ring-plum-100/50 transition-all duration-300 hover:-translate-y-1 hover:shadow-[var(--shadow-lift)]">
@@ -85,6 +89,20 @@ export default function ProductCard({ product }: { product: StoreProduct }) {
                 {swatches.length > 4 && (
                   <span className="text-[10px] font-bold text-plum-300">+{swatches.length - 4}</span>
                 )}
+              </span>
+            )}
+            {/* Shares the row's right-hand slot with the swatches, which cannot
+                both appear: swatches need a variable product, free delivery
+                comes from a combo, and a combo is a simple one. Sitting in this
+                already fixed-height row is deliberate — a badge of its own
+                would make free-delivery cards taller than the rest and break
+                the grid's alignment for the sake of one line. */}
+            {freeDelivery && (
+              <span className="ml-auto flex shrink-0 items-center gap-0.5 text-emerald-600">
+                <Truck className="size-3" strokeWidth={2.25} />
+                <span className="text-[10px] font-extrabold uppercase tracking-wide">
+                  Free delivery
+                </span>
               </span>
             )}
           </div>

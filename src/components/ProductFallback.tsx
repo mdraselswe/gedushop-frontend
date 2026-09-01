@@ -90,7 +90,7 @@ export default function ProductFallback({ onMiss }: { onMiss: () => void }) {
 
           <ProductBuyBox product={product} />
 
-          <ProductAssurance />
+          <ProductAssurance product={product} />
 
           <Highlights html={product.short_description} />
         </div>
