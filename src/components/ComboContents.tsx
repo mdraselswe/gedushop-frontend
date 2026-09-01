@@ -38,8 +38,10 @@ export default function ComboContents({ product: initial }: { product: StoreProd
           <PackageCheck className="size-5 text-coral-500" strokeWidth={2.25} />
           What&rsquo;s in this combo
         </h2>
+        {/* Singular matters here now that a set can be one product taken
+            twice — a buy-one-get-one would have read "1 products". */}
         <span className="text-xs font-bold text-plum-400">
-          {combo.items.length} products
+          {combo.items.length} {combo.items.length === 1 ? "product" : "products"}
         </span>
       </div>
 
