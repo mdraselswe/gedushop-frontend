@@ -65,9 +65,20 @@ define( 'GEDU_COMBO_TERM_NAME', 'Combo Offers' );
 /**
  * A combo's components, or an empty array for an ordinary product.
  *
- * Returns [ [ 'id' => int, 'qty' => int ], ... ]. Everything else in this file
- * goes through here, so a malformed meta value degrades to "not a combo"
- * rather than to a fatal on the shop front.
+ * Returns [ [ 'id' => int, 'qty' => int ], ... ] with each product appearing
+ * once. Everything else in this file goes through here, so a malformed meta
+ * value degrades to "not a combo" rather than to a fatal on the shop front,
+ * and a recipe naming one product twice is counted correctly everywhere at
+ * once rather than in each of the dozen places that reads a recipe.
+ *
+ * Repeats are real and expected. The shop that pushes these recipes tracks a
+ * toy's colours as separate things and sells them here as one listing, so
+ * "Red x1, Blue x2" arrives as that listing, twice. It merges to x3 before
+ * anything counts it, because the arithmetic downstream takes the smallest
+ * stock/qty across the rows: left as two rows, ten in stock answers
+ * min(10/1, 10/2) = 5 sets when only 3 can be packed, and the shop would sell
+ * the difference. Hand-written recipes in the box below can repeat a product
+ * the same way, which is why this is fixed here and not only at the sender.
  */
 function gedu_combo_items( $product_id ) {
 	$raw = get_post_meta( $product_id, GEDU_COMBO_ITEMS_META, true );
@@ -90,8 +101,23 @@ function gedu_combo_items( $product_id ) {
 		}
 	}
 	// Any bad row and the whole recipe is refused, because a partially-read
-	// recipe would sell a box with something missing from it.
-	return count( $items ) === count( $raw ) ? $items : array();
+	// recipe would sell a box with something missing from it. Checked before
+	// merging, while the row counts are still comparable.
+	if ( count( $items ) !== count( $raw ) ) {
+		return array();
+	}
+	$merged = array();
+	foreach ( $items as $item ) {
+		$id = $item['id'];
+		if ( isset( $merged[ $id ] ) ) {
+			$merged[ $id ]['qty'] += $item['qty'];
+		} else {
+			$merged[ $id ] = $item;
+		}
+	}
+	// Values only: callers index these positionally, and array_values also
+	// keeps them in the order the recipe was written.
+	return array_values( $merged );
 }
 
 function gedu_is_combo( $product_id ) {

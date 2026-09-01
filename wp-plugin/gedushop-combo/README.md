@@ -32,6 +32,12 @@ There are two ways in. The first is the normal one.
 2. For each component, link it to the website product it stands for — the
    picker searches this shop by name, or **Match to website** guesses them all
    at once from SKU and name. Each product only ever has to be linked once.
+
+   Several gedusuite variants may point at one product here. That is the normal
+   case when this shop sells as a single listing what gedusuite tracks
+   separately — a toy's colours, where the box is packed with whatever is on
+   hand. gedusuite offers to link the rest of a product's variants in one go,
+   and adds their quantities together before sending the recipe.
 3. Press **Put on website**. gedusuite creates the product here as a **draft**
    with the price and the recipe already set, and remembers its id.
 4. Open the draft in WooCommerce, add the images and description, and publish.
@@ -58,6 +64,9 @@ For a combo gedusuite doesn't know about:
 
    The id is the product id — or the **variation id** when the component is
    one fixed variant of a variable product. Text after `#` is a note.
+
+   Listing the same id twice is allowed; the quantities are added together
+   before anything counts them.
 4. Tick **Free delivery with this combo** if the set carries that promotion.
 5. Save. The stock figure is written for you and updates from then on.
 
@@ -75,6 +84,20 @@ component movement overwrites it.
 | A free-delivery combo in the cart | Shipping rates are zeroed for that order |
 | Store API responses | `extensions.gedushop.combo` on both the product and the cart line |
 | Nightly | Full re-sync, so anything changed outside WordPress heals itself |
+
+### What derived stock cannot do
+
+Availability here is only as fine-grained as this shop's own catalogue. Where
+gedusuite tracks a toy's colours separately and this shop sells one listing for
+all of them, a recipe naming "Red" arrives as that listing, and the shop counts
+sets against the pooled figure. With Red at 0 and Blue at 8, the shop will
+happily sell the set — it has never been told the two are different.
+
+That is the accepted cost of not modelling the colours here, and it is only
+safe while the colour is not a promise: the box is packed with whatever is on
+hand. If a set ever has to ship a specific colour, this shop has to know about
+that colour — as a variation, linked to gedusuite's variant — or the recipe has
+to name something that is one thing in both places.
 
 ## The Combo Offers category
 
@@ -114,7 +137,7 @@ the shop set. Nothing is taken over that was not handed across.
 
 | Key | Meaning |
 | --- | --- |
-| `_gedu_combo_items` | `[{id, qty}, …]` — the recipe |
+| `_gedu_combo_items` | `[{id, qty}, …]` — the recipe. Repeated ids are merged on read |
 | `_gedu_combo_free_shipping` | `yes` / `no` |
 | `_gedu_combo_price` | What the set sells for, as decided in gedusuite |
 | `_gedu_combo_stock_reduced` | Set on an order once its combo lines have been deducted (makes the deduction idempotent) |
