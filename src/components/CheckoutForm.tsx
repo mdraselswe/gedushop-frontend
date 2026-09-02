@@ -205,9 +205,15 @@ export default function CheckoutForm() {
     setSubmitting(true);
 
     const [firstName, ...rest] = form.name.trim().split(/\s+/);
+    // WooCommerce refuses the whole order — "Last name is required" — when this
+    // is empty, and a great many customers here type a single name. That is what
+    // the store’s checkout-draft orders are: fifteen of the nineteen failed
+    // place-order attempts on record died on this line, and not one of those
+    // customers came back to try again.
+    const lastName = rest.join(" ") || "-";
     const address = {
       first_name: firstName,
-      last_name: rest.join(" "),
+      last_name: lastName,
       address_1: form.address.trim(),
       city: form.area.trim() || DISTRICTS.find((d) => d.code === form.district)?.name || "",
       state: form.district,
