@@ -183,6 +183,13 @@ export default function CheckoutForm() {
   async function submit(e: React.FormEvent) {
     e.preventDefault();
     setError(null);
+    // WooCommerce needs a first name as much as a last one, and refuses the
+    // order without it. Guarded here rather than trusting the input’s
+    // `required` attribute, for the same reason the phone below is.
+    if (!form.name.trim()) {
+      setError("Please enter your name.");
+      return;
+    }
     if (!/^01[3-9]\d{8}$/.test(form.phone.trim())) {
       setError("Please enter a valid Bangladeshi mobile number (11 digits, e.g. 01712345678).");
       return;
