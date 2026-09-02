@@ -15,6 +15,14 @@ import CouponField from "./CouponField";
 
 const TOKEN_KEY = "gedu-cart-token";
 
+/**
+ * How long the checkout stays quiet before a snapshot is sent.
+ *
+ * Long enough that typing a phone number is one request rather than eleven,
+ * short enough to catch somebody who fills the form and closes the tab.
+ */
+const BEACON_DEBOUNCE_MS = 2500;
+
 interface FormState {
   name: string;
   phone: string;
@@ -43,6 +51,10 @@ export default function CheckoutForm() {
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const trackedCheckout = useRef(false);
+  /** Stops the abandoned-cart beacon once the order is actually placed. */
+  const orderPlaced = useRef(false);
+  /** The last snapshot sent, so a keystroke that changes nothing sends nothing. */
+  const lastBeacon = useRef<string | null>(null);
 
   // Ticked to begin with: the terms are the ordinary ones, and a customer who
   // wants to read them can — untick it and the order will not go.
@@ -80,6 +92,65 @@ export default function CheckoutForm() {
       num_items: cart.items_count,
     });
   }, [cart]);
+
+  // The abandoned-cart beacon.
+  //
+  // Roughly four out of five people who reach this form never place the order,
+  // and WooCommerce keeps nothing about them: its cart is an anonymous session
+  // and no name or phone exists anywhere until it is typed here. So once the
+  // number is complete, what has been filled in so far is posted to the shop's
+  // own app, where it becomes a row on the call list — somebody rings and asks
+  // if they want to finish. Sending stops the moment the order goes through.
+  //
+  // Posted to a Pages Function rather than straight to the app: the site is a
+  // static export, so the shared secret has to live at the edge (see
+  // functions/abandoned.js).
+  useEffect(() => {
+    if (orderPlaced.current) return;
+    if (!cart || cart.items.length === 0) return;
+    if (!/^01[3-9]\d{8}$/.test(form.phone.trim())) return;
+
+    const minor = cart.totals.currency_minor_unit ?? 2;
+    const payload = JSON.stringify({
+      phone: form.phone.trim(),
+      name: form.name.trim(),
+      address: form.address.trim(),
+      area: form.area.trim(),
+      // The readable name, not "BD-13" — this is read off a screen by whoever
+      // makes the call, the same reason the lead importer resolves it too.
+      district: DISTRICTS.find((d) => d.code === form.district)?.name ?? "",
+      items: cart.items.map((i) => ({
+        productId: i.id,
+        name: decodeEntities(i.name),
+        quantity: i.quantity,
+        lineTotal: Number(i.totals.line_total) / 10 ** minor,
+      })),
+      // Merchandise only, as InitiateCheckout reports it — no delivery charge,
+      // because at this point a district may not have been picked and Woo's
+      // default flat rate would be quoted to the caller as if it were real.
+      total: Number(cartItemsTotal(cart.totals)) / 10 ** minor,
+    });
+
+    // Every keystroke lands here. Only a payload that differs from the last one
+    // sent is worth a request, and only after they have paused.
+    if (payload === lastBeacon.current) return;
+    const timer = setTimeout(() => {
+      lastBeacon.current = payload;
+      // keepalive so a send started as they navigate away still completes.
+      fetch("/abandoned", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: payload,
+        keepalive: true,
+      }).catch(() => {
+        // The shop's app being unreachable must never surface in a checkout.
+        // Clearing this lets the next keystroke try again.
+        lastBeacon.current = null;
+      });
+    }, BEACON_DEBOUNCE_MS);
+
+    return () => clearTimeout(timer);
+  }, [cart, form.phone, form.name, form.address, form.area, form.district]);
 
   function set<K extends keyof FormState>(key: K) {
     return (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) =>
@@ -171,6 +242,10 @@ export default function CheckoutForm() {
         return;
       }
       localStorage.removeItem(TOKEN_KEY); // cart is consumed by the order
+      // They ordered, so no snapshot must follow them onto the call list. The
+      // app clears the row too when the order webhook lands, but that is a
+      // race — the customer's own browser knows first, and knows for certain.
+      orderPlaced.current = true;
       // Snapshot for the success page (order details without any backend call).
       try {
         sessionStorage.setItem(
@@ -285,6 +360,15 @@ export default function CheckoutForm() {
           title="11-digit Bangladeshi mobile number, e.g. 01712345678"
           autoComplete="tel"
         />
+        {/* Said out loud because it is true from the keystroke after this one:
+            the number is saved as it is typed, not when the order is placed
+            (see the abandoned-cart beacon above). A customer who gets a call
+            about a basket they abandoned should have been told it could
+            happen, and hearing it as an offer of help is the difference
+            between a useful call and an unwelcome one. */}
+        <p className="-mt-1 px-1 text-xs text-plum-400">
+          If you don&apos;t finish your order, we may call this number to help.
+        </p>
         <input value={form.email} onChange={set("email")} placeholder="Email (optional)" className={inputCls} type="email" autoComplete="email" />
         <textarea
           required
