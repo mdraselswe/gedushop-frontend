@@ -1,7 +1,8 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import { ChevronLeft, ChevronRight, Gift, ToyBrick, Truck, type LucideIcon } from "lucide-react";
+import Image from "next/image";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 
 const AUTOPLAY_MS = 4500;
 
@@ -10,7 +11,8 @@ interface Slide {
   subtitle: string;
   cta: string;
   bg: string;
-  Icon: LucideIcon;
+  image: string;
+  imageAlt: string;
 }
 
 const SLIDES: Slide[] = [
@@ -19,21 +21,24 @@ const SLIDES: Slide[] = [
     subtitle: "Toys, baby care & more — delivered to your door",
     cta: "Shop Now",
     bg: "from-plum-600 to-plum-400",
-    Icon: ToyBrick,
+    image: "/carousel/baby-toys-natural.jpg",
+    imageAlt: "Pastel baby toys and teddy bear",
   },
   {
     title: "Cash on Delivery",
     subtitle: "Order now, pay when it arrives — all over Bangladesh",
     cta: "Start Shopping",
     bg: "from-coral-500 to-coral-300",
-    Icon: Truck,
+    image: "/carousel/cash-on-delivery-natural.jpg",
+    imageAlt: "Cash on delivery for baby products",
   },
   {
     title: "New toys every week",
     subtitle: "Fresh fun for every age group",
     cta: "Explore Toys",
     bg: "from-plum-500 to-coral-400",
-    Icon: Gift,
+    image: "/carousel/new-toys-natural.jpg",
+    imageAlt: "New toys arriving in a gift box",
   },
 ];
 
@@ -113,15 +118,30 @@ export default function BannerSlider() {
         ref={trackRef}
         className="no-scrollbar -mr-4 flex snap-x snap-mandatory gap-3 overflow-x-auto scroll-smooth pb-1 md:mr-0"
       >
-        {SLIDES.map(({ title, subtitle, cta, bg, Icon }) => (
+        {SLIDES.map(({ title, subtitle, cta, bg, image, imageAlt }) => (
           <a
             key={title}
             href="/shop"
             className={`grain relative flex w-[88%] shrink-0 snap-start items-center justify-between gap-4 overflow-hidden rounded-3xl bg-gradient-to-br ${bg} p-6 text-white md:w-[46%] md:p-8`}
           >
+            <span
+              className="pointer-events-none absolute inset-y-0 right-0 w-[62%] overflow-hidden md:w-[58%]"
+              style={{
+                maskImage: "linear-gradient(to right, transparent 0%, rgba(0,0,0,.75) 34%, black 58%)",
+                WebkitMaskImage: "linear-gradient(to right, transparent 0%, rgba(0,0,0,.75) 34%, black 58%)",
+              }}
+            >
+              <Image
+                src={image}
+                alt={imageAlt}
+                fill
+                sizes="(min-width: 768px) 28vw, 55vw"
+                className="object-cover object-center transition-transform duration-700 group-hover:scale-[1.03]"
+              />
+            </span>
             {/* soft radial highlight for depth */}
             <span className="pointer-events-none absolute -right-10 -top-16 size-52 rounded-full bg-white/15 blur-2xl" aria-hidden />
-            <div className="relative z-10">
+            <div className="relative z-10 max-w-[68%]">
               <h2 className="font-heading text-xl font-semibold leading-[1.15] tracking-tight md:text-3xl">{title}</h2>
               <p className="mt-1.5 max-w-[26ch] text-xs opacity-90 md:text-sm">{subtitle}</p>
               <span className="mt-4 inline-flex items-center gap-1.5 rounded-full bg-white px-5 py-2 text-xs font-extrabold text-plum-700 shadow-sm transition-transform group-hover:scale-105 md:text-sm">
@@ -129,7 +149,6 @@ export default function BannerSlider() {
                 <span aria-hidden>→</span>
               </span>
             </div>
-            <Icon className="relative z-10 size-16 shrink-0 opacity-90 drop-shadow-lg md:size-20" strokeWidth={1.5} aria-hidden />
           </a>
         ))}
       </div>
