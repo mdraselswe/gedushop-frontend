@@ -1,4 +1,4 @@
-import { decodeEntities } from "./decode";
+import { decodeEntities, decodeStoreProduct } from "./decode";
 import type { StoreCategory, StoreProduct } from "./types";
 
 const WP_URL = process.env.WP_URL ?? "https://gedushop.com";
@@ -33,15 +33,6 @@ async function storeGet<T>(path: string): Promise<T> {
   return res.json();
 }
 
-function decodeProduct(p: StoreProduct): StoreProduct {
-  return {
-    ...p,
-    name: decodeEntities(p.name),
-    // Embedded category names are HTML-encoded too (used in breadcrumbs / links).
-    categories: p.categories?.map((c) => ({ ...c, name: decodeEntities(c.name) })) ?? p.categories,
-  };
-}
-
 function decodeCategory(c: StoreCategory): StoreCategory {
   return { ...c, name: decodeEntities(c.name) };
 }
@@ -61,7 +52,7 @@ export async function getProducts(params: {
   if (params.search) q.set("search", params.search);
   if (params.orderby) q.set("orderby", params.orderby);
   if (params.onSale) q.set("on_sale", "true");
-  return (await storeGet<StoreProduct[]>(`/products?${q}`)).map(decodeProduct);
+  return (await storeGet<StoreProduct[]>(`/products?${q}`)).map(decodeStoreProduct);
 }
 
 /** Like getProducts but also returns pagination info from the response headers. */
@@ -80,7 +71,7 @@ export async function getProductsPaged(params: Parameters<typeof getProducts>[0]
   const res = await fetchRetry(`${STORE_API}/products?${q}`);
   if (!res.ok) throw new Error(`Store API ${res.status} on /products`);
   return {
-    products: ((await res.json()) as StoreProduct[]).map(decodeProduct),
+    products: ((await res.json()) as StoreProduct[]).map(decodeStoreProduct),
     totalPages: Number(res.headers.get("x-wp-totalpages") ?? 1),
     total: Number(res.headers.get("x-wp-total") ?? 0),
   };
@@ -128,7 +119,7 @@ export async function getAllProducts(): Promise<StoreProduct[]> {
         for (const p of list) {
           if (seen.has(p.id)) continue;
           seen.add(p.id);
-          all.push(decodeProduct(p));
+          all.push(decodeStoreProduct(p));
         }
         if (all.length >= expected || list.length === 0) break;
       }

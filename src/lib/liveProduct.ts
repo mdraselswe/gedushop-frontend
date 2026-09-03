@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { apiFetch, STORE_API } from "@/lib/api";
+import { decodeStoreProduct } from "@/lib/decode";
 import type { StoreProduct } from "@/lib/types";
 
 /**
@@ -35,6 +36,11 @@ export function fetchLiveProduct(id: number): Promise<StoreProduct | null> {
 
   const promise = apiFetch(`${STORE_API}/products/${id}`)
     .then((r) => (r.ok ? (r.json() as Promise<StoreProduct>) : null))
+    // The build's copy goes through decodeStoreProduct (see lib/wp); this
+    // fetch is the same encoded shape from the same API and was skipping it —
+    // a page painted with a correct name would flip to "&amp;" the moment
+    // this landed.
+    .then((p) => (p ? decodeStoreProduct(p) : null))
     .catch(() => null);
 
   cache.set(id, { at: Date.now(), promise });
