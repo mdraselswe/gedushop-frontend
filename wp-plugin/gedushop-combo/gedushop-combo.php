@@ -981,15 +981,21 @@ add_action(
 
 		if ( empty( $items ) ) {
 			delete_post_meta( $post_id, GEDU_COMBO_ITEMS_META );
-			delete_post_meta( $post_id, GEDU_COMBO_FREE_SHIPPING_META );
 		} else {
 			update_post_meta( $post_id, GEDU_COMBO_ITEMS_META, $items );
-			update_post_meta(
-				$post_id,
-				GEDU_COMBO_FREE_SHIPPING_META,
-				isset( $_POST['gedu_combo_free_shipping'] ) ? 'yes' : 'no'
-			);
 		}
+
+		// Independent of whether this product has combo items: the checkbox
+		// reads "with this combo" but gedu_combo_free_shipping() never checks
+		// for one, and an ordinary product is meant to be able to use it on
+		// its own. Tied to the items branch before, it saved on a combo and
+		// silently discarded on anything else — checked the box, saved,
+		// reload, unchecked again, with no error to say why.
+		update_post_meta(
+			$post_id,
+			GEDU_COMBO_FREE_SHIPPING_META,
+			isset( $_POST['gedu_combo_free_shipping'] ) ? 'yes' : 'no'
+		);
 
 		gedu_combo_rebuild_index();
 		gedu_combo_apply_category( $post_id );
