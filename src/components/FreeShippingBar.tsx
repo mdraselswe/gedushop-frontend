@@ -6,10 +6,11 @@ const FREE_THRESHOLD = 2000; // ৳ — matches the free-delivery-over-৳2000 p
 /**
  * Progress nudge: how much more to spend for free delivery. Boosts basket size.
  *
- * A free-delivery combo replaces the bar rather than filling it in. The spend
- * threshold is one route to free delivery and a combo is another, and telling
- * somebody who already has it to "add ৳800 more" would be both wrong and
- * discouraging — the offer they took would look as though it hadn't counted.
+ * A free-delivery item replaces the bar rather than filling it in — a combo's
+ * own promotion, or a plain product's. The spend threshold is one route to
+ * free delivery and this flag is another, and telling somebody who already
+ * has it to "add ৳800 more" would be both wrong and discouraging — the offer
+ * they took would look as though it hadn't counted.
  */
 export default function FreeShippingBar({
   totals,
@@ -18,19 +19,19 @@ export default function FreeShippingBar({
   totals: CartTotals;
   items?: CartItem[];
 }) {
-  const fromCombo = items.some((i) => i.extensions?.gedushop?.combo?.free_shipping);
+  const hasFreeItem = items.some((i) => i.extensions?.gedushop?.free_shipping);
   const minor = totals.currency_minor_unit ?? 2;
   const subtotal = Number(totals.total_items) / 10 ** minor;
   const remaining = FREE_THRESHOLD - subtotal;
   const pct = Math.min(100, Math.max(0, (subtotal / FREE_THRESHOLD) * 100));
   const unlocked = remaining <= 0;
 
-  if (fromCombo) {
+  if (hasFreeItem) {
     return (
       <div className="rounded-2xl bg-emerald-50 p-3.5 ring-1 ring-emerald-200/70">
         <p className="flex items-center gap-1.5 text-xs font-bold text-emerald-700">
           <Truck className="size-4 shrink-0" strokeWidth={2.25} />
-          <span>🎉 FREE delivery is included with your combo</span>
+          <span>🎉 FREE delivery is included with your order</span>
         </p>
       </div>
     );

@@ -24,10 +24,11 @@ export default function ProductCard({ product }: { product: StoreProduct }) {
   })();
   // Sold-out badge takes the top-left slot; discount is moot when unavailable.
   const showDiscount = discount && !soldOut;
-  // A combo can carry its own free delivery, regardless of basket total. Worth
-  // saying on the card: it is part of what the set is worth, and a shopper
-  // comparing two cards cannot see it anywhere else until the cart.
-  const freeDelivery = product.extensions?.gedushop?.combo?.free_shipping === true;
+  // A product — combo or plain — can carry its own free delivery, regardless
+  // of basket total. Worth saying on the card: it is part of what the item is
+  // worth, and a shopper comparing two cards cannot see it anywhere else
+  // until the cart.
+  const freeDelivery = product.extensions?.gedushop?.free_shipping === true;
 
   return (
     <article className="group relative flex flex-col overflow-hidden rounded-3xl bg-white shadow-[var(--shadow-soft)] ring-1 ring-plum-100/50 transition-all duration-300 hover:-translate-y-1 hover:shadow-[var(--shadow-lift)]">

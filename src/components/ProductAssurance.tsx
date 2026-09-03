@@ -10,16 +10,17 @@ const DELIVERY = [
 ] as const;
 
 /**
- * The same two rows for a set that carries its own free delivery.
+ * The same two rows for a product that carries its own free delivery —
+ * a combo's promotion as often as a plain product's own.
  *
  * The shop's general rates are still true, but on this page they answer the
  * wrong question. A customer reading "Dhaka ৳80" and "on orders over ৳2000"
- * above a ৳520 set concludes they will pay for delivery — and they will not.
+ * above a ৳520 item concludes they will pay for delivery — and they will not.
  * Saying it once, plainly, beats leaving the offer to be discovered in the
  * cart, or contradicted here and confirmed further down the page.
  */
 const DELIVERY_FREE = [
-  { Icon: Truck, title: "Free delivery", sub: "Included with this combo" },
+  { Icon: Truck, title: "Free delivery", sub: "Included with this item" },
 ] as const;
 
 const REST = [
@@ -31,14 +32,14 @@ const REST = [
  * Delivery + trust reassurance block shown under the buy box.
  *
  * Refetches like everything else on this page that makes a promise. The page
- * is HTML written at build time; whether a combo carries free delivery is a
- * setting somebody can change this afternoon, and the combo panel further down
- * already asks the shop. Reading a stale flag here would put the two in
- * disagreement about the same offer, on the same screen.
+ * is HTML written at build time; whether a product carries free delivery is a
+ * setting somebody can change this afternoon, and — for a combo — the combo
+ * panel further down already asks the shop too. Reading a stale flag here
+ * would put the two in disagreement about the same offer, on the same screen.
  */
 export default function ProductAssurance({ product }: { product?: StoreProduct }) {
   const live = useLiveProduct(product ?? null);
-  const freeDelivery = live?.extensions?.gedushop?.combo?.free_shipping === true;
+  const freeDelivery = live?.extensions?.gedushop?.free_shipping === true;
   const rows = [...(freeDelivery ? DELIVERY_FREE : DELIVERY), ...REST];
   return (
     <div className="mt-5 grid grid-cols-1 gap-x-4 gap-y-3 rounded-2xl bg-white p-4 shadow-[var(--shadow-soft)] ring-1 ring-plum-100/50 sm:grid-cols-2">

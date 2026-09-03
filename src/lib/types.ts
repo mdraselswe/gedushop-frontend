@@ -47,6 +47,12 @@ export interface StoreProduct {
       /** Swatch hex by taxonomy then term slug, e.g. { pa_color: { blue: "#1e73be" } } */
       attribute_colors?: Record<string, Record<string, string>>;
       /**
+       * This product ships free on its own — a plain product's own promotion
+       * as often as a combo's, so it sits here rather than inside `combo`,
+       * which is absent on everything that isn't one.
+       */
+      free_shipping: boolean;
+      /**
        * Present only on a combo — several products sold together at one price.
        *
        * The combo IS an ordinary product here: its own page, its own price, one
@@ -129,11 +135,12 @@ export interface CartItem {
   totals: CartItemTotals;
   extensions?: {
     gedushop?: {
+      /** This basket line ships free on its own — combo or plain product alike. */
+      free_shipping: boolean;
       /** Present when this basket line is a combo. */
       combo?: {
         /** "Robotic Aeroplane x1", "AA Battery Pack x3" — what is in the box. */
         includes: string[];
-        free_shipping: boolean;
       };
     };
   };

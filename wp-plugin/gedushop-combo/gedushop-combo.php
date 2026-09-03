@@ -769,26 +769,35 @@ add_action(
 				'data_callback'   => function ( $cart_item ) {
 					$product_id = isset( $cart_item['product_id'] ) ? (int) $cart_item['product_id'] : 0;
 					$items      = gedu_combo_items( $product_id );
-					if ( empty( $items ) ) {
-						return array();
-					}
-					$names = array();
-					foreach ( $items as $item ) {
-						$product = wc_get_product( $item['id'] );
-						if ( $product ) {
-							$names[] = sprintf( '%s x%d', $product->get_name(), $item['qty'] );
+					// A sibling of `combo`, not a field inside it: free delivery is
+					// a plain product's own promotion just as often as a combo's,
+					// and nesting it here would leave it unreachable — the
+					// storefront's various "combo && …" checks exist to hide combo
+					// content on a product that has none, and would have hidden
+					// this along with it.
+					$data = array( 'free_shipping' => gedu_combo_free_shipping( $product_id ) );
+					if ( ! empty( $items ) ) {
+						$names = array();
+						foreach ( $items as $item ) {
+							$product = wc_get_product( $item['id'] );
+							if ( $product ) {
+								$names[] = sprintf( '%s x%d', $product->get_name(), $item['qty'] );
+							}
 						}
+						$data['combo'] = array(
+							'includes' => $names,
+						);
 					}
-					return array(
-						'combo' => array(
-							'includes'      => $names,
-							'free_shipping' => gedu_combo_free_shipping( $product_id ),
-						),
-					);
+					return $data;
 				},
 				'schema_callback' => function () {
 					return array(
-						'combo' => array(
+						'free_shipping' => array(
+							'description' => __( 'Whether this basket line ships free on its own.', 'gedushop-combo' ),
+							'type'        => 'boolean',
+							'readonly'    => true,
+						),
+						'combo'         => array(
 							'description' => __( 'Combo details for this basket line.', 'gedushop-combo' ),
 							'type'        => array( 'object', 'null' ),
 							'readonly'    => true,
@@ -803,37 +812,46 @@ add_action(
 				'endpoint'        => Automattic\WooCommerce\StoreApi\Schemas\V1\ProductSchema::IDENTIFIER,
 				'namespace'       => 'gedushop',
 				'data_callback'   => function ( $product ) {
-					$items = gedu_combo_items( $product->get_id() );
-					if ( empty( $items ) ) {
-						return array();
-					}
-					$components = array();
-					$total      = 0;
-					foreach ( $items as $item ) {
-						$payload = gedu_combo_component_payload( $item );
-						if ( ! $payload ) {
-							continue;
+					$items         = gedu_combo_items( $product->get_id() );
+					$free_shipping = gedu_combo_free_shipping( $product->get_id() );
+					// Same split as the cart-item callback above: free delivery is
+					// its own product-level fact, not something worth burying
+					// inside `combo` where an ordinary product's page could never
+					// reach it.
+					$data = array( 'free_shipping' => $free_shipping );
+					if ( ! empty( $items ) ) {
+						$components = array();
+						$total      = 0;
+						foreach ( $items as $item ) {
+							$payload = gedu_combo_component_payload( $item );
+							if ( ! $payload ) {
+								continue;
+							}
+							$components[] = $payload;
+							// Minor units here, because everything the Store API
+							// sends is in them; gedu_combo_components_total works
+							// in shop money for the price fields. Same sum.
+							$total       += $payload['price'] * $payload['qty'];
 						}
-						$components[] = $payload;
-						// Minor units here, because everything the Store API
-						// sends is in them; gedu_combo_components_total works
-						// in shop money for the price fields. Same sum.
-						$total       += $payload['price'] * $payload['qty'];
-					}
-					return array(
-						'combo' => array(
+						$data['combo'] = array(
 							'items'            => $components,
 							// What the same goods list for bought separately —
 							// the storefront shows the difference as the saving,
 							// and computing it here keeps one definition of it.
 							'components_total' => $total,
-							'free_shipping'    => gedu_combo_free_shipping( $product->get_id() ),
-						),
-					);
+							'free_shipping'    => $free_shipping,
+						);
+					}
+					return $data;
 				},
 				'schema_callback' => function () {
 					return array(
-						'combo' => array(
+						'free_shipping' => array(
+							'description' => __( 'Whether this product ships free on its own.', 'gedushop-combo' ),
+							'type'        => 'boolean',
+							'readonly'    => true,
+						),
+						'combo'         => array(
 							'description' => __( 'Products inside this combo set.', 'gedushop-combo' ),
 							'type'        => array( 'object', 'null' ),
 							'readonly'    => true,

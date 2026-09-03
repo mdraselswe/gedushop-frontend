@@ -29,21 +29,25 @@ export function decodeEntities(s: string): string {
  * used to decode anything.
  */
 export function decodeStoreProduct(p: StoreProduct): StoreProduct {
-  const combo = p.extensions?.gedushop?.combo;
-  return {
+  const base = {
     ...p,
     name: decodeEntities(p.name),
     categories: p.categories?.map((c) => ({ ...c, name: decodeEntities(c.name) })) ?? p.categories,
-    ...(combo
-      ? {
-          extensions: {
-            ...p.extensions,
-            gedushop: {
-              ...p.extensions!.gedushop,
-              combo: { ...combo, items: combo.items.map((i) => ({ ...i, name: decodeEntities(i.name) })) },
-            },
-          },
-        }
-      : {}),
+  };
+  // Narrowed through a local, not the inline `p.extensions?.gedushop?.combo`
+  // chain again below — TypeScript can't carry an optional-chain result's
+  // non-null proof into a second, separate chain off the same path.
+  const gedushop = p.extensions?.gedushop;
+  const combo = gedushop?.combo;
+  if (!gedushop || !combo) return base;
+  return {
+    ...base,
+    extensions: {
+      ...p.extensions,
+      gedushop: {
+        ...gedushop,
+        combo: { ...combo, items: combo.items.map((i) => ({ ...i, name: decodeEntities(i.name) })) },
+      },
+    },
   };
 }
