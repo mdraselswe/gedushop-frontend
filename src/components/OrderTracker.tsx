@@ -2,9 +2,12 @@
 
 import { Suspense, useState } from "react";
 import { useSearchParams } from "next/navigation";
+import Link from "next/link";
 import { Check, CircleAlert, Loader2, PackageCheck, Search } from "lucide-react";
 import { decodeEntities } from "@/lib/decode";
 import { apiFetch, GEDU_API } from "@/lib/api";
+import { addOrder } from "@/lib/orderHistory";
+import { STATUS_LABEL, STATUS_STEP, STEPS, formatOrderDate as formatDate } from "@/lib/orderStatus";
 
 interface TrackedItem {
   name: string;
@@ -22,29 +25,6 @@ interface TrackResult {
   paymentMethodTitle: string;
   customerName: string;
   items: TrackedItem[];
-}
-
-// COD flow → 3 visible steps. Each Woo status maps to the furthest reached step.
-const STEPS = ["Order placed", "Confirmed & preparing", "Delivered"] as const;
-const STATUS_STEP: Record<string, number> = {
-  pending: 0,
-  "on-hold": 0,
-  processing: 1,
-  completed: 2,
-};
-const STATUS_LABEL: Record<string, string> = {
-  pending: "Order received",
-  "on-hold": "On hold",
-  processing: "Confirmed — preparing your order",
-  completed: "Delivered",
-  cancelled: "Cancelled",
-  refunded: "Refunded",
-  failed: "Failed",
-};
-
-function formatDate(iso: string): string {
-  const d = new Date(iso);
-  return d.toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" });
 }
 
 function OrderTrackerInner() {
@@ -67,7 +47,21 @@ function OrderTrackerInner() {
       });
       const data = await res.json();
       if (!res.ok) setError(data.error || "Something went wrong.");
-      else setResult(data);
+      else {
+        setResult(data);
+        // Tracking an order proves this device owns it, so remember it — a
+        // customer who lands here from a confirmation call now has a history
+        // even though they never checked out in this browser.
+        addOrder({
+          id: data.id,
+          phone: phone.trim(),
+          date: data.dateCreated,
+          total: `${data.currencySymbol}${Number(data.total).toLocaleString("en-IN")}`,
+          summary: (data.items as TrackedItem[])
+            .map((i) => `${decodeEntities(i.name)} × ${i.quantity}`)
+            .join(", "),
+        });
+      }
     } catch {
       setError("Network problem — please try again.");
     } finally {
@@ -203,6 +197,13 @@ function OrderTrackerInner() {
                 {Number(result.total).toLocaleString("en-IN")}
               </span>
             </div>
+
+            <Link
+              href="/my-orders"
+              className="mt-4 flex justify-center rounded-xl bg-plum-50 px-4 py-2.5 text-sm font-extrabold text-plum-600 transition-colors hover:bg-plum-100"
+            >
+              See all my orders
+            </Link>
           </div>
         </div>
       )}

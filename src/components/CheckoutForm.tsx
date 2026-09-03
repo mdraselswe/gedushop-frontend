@@ -8,6 +8,7 @@ import { useCart } from "@/context/CartContext";
 import { decodeEntities } from "@/lib/decode";
 import { formatPrice } from "@/lib/format";
 import { cartItemsTotal } from "@/lib/cart-total";
+import { addOrder } from "@/lib/orderHistory";
 import { fbTrack } from "@/lib/pixel";
 import { DHAKA_AREAS, DHAKA_CODE, DISTRICTS } from "@/lib/districts";
 import { apiFetch, GEDU_API, STORE_API } from "@/lib/api";
@@ -298,6 +299,17 @@ export default function CheckoutForm() {
       } catch {
         // storage unavailable — success page falls back to the simple view
       }
+      // Separate from the snapshot above, and deliberately after it: the
+      // snapshot is one page's worth of detail in sessionStorage, this is the
+      // durable row /my-orders reads back. If sessionStorage is the thing that
+      // failed, the history should still be written.
+      addOrder({
+        id: data.order_id,
+        phone: form.phone.trim(),
+        date: new Date().toISOString(),
+        total: formatPrice(String(grandTotal), cart!.totals),
+        summary: cart!.items.map((i) => `${decodeEntities(i.name)} × ${i.quantity}`).join(", "),
+      });
       const minor = cart?.totals.currency_minor_unit ?? 2;
       const value = (grandTotal / 10 ** minor).toFixed(2);
       router.push(`/checkout/success?order=${data.order_id}&value=${value}`);

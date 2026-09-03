@@ -30,6 +30,7 @@ export default function Footer({ categories }: { categories: StoreCategory[] }) 
             <li><Link href="/shop" className="hover:text-coral-500">All products</Link></li>
             <li><Link href="/shop?sale=1" className="hover:text-coral-500">Flash sales</Link></li>
             <li><Link href="/shop?sort=date" className="hover:text-coral-500">New arrivals</Link></li>
+            <li><Link href="/my-orders" className="hover:text-coral-500">My orders</Link></li>
             <li><Link href="/track" className="hover:text-coral-500">Track order</Link></li>
             <li><Link href="/faq" className="hover:text-coral-500">FAQ &amp; Help</Link></li>
           </ul>

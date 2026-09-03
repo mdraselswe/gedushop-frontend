@@ -45,12 +45,12 @@ export default function BottomNav({ categories }: { categories: StoreCategory[] 
             Categories
           </button>
 
-          {/* Track Order */}
-          <Link href="/track" aria-current={pathname === "/track" ? "page" : undefined} className={itemCls(pathname === "/track")}>
-            <span className={`flex h-7 w-12 items-center justify-center rounded-full ${pathname === "/track" ? "bg-coral-50" : ""}`}>
+          {/* My Orders — the list, which falls back to the single-order lookup when empty */}
+          <Link href="/my-orders" aria-current={pathname === "/my-orders" ? "page" : undefined} className={itemCls(pathname === "/my-orders")}>
+            <span className={`flex h-7 w-12 items-center justify-center rounded-full ${pathname === "/my-orders" ? "bg-coral-50" : ""}`}>
               <PackageSearch className="size-5.5" strokeWidth={2} />
             </span>
-            Track
+            Orders
           </Link>
         </div>
       </nav>
