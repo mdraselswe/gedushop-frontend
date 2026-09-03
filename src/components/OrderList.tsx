@@ -162,7 +162,7 @@ export default function OrderList() {
               <div className="mt-3 flex items-center justify-between gap-3">
                 <span className="text-base font-extrabold tabular-nums text-plum-800">{o.total}</span>
                 <Link
-                  href={`/track?order=${o.id}`}
+                  href={`/track?order=${o.id}&phone=${encodeURIComponent(o.phone)}`}
                   className="rounded-full border border-plum-200 px-5 py-2 text-xs font-extrabold text-plum-600 transition-colors hover:bg-plum-50"
                 >
                   View details

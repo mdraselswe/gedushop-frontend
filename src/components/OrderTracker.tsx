@@ -1,6 +1,6 @@
 "use client";
 
-import { Suspense, useState } from "react";
+import { Suspense, useEffect, useRef, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { Check, CircleAlert, Loader2, PackageCheck, Search } from "lucide-react";
@@ -28,14 +28,18 @@ interface TrackResult {
 }
 
 function OrderTrackerInner() {
-  const [phone, setPhone] = useState("");
-  const [orderId, setOrderId] = useState(useSearchParams().get("order") ?? "");
+  const params = useSearchParams();
+  // Both are handed straight through from a link built with data the caller
+  // already knows for certain — the checkout success page, or "View details"
+  // on the device's own order list — so there's no reason to make somebody
+  // retype what got them here.
+  const [phone, setPhone] = useState(params.get("phone") ?? "");
+  const [orderId, setOrderId] = useState(params.get("order") ?? "");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [result, setResult] = useState<TrackResult | null>(null);
 
-  async function submit(e: React.FormEvent) {
-    e.preventDefault();
+  async function track(orderIdVal: string, phoneVal: string) {
     setError(null);
     setResult(null);
     setLoading(true);
@@ -43,7 +47,7 @@ function OrderTrackerInner() {
       const res = await apiFetch(`${GEDU_API}/track`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ phone, order_id: orderId }),
+        body: JSON.stringify({ phone: phoneVal, order_id: orderIdVal }),
       });
       const data = await res.json();
       if (!res.ok) setError(data.error || "Something went wrong.");
@@ -54,7 +58,7 @@ function OrderTrackerInner() {
         // even though they never checked out in this browser.
         addOrder({
           id: data.id,
-          phone: phone.trim(),
+          phone: phoneVal.trim(),
           date: data.dateCreated,
           total: `${data.currencySymbol}${Number(data.total).toLocaleString("en-IN")}`,
           summary: (data.items as TrackedItem[])
@@ -68,6 +72,29 @@ function OrderTrackerInner() {
       setLoading(false);
     }
   }
+
+  function submit(e: React.FormEvent) {
+    e.preventDefault();
+    void track(orderId, phone);
+  }
+
+  // Once, on arrival: a link that already names both fields skips straight to
+  // the result instead of making the customer press the button a second time.
+  // Order id alone (an old bookmark, a checkout-success link) is left as a
+  // plain pre-filled form — there's no phone to search with yet.
+  const autoTracked = useRef(false);
+  useEffect(() => {
+    if (autoTracked.current) return;
+    autoTracked.current = true;
+    const o = params.get("order");
+    const p = params.get("phone");
+    // Deferred a tick: track()'s first line is setLoading(true), and calling
+    // that synchronously inside the effect body is what this lint rule
+    // actually flags — not the fetch itself.
+    if (o && p) queueMicrotask(() => void track(o, p));
+    // Runs once against the URL this page loaded with.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const inputCls =
     "w-full rounded-xl border border-plum-100 bg-white px-4 py-3 text-sm text-plum-800 placeholder:text-plum-300 outline-none focus:border-plum-300 focus:ring-2 focus:ring-plum-100";
