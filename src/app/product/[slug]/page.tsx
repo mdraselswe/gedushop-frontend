@@ -21,6 +21,7 @@ import {
   getRelatedProducts,
   primaryCategory,
 } from "@/lib/wp";
+import { HOME_OG_IMAGE, SITE_URL } from "@/lib/seo";
 
 interface Props {
   params: Promise<{ slug: string }>;
@@ -56,7 +57,6 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     `Buy ${product.name} online in Bangladesh at ৳${priceNum}. Cash on delivery, genuine & quality-checked.`
   ).slice(0, 180);
   const title = `${product.name} — Price in Bangladesh`;
-  const image = product.images[0]?.src;
   return {
     title,
     description,
@@ -65,12 +65,12 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       title,
       description,
       type: "website",
-      images: image ? [{ url: image }] : undefined,
+      images: [HOME_OG_IMAGE],
     },
   };
 }
 
-const SITE = process.env.NEXT_PUBLIC_SITE_URL ?? "https://gedushop.com";
+const SITE = SITE_URL;
 
 export default async function ProductPage({ params }: Props) {
   const { slug } = await params;

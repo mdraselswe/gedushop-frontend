@@ -8,12 +8,13 @@ import { categoryIcon } from "@/lib/categoryIcons";
 import { decodeEntities } from "@/lib/decode";
 import { getCategories, getCategoryBySlug, getProductsPaged } from "@/lib/wp";
 import { productCardPayloads } from "@/lib/productCardPayload";
+import { HOME_OG_IMAGE, SITE_URL } from "@/lib/seo";
 
 interface Props {
   params: Promise<{ slug: string }>;
 }
 
-const SITE = process.env.NEXT_PUBLIC_SITE_URL ?? "https://gedushop.com";
+const SITE = SITE_URL;
 
 // Prerender an SEO-friendly page per category (indexable HTML with products).
 export async function generateStaticParams() {
@@ -44,7 +45,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     title,
     description,
     alternates: { canonical: `/category/${category.slug}/` },
-    openGraph: { title, description, type: "website" },
+    openGraph: { title, description, type: "website", images: [HOME_OG_IMAGE] },
     ...(category.slug === "uncategorized" ? { robots: { index: false, follow: true } } : {}),
   };
 }

@@ -20,6 +20,7 @@ import CartDrawer from "@/components/CartDrawer";
 import PageShell from "@/components/PageShell";
 import Sidebar from "@/components/Sidebar";
 import { getCategories } from "@/lib/wp";
+import { HOME_OG_IMAGE, HOME_OG_IMAGE_URL, SITE_URL } from "@/lib/seo";
 
 const fredoka = Fredoka({
   variable: "--font-fredoka",
@@ -40,7 +41,7 @@ const bengali = Noto_Sans_Bengali({
 });
 
 export const metadata: Metadata = {
-  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL ?? "https://gedushop.com"),
+  metadataBase: new URL(SITE_URL),
   title: {
     default: "GeduShop — Baby Items & Toys in Bangladesh",
     template: "%s | GeduShop",
@@ -53,13 +54,13 @@ export const metadata: Metadata = {
     siteName: "GeduShop",
     title: "GeduShop — Baby Items & Toys in Bangladesh",
     description: "Baby items, toys and kids essentials. Cash on delivery all over Bangladesh.",
-    images: [{ url: "/og.png", width: 1536, height: 1024, alt: "GeduShop — Baby Items, Toys & Kids Essentials" }],
+    images: [HOME_OG_IMAGE],
   },
   twitter: {
     card: "summary_large_image",
     title: "GeduShop — Baby Items & Toys in Bangladesh",
     description: "Baby items, toys and kids essentials. Cash on delivery all over Bangladesh.",
-    images: ["/og.png"],
+    images: [HOME_OG_IMAGE_URL],
   },
   appleWebApp: {
     capable: true,
