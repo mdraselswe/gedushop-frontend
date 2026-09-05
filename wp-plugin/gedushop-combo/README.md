@@ -47,6 +47,29 @@ A new product is deliberately created as a draft. This writes to a live shop,
 and a wrong price should be caught while reviewing rather than by a customer
 paying it.
 
+### Flexible variants from GeduSuite
+
+Enable **Flexible variants / mixed colours** on the GeduSuite combo, then push
+the update. All variants of each recipe product are available, including colours
+added later. Quantities of the same product become one total: Yellow ×5 plus
+Blue ×5 means any mix of ten, including Red or Green. A single Yellow ×10 row
+works too. Adding a new colour does not increase the required piece count.
+The product uses one shared website listing, resolved from its existing variant
+links. New colours do not need separate links. Conflicting links to different
+website listings must be resolved before pushing a flexible combo.
+GeduSuite suggests the available mix when converting a website lead or entering
+a sale, lets the seller adjust it, and saves the actual variant quantities.
+
+Version 1.1.0 exposes `_gedu_combo_flexible_variants = yes` as
+`extensions.gedushop.combo.flexible_variants`. The storefront uses it to explain
+that colours/variants depend on stock. The website's existing merged component
+recipe, stock reduction/restoration, pricing and free-shipping rules continue
+to apply. Products without this flag keep their existing presentation.
+
+Deploy this plugin and the storefront update, and apply GeduSuite's
+`20260905000000_flexible_combo_variants` migration before deploying GeduSuite.
+Existing combos default to fixed variants. No historical order is rewritten.
+
 ### By hand, in WooCommerce
 
 For a combo gedusuite doesn't know about:

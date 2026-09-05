@@ -45,6 +45,11 @@ export default function ComboContents({ product: initial }: { product: StoreProd
         </span>
       </div>
 
+      {combo.flexible_variants && (
+        <p className="mt-3 rounded-xl bg-plum-50 px-3 py-2 text-sm text-plum-700">
+          স্টক অনুযায়ী মিশ্র রং/ভ্যারিয়েন্ট দেওয়া হবে। মোট পণ্যের সংখ্যা একই থাকবে।
+        </p>
+      )}
       <ul className="mt-4 divide-y divide-plum-100/70">
         {combo.items.map((item) => (
           <li key={item.id} className="flex items-center gap-3 py-2.5">

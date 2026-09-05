@@ -2,7 +2,7 @@
 /**
  * Plugin Name: GeduShop Combo Sets
  * Description: Sell several products together at one price, with the combo's stock derived from the products inside it rather than kept as a second number.
- * Version:     1.0.0
+ * Version:     1.1.0
  * Author:      GeduShop
  * Requires PHP: 7.4
  *
@@ -785,6 +785,7 @@ add_action(
 							}
 						}
 						$data['combo'] = array(
+							'flexible_variants' => 'yes' === get_post_meta( $product->get_id(), '_gedu_combo_flexible_variants', true ),
 							'includes' => $names,
 						);
 					}

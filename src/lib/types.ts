@@ -77,6 +77,7 @@ export interface StoreComboItem {
 }
 
 export interface StoreCombo {
+  flexible_variants?: boolean;
   items: StoreComboItem[];
   /** What the same goods list for bought separately, in minor units. */
   components_total: number;
