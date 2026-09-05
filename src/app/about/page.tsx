@@ -7,6 +7,7 @@ import Reveal from "@/components/Reveal";
 export const metadata: Metadata = {
   title: "About Us",
   description: "GeduShop — a Bangladeshi baby & kids store. Safe products, fair prices, cash on delivery nationwide.",
+  alternates: { canonical: "/about/" },
 };
 
 const VALUES = [

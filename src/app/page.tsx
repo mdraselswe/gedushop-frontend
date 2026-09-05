@@ -3,7 +3,9 @@ import BannerSlider from "@/components/BannerSlider";
 import ProductBrowser from "@/components/ProductBrowser";
 import RecentlyViewed from "@/components/RecentlyViewed";
 import TrustBar from "@/components/TrustBar";
+import HomeSeoContent from "@/components/HomeSeoContent";
 import { getProductsPaged } from "@/lib/wp";
+import { productCardPayloads } from "@/lib/productCardPayload";
 
 export const metadata: Metadata = {
   title: "Baby Items, Toys, Baby Clothing & Kids Essentials Online",
@@ -30,8 +32,9 @@ export default async function HomePage() {
           </h2>
           <p className="text-sm text-plum-400">Loved by parents this week</p>
         </div>
-        <ProductBrowser initialProducts={products} initialTotal={total} defaultSort="popularity" />
+        <ProductBrowser initialProducts={productCardPayloads(products)} initialTotal={total} defaultSort="popularity" />
       </section>
+      <HomeSeoContent />
       <RecentlyViewed />
     </div>
   );

@@ -1,10 +1,13 @@
 import type { Metadata } from "next";
+import { createElement } from "react";
 import { notFound } from "next/navigation";
 import Breadcrumbs from "@/components/Breadcrumbs";
 import ProductBrowser from "@/components/ProductBrowser";
+import CategorySeoContent from "@/components/CategorySeoContent";
 import { categoryIcon } from "@/lib/categoryIcons";
 import { decodeEntities } from "@/lib/decode";
 import { getCategories, getCategoryBySlug, getProductsPaged } from "@/lib/wp";
+import { productCardPayloads } from "@/lib/productCardPayload";
 
 interface Props {
   params: Promise<{ slug: string }>;
@@ -40,8 +43,9 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   return {
     title,
     description,
-    alternates: { canonical: `/category/${category.slug}` },
+    alternates: { canonical: `/category/${category.slug}/` },
     openGraph: { title, description, type: "website" },
+    ...(category.slug === "uncategorized" ? { robots: { index: false, follow: true } } : {}),
   };
 }
 
@@ -61,6 +65,11 @@ export default async function CategoryPage({ params }: Props) {
     category: String(category.id),
     perPage: 24,
   });
+  const categoryIconElement = createElement(categoryIcon(category.slug), {
+    className: "size-7 md:size-8",
+    strokeWidth: 1.75,
+  });
+  const categoryDescription = decodeEntities((category.description ?? "").replace(/<[^>]+>/g, "")).trim();
 
   const breadcrumbLd = {
     "@context": "https://schema.org",
@@ -78,35 +87,26 @@ export default async function CategoryPage({ params }: Props) {
       <Breadcrumbs
         items={[{ label: "Home", href: "/" }, { label: "Shop", href: "/shop" }, { label: category.name }]}
       />
-      {(() => {
-        const Icon = categoryIcon(category.slug);
-        const desc = decodeEntities((category.description ?? "").replace(/<[^>]+>/g, "")).trim();
-        return (
-          <div className="grain flex items-center gap-4 overflow-hidden rounded-3xl bg-gradient-to-br from-plum-600 to-plum-500 p-5 text-white md:p-6">
-            <span className="flex size-14 shrink-0 items-center justify-center rounded-2xl bg-white/15 md:size-16">
-              <Icon className="size-7 md:size-8" strokeWidth={1.75} />
-            </span>
-            <div className="min-w-0">
-              <h1 className="font-heading text-2xl font-semibold leading-tight tracking-tight md:text-3xl">
-                {category.name}
-              </h1>
-              {/* No product count here. It would be the term count as it stood
-                  at build time, sitting a few centimetres above a grid that
-                  refreshes itself — so the day a product is published the
-                  banner says "1 products" over two of them. The live count is
-                  already on the toolbar, from the same request as the grid. */}
-              <p className="mt-1 text-sm opacity-90">
-                {desc || "Cash on delivery all over Bangladesh"}
-              </p>
-            </div>
-          </div>
-        );
-      })()}
+      <div className="grain flex items-center gap-4 overflow-hidden rounded-3xl bg-gradient-to-br from-plum-600 to-plum-500 p-5 text-white md:p-6">
+        <span className="flex size-14 shrink-0 items-center justify-center rounded-2xl bg-white/15 md:size-16">
+          {categoryIconElement}
+        </span>
+        <div className="min-w-0">
+          <h1 className="font-heading text-2xl font-semibold leading-tight tracking-tight md:text-3xl">
+            {category.name}
+          </h1>
+          <p className="mt-1 text-sm opacity-90">
+            {categoryDescription || "Cash on delivery all over Bangladesh"}
+          </p>
+        </div>
+      </div>
       <ProductBrowser
         categoryId={String(category.id)}
-        initialProducts={products}
+        initialProducts={productCardPayloads(products)}
         initialTotal={total}
+        paginationBase={`/category/${category.slug}`}
       />
+      <CategorySeoContent slug={category.slug} />
     </div>
   );
 }

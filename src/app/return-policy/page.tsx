@@ -1,7 +1,11 @@
 import type { Metadata } from "next";
 import LegalPage from "@/components/LegalPage";
 
-export const metadata: Metadata = { title: "Return & Refund Policy" };
+export const metadata: Metadata = {
+  title: "Return & Refund Policy",
+  description: "Read GeduShop's return eligibility, request process, replacement and refund policy for orders in Bangladesh.",
+  alternates: { canonical: "/return-policy/" },
+};
 
 export default function ReturnPolicyPage() {
   return (

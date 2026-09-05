@@ -1,44 +1,23 @@
-"use client";
+import type { Metadata } from "next";
+import ShopClient from "@/components/ShopClient";
+import { getCategories, getProductsPaged } from "@/lib/wp";
+import { productCardPayloads } from "@/lib/productCardPayload";
 
-import { Suspense } from "react";
-import { useSearchParams } from "next/navigation";
-import ProductBrowser from "@/components/ProductBrowser";
-import ProductGridSkeleton from "@/components/ProductGridSkeleton";
+export const metadata: Metadata = {
+  title: "Shop Baby Products, Kids Toys & Essentials Online",
+  description:
+    "Browse baby products, educational toys, feeding essentials, nursery items and kids accessories online at GeduShop. Cash on delivery across Bangladesh.",
+  alternates: { canonical: "/shop/" },
+};
 
-function ShopInner() {
-  const params = useSearchParams();
-  const search = params.get("search") ?? undefined;
-  const sale = params.get("sale") === "1";
-  const sortParam = params.get("sort");
-  const defaultSort =
-    sortParam === "date" ? "date" : sortParam === "price" ? "price_asc" : "popularity";
-  const title = search
-    ? `Results for “${search}”`
-    : sale
-      ? "Flash Sales"
-      : sortParam === "date"
-        ? "New Arrivals"
-        : "Shop";
+export default async function ShopPage() {
+  // The canonical shop page must contain products before JavaScript runs. The
+  // client controller still reads query parameters after hydration, preserving
+  // the existing search and filter experience on static hosting.
+  const [{ products, total }, categories] = await Promise.all([
+    getProductsPaged({ perPage: 24, orderby: "popularity" }),
+    getCategories(),
+  ]);
 
-  return (
-    <div className="space-y-4 px-4 pt-4">
-      <h1 className="font-heading text-2xl font-semibold tracking-tight text-plum-800">{title}</h1>
-      {/* key forces a fresh mount when the query changes (client nav within /shop),
-          so defaultSort/defaultOnSale actually re-initialise for Flash Sales / New Arrivals */}
-      <ProductBrowser
-        key={`${search ?? ""}|${sale ? "1" : ""}|${sortParam ?? ""}`}
-        search={search}
-        defaultSort={defaultSort}
-        defaultOnSale={sale}
-      />
-    </div>
-  );
-}
-
-export default function ShopPage() {
-  return (
-    <Suspense fallback={<div className="px-4 pt-4"><ProductGridSkeleton count={12} /></div>}>
-      <ShopInner />
-    </Suspense>
-  );
+  return <ShopClient initialProducts={productCardPayloads(products)} initialTotal={total} categories={categories} />;
 }

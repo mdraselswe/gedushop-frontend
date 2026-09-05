@@ -1,12 +1,13 @@
 import type { Metadata } from "next";
 import { ChevronDown } from "lucide-react";
 import Breadcrumbs from "@/components/Breadcrumbs";
+import { DeliveryFaqAnswer } from "@/components/DeliverySettingsCopy";
 
 export const metadata: Metadata = {
   title: "FAQ — Frequently Asked Questions",
   description:
     "Answers about delivery, cash on delivery, returns, order tracking and payment at GeduShop.",
-  alternates: { canonical: "/faq" },
+  alternates: { canonical: "/faq/" },
 };
 
 const FAQS = [
@@ -20,7 +21,8 @@ const FAQS = [
   },
   {
     q: "What are the delivery charges?",
-    a: "Inside Dhaka ৳80, outside Dhaka ৳120. Orders over ৳2000 get free delivery anywhere in Bangladesh.",
+    a: "Delivery charges vary between Dhaka and the rest of Bangladesh. The current charges and free-delivery minimum are shown below.",
+    dynamicDelivery: true,
   },
   {
     q: "How long does delivery take?",
@@ -77,7 +79,9 @@ export default function FaqPage() {
                 strokeWidth={2.25}
               />
             </summary>
-            <p className="mt-2.5 text-sm leading-relaxed text-plum-600">{f.a}</p>
+            <p className="mt-2.5 text-sm leading-relaxed text-plum-600">
+              {"dynamicDelivery" in f && f.dynamicDelivery ? <DeliveryFaqAnswer /> : f.a}
+            </p>
           </details>
         ))}
       </div>

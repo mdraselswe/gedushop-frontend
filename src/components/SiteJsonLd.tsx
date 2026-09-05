@@ -16,6 +16,17 @@ export default function SiteJsonLd() {
       email: "gedu.shop@gmail.com",
       telephone: PHONE,
       areaServed: "BD",
+      contactPoint: {
+        "@type": "ContactPoint",
+        telephone: PHONE,
+        contactType: "customer service",
+        areaServed: "BD",
+        availableLanguage: ["Bangla", "English"],
+      },
+      hasMerchantReturnPolicy: {
+        "@type": "MerchantReturnPolicy",
+        merchantReturnLink: `${SITE}/return-policy/`,
+      },
       sameAs: ["https://facebook.com/gedushop"],
     },
     {
@@ -25,7 +36,7 @@ export default function SiteJsonLd() {
       url: SITE,
       potentialAction: {
         "@type": "SearchAction",
-        target: { "@type": "EntryPoint", urlTemplate: `${SITE}/shop?search={search_term_string}` },
+        target: { "@type": "EntryPoint", urlTemplate: `${SITE}/shop/?search={search_term_string}` },
         "query-input": "required name=search_term_string",
       },
     },

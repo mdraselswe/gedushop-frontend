@@ -1,7 +1,6 @@
 import { Truck } from "lucide-react";
 import type { CartItem, CartTotals } from "@/lib/types";
-
-const FREE_THRESHOLD = 2000; // ৳ — matches the free-delivery-over-৳2000 policy
+import { useStoreSettings } from "@/context/StoreSettingsContext";
 
 /**
  * Progress nudge: how much more to spend for free delivery. Boosts basket size.
@@ -19,11 +18,12 @@ export default function FreeShippingBar({
   totals: CartTotals;
   items?: CartItem[];
 }) {
+  const { freeDeliveryMinimum: freeThreshold } = useStoreSettings();
   const hasFreeItem = items.some((i) => i.extensions?.gedushop?.free_shipping);
   const minor = totals.currency_minor_unit ?? 2;
   const subtotal = Number(totals.total_items) / 10 ** minor;
-  const remaining = FREE_THRESHOLD - subtotal;
-  const pct = Math.min(100, Math.max(0, (subtotal / FREE_THRESHOLD) * 100));
+  const remaining = freeThreshold - subtotal;
+  const pct = freeThreshold > 0 ? Math.min(100, Math.max(0, (subtotal / freeThreshold) * 100)) : 100;
   const unlocked = remaining <= 0;
 
   if (hasFreeItem) {

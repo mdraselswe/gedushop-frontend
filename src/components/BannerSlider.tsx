@@ -17,7 +17,7 @@ interface Slide {
 
 const SLIDES: Slide[] = [
   {
-    title: "Everything your little one needs",
+    title: "Baby products, kids toys & essentials",
     subtitle: "Toys, baby care & more — delivered to your door",
     cta: "Shop Now",
     bg: "from-plum-600 to-plum-400",
@@ -118,7 +118,7 @@ export default function BannerSlider() {
         ref={trackRef}
         className="no-scrollbar -mr-4 flex snap-x snap-mandatory gap-3 overflow-x-auto scroll-smooth pb-1 md:mr-0"
       >
-        {SLIDES.map(({ title, subtitle, cta, bg, image, imageAlt }) => (
+        {SLIDES.map(({ title, subtitle, cta, bg, image, imageAlt }, index) => (
           <a
             key={title}
             href="/shop"
@@ -142,7 +142,11 @@ export default function BannerSlider() {
             {/* soft radial highlight for depth */}
             <span className="pointer-events-none absolute -right-10 -top-16 size-52 rounded-full bg-white/15 blur-2xl" aria-hidden />
             <div className="relative z-10 max-w-[68%]">
-              <h2 className="font-heading text-xl font-semibold leading-[1.15] tracking-tight md:text-3xl">{title}</h2>
+              {index === 0 ? (
+                <h1 className="font-heading text-xl font-semibold leading-[1.15] tracking-tight md:text-3xl">{title}</h1>
+              ) : (
+                <h2 className="font-heading text-xl font-semibold leading-[1.15] tracking-tight md:text-3xl">{title}</h2>
+              )}
               <p className="mt-1.5 max-w-[26ch] text-xs opacity-90 md:text-sm">{subtitle}</p>
               <span className="mt-4 inline-flex items-center gap-1.5 rounded-full bg-white px-5 py-2 text-xs font-extrabold text-plum-700 shadow-sm transition-transform group-hover:scale-105 md:text-sm">
                 {cta}

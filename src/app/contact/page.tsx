@@ -14,6 +14,7 @@ function Facebook({ className, strokeWidth }: { className?: string; strokeWidth?
 export const metadata: Metadata = {
   title: "Contact",
   description: "Get in touch with GeduShop — call, WhatsApp, email or message us on Facebook.",
+  alternates: { canonical: "/contact/" },
 };
 
 const EMAIL = "gedu.shop@gmail.com";

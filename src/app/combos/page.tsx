@@ -8,7 +8,7 @@ export const metadata: Metadata = {
   title: "Combo Offers — Buy Sets & Save",
   description:
     "GeduShop combo packs: buy products together as a set and pay less than buying them one by one. Cash on delivery across Bangladesh.",
-  alternates: { canonical: "/combos" },
+  alternates: { canonical: "/combos/" },
 };
 
 const SITE = process.env.NEXT_PUBLIC_SITE_URL ?? "https://gedushop.com";

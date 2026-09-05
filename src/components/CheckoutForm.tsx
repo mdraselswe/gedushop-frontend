@@ -12,6 +12,7 @@ import { addOrder } from "@/lib/orderHistory";
 import { fbTrack } from "@/lib/pixel";
 import { DHAKA_AREAS, DHAKA_CODE, DISTRICTS } from "@/lib/districts";
 import { apiFetch, GEDU_API, STORE_API } from "@/lib/api";
+import { formatTaka, useStoreSettings } from "@/context/StoreSettingsContext";
 import CouponField from "./CouponField";
 
 const TOKEN_KEY = "gedu-cart-token";
@@ -46,6 +47,7 @@ function BkashLogo({ className = "" }: { className?: string }) {
 }
 
 export default function CheckoutForm() {
+  const storeSettings = useStoreSettings();
   const { cart, loading, updateShipping, shippingLoading } = useCart();
   const router = useRouter();
   const [form, setForm] = useState<FormState>(EMPTY);
@@ -350,7 +352,7 @@ export default function CheckoutForm() {
   // Before the delivery location is known, Woo applies a default flat rate — don't
   // add that phantom shipping to the shown Total (it says "Select district"/"Select
   // area"). Once it is known, use Woo's authoritative total (correct rate / free
-  // over ৳2000).
+  // over the configured free-delivery threshold).
   const totalDisplay =
     locationReady && !shippingLoading ? cart.totals.total_price : cartItemsTotal(cart.totals);
 
@@ -579,7 +581,7 @@ export default function CheckoutForm() {
             : "Cash on Delivery — pay when your order arrives"}
         </p>
         <p className="mt-2 text-center text-[11px] font-semibold text-plum-400">
-          Free delivery on orders over ৳2,000
+          Free delivery on orders of {formatTaka(storeSettings.freeDeliveryMinimum)} or more
         </p>
         <label className="mt-3 flex cursor-pointer items-start gap-2.5 text-xs font-semibold text-plum-500">
           <input

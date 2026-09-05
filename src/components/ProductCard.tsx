@@ -6,6 +6,7 @@ import AddToCartButton from "./AddToCartButton";
 import QuickView from "./QuickView";
 import Stars from "./Stars";
 import WishlistButton from "./WishlistButton";
+import { productCardPayload } from "@/lib/productCardPayload";
 
 export default function ProductCard({ product }: { product: StoreProduct }) {
   const image = product.images[0];
@@ -29,6 +30,10 @@ export default function ProductCard({ product }: { product: StoreProduct }) {
   // worth, and a shopper comparing two cards cannot see it anywhere else
   // until the cart.
   const freeDelivery = product.extensions?.gedushop?.free_shipping === true;
+  // QuickView is a Client Component, so its prop is serialized into the page.
+  // Full descriptions, category objects, combo recipes and variation lists are
+  // not used in that modal and made collection HTML/RSC payloads needlessly huge.
+  const quickProduct = productCardPayload(product);
 
   return (
     <article className="group relative flex flex-col overflow-hidden rounded-3xl bg-white shadow-[var(--shadow-soft)] ring-1 ring-plum-100/50 transition-all duration-300 hover:-translate-y-1 hover:shadow-[var(--shadow-lift)]">
@@ -63,7 +68,7 @@ export default function ProductCard({ product }: { product: StoreProduct }) {
             </span>
           )}
           <span className="absolute right-2.5 top-2.5">
-            <QuickView product={product} />
+            <QuickView product={quickProduct} />
           </span>
           <span className="absolute left-2.5" style={{ top: showDiscount || soldOut ? "2.9rem" : "0.625rem" }}>
             <WishlistButton productId={product.id} />

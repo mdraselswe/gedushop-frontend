@@ -1,7 +1,11 @@
 import type { Metadata } from "next";
 import LegalPage from "@/components/LegalPage";
 
-export const metadata: Metadata = { title: "Privacy Policy" };
+export const metadata: Metadata = {
+  title: "Privacy Policy",
+  description: "How GeduShop collects, uses and protects customer and order information.",
+  alternates: { canonical: "/privacy/" },
+};
 
 export default function PrivacyPage() {
   return (

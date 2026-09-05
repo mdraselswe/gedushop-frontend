@@ -5,6 +5,7 @@ import { CartProvider } from "@/context/CartContext";
 import { WishlistProvider } from "@/context/WishlistContext";
 import { ToastProvider } from "@/context/ToastContext";
 import { InStockProvider } from "@/context/InStockContext";
+import { StoreSettingsProvider } from "@/context/StoreSettingsContext";
 import AnnouncementBar from "@/components/AnnouncementBar";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
@@ -99,6 +100,7 @@ export default async function RootLayout({
         <Analytics />
         <MetaPixel />
         <ToastProvider>
+        <StoreSettingsProvider>
         <WishlistProvider>
         <InStockProvider>
         <CartProvider>
@@ -119,6 +121,7 @@ export default async function RootLayout({
         </CartProvider>
         </InStockProvider>
         </WishlistProvider>
+        </StoreSettingsProvider>
         </ToastProvider>
       </body>
     </html>

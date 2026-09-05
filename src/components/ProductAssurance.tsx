@@ -3,18 +3,14 @@
 import { Banknote, Gift, RotateCcw, Truck } from "lucide-react";
 import { useLiveProduct } from "@/lib/liveProduct";
 import type { StoreProduct } from "@/lib/types";
-
-const DELIVERY = [
-  { Icon: Truck, title: "Delivery charge", sub: "Dhaka ৳80 · Outside ৳120" },
-  { Icon: Gift, title: "Free delivery", sub: "On orders over ৳2000" },
-] as const;
+import { formatTaka, useStoreSettings } from "@/context/StoreSettingsContext";
 
 /**
  * The same two rows for a product that carries its own free delivery —
  * a combo's promotion as often as a plain product's own.
  *
  * The shop's general rates are still true, but on this page they answer the
- * wrong question. A customer reading "Dhaka ৳80" and "on orders over ৳2000"
+ * wrong question. A customer reading the normal delivery threshold
  * above a ৳520 item concludes they will pay for delivery — and they will not.
  * Saying it once, plainly, beats leaving the offer to be discovered in the
  * cart, or contradicted here and confirmed further down the page.
@@ -38,9 +34,14 @@ const REST = [
  * would put the two in disagreement about the same offer, on the same screen.
  */
 export default function ProductAssurance({ product }: { product?: StoreProduct }) {
+  const settings = useStoreSettings();
   const live = useLiveProduct(product ?? null);
   const freeDelivery = live?.extensions?.gedushop?.free_shipping === true;
-  const rows = [...(freeDelivery ? DELIVERY_FREE : DELIVERY), ...REST];
+  const delivery = [
+    { Icon: Truck, title: "Delivery charge", sub: `Dhaka ${formatTaka(settings.insideDhakaCharge)} · Outside ${formatTaka(settings.outsideDhakaCharge)}` },
+    { Icon: Gift, title: "Free delivery", sub: `On orders of ${formatTaka(settings.freeDeliveryMinimum)}+` },
+  ] as const;
+  const rows = [...(freeDelivery ? DELIVERY_FREE : delivery), ...REST];
   return (
     <div className="mt-5 grid grid-cols-1 gap-x-4 gap-y-3 rounded-2xl bg-white p-4 shadow-[var(--shadow-soft)] ring-1 ring-plum-100/50 sm:grid-cols-2">
       {rows.map(({ Icon, title, sub }, i) => {

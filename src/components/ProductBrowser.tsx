@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
+import Link from "next/link";
 import { ChevronDown, SlidersHorizontal, X, Check, ArrowDownUp } from "lucide-react";
 import ProductGrid from "@/components/ProductGrid";
 import ProductGridSkeleton from "@/components/ProductGridSkeleton";
@@ -39,6 +40,9 @@ interface Props {
   categories?: StoreCategory[];
   defaultSort?: SortKey;
   defaultOnSale?: boolean;
+  /** Initial page and clean URL base used by statically generated pagination. */
+  initialPage?: number;
+  paginationBase?: string;
 }
 
 export default function ProductBrowser({
@@ -49,6 +53,8 @@ export default function ProductBrowser({
   categories = [],
   defaultSort = "popularity",
   defaultOnSale = false,
+  initialPage = 1,
+  paginationBase,
 }: Props) {
   const { inStockOnly, setInStockOnly } = useInStock();
 
@@ -57,7 +63,7 @@ export default function ProductBrowser({
   const [minPrice, setMinPrice] = useState("");
   const [maxPrice, setMaxPrice] = useState("");
   const [cat, setCat] = useState(categoryId ?? "");
-  const [page, setPage] = useState(1);
+  const [page, setPage] = useState(initialPage);
 
   const [products, setProducts] = useState<StoreProduct[]>(initialProducts ?? []);
   const [total, setTotal] = useState(initialTotal ?? 0);
@@ -232,7 +238,25 @@ export default function ProductBrowser({
       ) : (
         <>
           <ProductGrid products={products} reveal respectStockFilter={false} />
-          {totalPages > 1 && <ClientPager page={page} totalPages={totalPages} onGo={setPage} />}
+          {totalPages > 1 && (
+            <ClientPager
+              page={page}
+              totalPages={totalPages}
+              onGo={setPage}
+              basePath={
+                paginationBase &&
+                !search &&
+                !onSale &&
+                !inStockOnly &&
+                !minPrice &&
+                !maxPrice &&
+                (!cat || Boolean(categoryId)) &&
+                sort === defaultSort
+                  ? paginationBase
+                  : undefined
+              }
+            />
+          )}
         </>
       )}
 
@@ -359,13 +383,47 @@ function CheckRow({ label, checked, onChange }: { label: string; checked: boolea
 }
 
 /** Simple client-side pager (state-driven, no URL nav) for the browser. */
-function ClientPager({ page, totalPages, onGo }: { page: number; totalPages: number; onGo: (p: number) => void }) {
+function ClientPager({
+  page,
+  totalPages,
+  onGo,
+  basePath,
+}: {
+  page: number;
+  totalPages: number;
+  onGo: (p: number) => void;
+  basePath?: string;
+}) {
   const go = (p: number) => {
     onGo(p);
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
+  const hrefFor = (p: number) => (p <= 1 ? `${basePath}/` : `${basePath}/page/${p}/`);
+
+  if (basePath) {
+    return (
+      <nav className="mt-6 flex items-center justify-center gap-1.5" aria-label="Product pages">
+        {page > 1 ? (
+          <Link href={hrefFor(page - 1)} className="rounded-full px-3 py-2 text-sm font-bold text-plum-600 ring-1 ring-plum-200">
+            Prev
+          </Link>
+        ) : (
+          <span className="rounded-full px-3 py-2 text-sm font-bold text-plum-600 opacity-40 ring-1 ring-plum-200">Prev</span>
+        )}
+        <span className="px-3 text-sm font-bold text-plum-500">{page} / {totalPages}</span>
+        {page < totalPages ? (
+          <Link href={hrefFor(page + 1)} className="rounded-full px-3 py-2 text-sm font-bold text-plum-600 ring-1 ring-plum-200">
+            Next
+          </Link>
+        ) : (
+          <span className="rounded-full px-3 py-2 text-sm font-bold text-plum-600 opacity-40 ring-1 ring-plum-200">Next</span>
+        )}
+      </nav>
+    );
+  }
+
   return (
-    <div className="mt-6 flex items-center justify-center gap-1.5">
+    <nav className="mt-6 flex items-center justify-center gap-1.5" aria-label="Filtered product pages">
       <button
         onClick={() => go(page - 1)}
         disabled={page <= 1}
@@ -383,6 +441,6 @@ function ClientPager({ page, totalPages, onGo }: { page: number; totalPages: num
       >
         Next
       </button>
-    </div>
+    </nav>
   );
 }

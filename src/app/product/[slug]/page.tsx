@@ -60,7 +60,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   return {
     title,
     description,
-    alternates: { canonical: `/product/${product.slug}` },
+    alternates: { canonical: `/product/${product.slug}/` },
     openGraph: {
       title,
       description,
@@ -103,7 +103,7 @@ export default async function ProductPage({ params }: Props) {
     sku: String(product.id),
     offers: {
       "@type": "Offer",
-      url: `${SITE}/product/${product.slug}`,
+      url: `${SITE}/product/${product.slug}/`,
       priceCurrency: product.prices.currency_code || "BDT",
       price: (Number(product.prices.price) / 10 ** minor).toFixed(2),
       availability: product.is_in_stock
@@ -126,11 +126,11 @@ export default async function ProductPage({ params }: Props) {
     "@type": "BreadcrumbList",
     itemListElement: [
       { "@type": "ListItem", position: 1, name: "Home", item: SITE },
-      { "@type": "ListItem", position: 2, name: "Shop", item: `${SITE}/shop` },
+      { "@type": "ListItem", position: 2, name: "Shop", item: `${SITE}/shop/` },
       ...(homeCategory
-        ? [{ "@type": "ListItem", position: 3, name: homeCategory.name, item: `${SITE}/category/${homeCategory.slug}` }]
+        ? [{ "@type": "ListItem", position: 3, name: homeCategory.name, item: `${SITE}/category/${homeCategory.slug}/` }]
         : []),
-      { "@type": "ListItem", position: homeCategory ? 4 : 3, name: product.name, item: `${SITE}/product/${product.slug}` },
+      { "@type": "ListItem", position: homeCategory ? 4 : 3, name: product.name, item: `${SITE}/product/${product.slug}/` },
     ],
   };
 

@@ -17,29 +17,48 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
   const staticRoutes: MetadataRoute.Sitemap = [
     { url: `${SITE}/`, changeFrequency: "daily", priority: 1 },
-    { url: `${SITE}/shop`, changeFrequency: "daily", priority: 0.9 },
-    { url: `${SITE}/combos`, changeFrequency: "weekly", priority: 0.8 },
-    { url: `${SITE}/track`, changeFrequency: "monthly", priority: 0.4 },
-    { url: `${SITE}/about`, changeFrequency: "yearly", priority: 0.3 },
-    { url: `${SITE}/contact`, changeFrequency: "yearly", priority: 0.3 },
-    { url: `${SITE}/delivery`, changeFrequency: "yearly", priority: 0.2 },
-    { url: `${SITE}/return-policy`, changeFrequency: "yearly", priority: 0.2 },
-    { url: `${SITE}/privacy`, changeFrequency: "yearly", priority: 0.2 },
-    { url: `${SITE}/terms`, changeFrequency: "yearly", priority: 0.2 },
+    { url: `${SITE}/shop/`, changeFrequency: "daily", priority: 0.9 },
+    { url: `${SITE}/combos/`, changeFrequency: "weekly", priority: 0.8 },
+    { url: `${SITE}/about/`, changeFrequency: "yearly", priority: 0.3 },
+    { url: `${SITE}/contact/`, changeFrequency: "yearly", priority: 0.3 },
+    { url: `${SITE}/faq/`, changeFrequency: "monthly", priority: 0.4 },
+    { url: `${SITE}/delivery/`, changeFrequency: "yearly", priority: 0.2 },
+    { url: `${SITE}/return-policy/`, changeFrequency: "yearly", priority: 0.2 },
+    { url: `${SITE}/privacy/`, changeFrequency: "yearly", priority: 0.2 },
+    { url: `${SITE}/terms/`, changeFrequency: "yearly", priority: 0.2 },
   ];
 
-  const categoryRoutes: MetadataRoute.Sitemap = categories.map((c) => ({
-    url: `${SITE}/category/${c.slug}`,
+  const indexableCategories = categories.filter((c) => c.slug !== "uncategorized");
+
+  const categoryRoutes: MetadataRoute.Sitemap = indexableCategories.map((c) => ({
+    url: `${SITE}/category/${c.slug}/`,
     changeFrequency: "weekly",
     priority: 0.7,
   }));
 
+  const paginatedCategoryRoutes: MetadataRoute.Sitemap = indexableCategories.flatMap((c) =>
+    Array.from({ length: Math.max(0, Math.ceil(c.count / 24) - 1) }, (_, index) => ({
+      url: `${SITE}/category/${c.slug}/page/${index + 2}/`,
+      changeFrequency: "weekly" as const,
+      priority: 0.5,
+    })),
+  );
+
+  const paginatedShopRoutes: MetadataRoute.Sitemap = Array.from(
+    { length: Math.max(0, Math.ceil(products.length / 24) - 1) },
+    (_, index) => ({
+      url: `${SITE}/shop/page/${index + 2}/`,
+      changeFrequency: "daily" as const,
+      priority: 0.6,
+    }),
+  );
+
   const productRoutes: MetadataRoute.Sitemap = products.map((p) => ({
-    url: `${SITE}/product/${p.slug}`,
+    url: `${SITE}/product/${p.slug}/`,
     changeFrequency: "weekly",
     priority: 0.8,
     images: p.images?.[0]?.src ? [p.images[0].src] : undefined,
   }));
 
-  return [...staticRoutes, ...categoryRoutes, ...productRoutes];
+  return [...staticRoutes, ...paginatedShopRoutes, ...categoryRoutes, ...paginatedCategoryRoutes, ...productRoutes];
 }

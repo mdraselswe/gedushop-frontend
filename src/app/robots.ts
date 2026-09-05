@@ -9,7 +9,9 @@ export default function robots(): MetadataRoute.Robots {
     rules: {
       userAgent: "*",
       allow: "/",
-      disallow: ["/api/", "/checkout", "/cart"],
+      // Transactional pages carry noindex in HTML. They must remain crawlable
+      // so search engines can see and honour that directive.
+      disallow: ["/api/"],
     },
     sitemap: `${SITE}/sitemap.xml`,
   };

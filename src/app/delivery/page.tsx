@@ -1,7 +1,12 @@
 import type { Metadata } from "next";
 import LegalPage from "@/components/LegalPage";
+import { DeliveryChargesList } from "@/components/DeliverySettingsCopy";
 
-export const metadata: Metadata = { title: "Delivery" };
+export const metadata: Metadata = {
+  title: "Delivery Across Bangladesh",
+  description: "GeduShop delivery charges, estimated times and cash-on-delivery information for Dhaka and the rest of Bangladesh.",
+  alternates: { canonical: "/delivery/" },
+};
 
 export default function DeliveryPage() {
   return (
@@ -10,11 +15,7 @@ export default function DeliveryPage() {
 
       <div>
         <h2>Delivery charges</h2>
-        <ul>
-          <li>Inside Dhaka: ৳80</li>
-          <li>Outside Dhaka: ৳120</li>
-          <li>Free delivery on orders over ৳2,000</li>
-        </ul>
+        <DeliveryChargesList />
       </div>
 
       <div>
