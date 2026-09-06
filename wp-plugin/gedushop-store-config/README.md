@@ -26,6 +26,7 @@ Each popup slot supports:
 - one route pattern per line
 - title and message
 - optional button label and URL
+- show-after delay with seconds, minutes or hours
 - frequency: every visit, once per browser session, or once until content changes
 
 Route examples:

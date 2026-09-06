@@ -13,6 +13,7 @@ interface RoutePopupConfig {
   routes: string[];
   ctaLabel?: string;
   ctaUrl?: string;
+  delayMs?: number;
   frequency?: "always" | "once_per_session" | "once_per_browser";
 }
 
@@ -74,6 +75,7 @@ export default function RoutePopup() {
   const pathname = usePathname();
   const [popups, setPopups] = useState<RoutePopupConfig[]>([]);
   const [closedPopup, setClosedPopup] = useState<{ id: string; pathname: string } | null>(null);
+  const [readyPopupKey, setReadyPopupKey] = useState<string | null>(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -105,9 +107,20 @@ export default function RoutePopup() {
       return item.routes.some((route) => routeMatches(route, pathname));
     });
   }, [closedPopup, pathname, popups]);
+  const popupKey = popup ? `${popup.id}:${pathname}` : null;
 
   useEffect(() => {
-    if (!popup) return;
+    if (!popup || !popupKey) return;
+
+    const delay = Math.max(0, Math.min(Number(popup.delayMs) || 0, 2147483647));
+    const timer = window.setTimeout(() => {
+      setReadyPopupKey(popupKey);
+    }, delay);
+    return () => window.clearTimeout(timer);
+  }, [popup, popupKey]);
+
+  useEffect(() => {
+    if (!popup || readyPopupKey !== popupKey) return;
     const previous = document.body.style.overflow;
     document.body.style.overflow = "hidden";
     const onKeyDown = (event: KeyboardEvent) => {
@@ -121,9 +134,9 @@ export default function RoutePopup() {
     // closePopup only depends on the current popup id; keeping it inline would
     // make the body-lock effect harder to read.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [popup?.id]);
+  }, [popup?.id, popupKey, readyPopupKey]);
 
-  if (!popup) return null;
+  if (!popup || readyPopupKey !== popupKey) return null;
 
   function closePopup() {
     if (!popup) return;

@@ -2,7 +2,7 @@
 /**
  * Plugin Name: GeduShop Store Configuration
  * Description: One screen for delivery charges and the free-delivery threshold, with a public read-only endpoint for the headless storefront.
- * Version:     1.2.2
+ * Version:     1.3.0
  * Author:      GeduShop
  * Requires PHP: 7.4
  * Requires Plugins: woocommerce
@@ -27,6 +27,8 @@ function gedu_store_popup_defaults() {
 		'route_patterns' => '',
 		'cta_label'      => '',
 		'cta_url'        => '',
+		'delay_amount'   => 0,
+		'delay_unit'     => 'seconds',
 		'frequency'      => 'once_per_session',
 	);
 }
@@ -65,7 +67,15 @@ function gedu_store_public_popups() {
 		$frequency = in_array( $popup['frequency'], array( 'always', 'once_per_session', 'once_per_browser' ), true )
 			? $popup['frequency']
 			: 'once_per_session';
-		$signature = md5( wp_json_encode( array( $title, $message, $routes, $popup['cta_label'], $popup['cta_url'], $frequency ) ) );
+		$delay_amount = gedu_store_number( $popup['delay_amount'], 0 );
+		$delay_unit   = in_array( $popup['delay_unit'], array( 'seconds', 'minutes', 'hours' ), true ) ? $popup['delay_unit'] : 'seconds';
+		$delay_seconds = $delay_amount;
+		if ( 'minutes' === $delay_unit ) {
+			$delay_seconds = $delay_amount * 60;
+		} elseif ( 'hours' === $delay_unit ) {
+			$delay_seconds = $delay_amount * 3600;
+		}
+		$signature = md5( wp_json_encode( array( $title, $message, $routes, $popup['cta_label'], $popup['cta_url'], $delay_seconds, $frequency ) ) );
 
 		$public[] = array(
 			'id'        => 'popup_' . ( $index + 1 ) . '_' . substr( $signature, 0, 10 ),
@@ -74,6 +84,7 @@ function gedu_store_public_popups() {
 			'routes'    => $routes,
 			'ctaLabel'  => trim( (string) $popup['cta_label'] ),
 			'ctaUrl'    => trim( (string) $popup['cta_url'] ),
+			'delayMs'   => (int) min( $delay_seconds * 1000, 2147483647 ),
 			'frequency' => $frequency,
 		);
 	}
@@ -261,6 +272,18 @@ function gedu_store_render_settings_page() {
 							<td><input class="regular-text" type="text" id="popup_<?php echo esc_attr( $index ); ?>_cta_url" name="popups[<?php echo esc_attr( $index ); ?>][cta_url]" value="<?php echo esc_attr( $popup['cta_url'] ); ?>" placeholder="/shop/" /></td>
 						</tr>
 						<tr>
+							<th scope="row"><label for="popup_<?php echo esc_attr( $index ); ?>_delay_amount">Show after</label></th>
+							<td>
+								<input style="width:120px;" type="number" min="0" step="1" id="popup_<?php echo esc_attr( $index ); ?>_delay_amount" name="popups[<?php echo esc_attr( $index ); ?>][delay_amount]" value="<?php echo esc_attr( $popup['delay_amount'] ); ?>" />
+								<select name="popups[<?php echo esc_attr( $index ); ?>][delay_unit]">
+									<option value="seconds" <?php selected( $popup['delay_unit'], 'seconds' ); ?>>Seconds</option>
+									<option value="minutes" <?php selected( $popup['delay_unit'], 'minutes' ); ?>>Minutes</option>
+									<option value="hours" <?php selected( $popup['delay_unit'], 'hours' ); ?>>Hours</option>
+								</select>
+								<p class="description">Set 0 seconds for instant popup. No manual minute-to-second calculation needed.</p>
+							</td>
+						</tr>
+						<tr>
 							<th scope="row"><label for="popup_<?php echo esc_attr( $index ); ?>_frequency">Frequency</label></th>
 							<td>
 								<select id="popup_<?php echo esc_attr( $index ); ?>_frequency" name="popups[<?php echo esc_attr( $index ); ?>][frequency]">
@@ -317,6 +340,10 @@ add_action(
 			if ( ! in_array( $frequency, array( 'always', 'once_per_session', 'once_per_browser' ), true ) ) {
 				$frequency = 'once_per_session';
 			}
+			$delay_unit = isset( $raw['delay_unit'] ) ? sanitize_text_field( $raw['delay_unit'] ) : 'seconds';
+			if ( ! in_array( $delay_unit, array( 'seconds', 'minutes', 'hours' ), true ) ) {
+				$delay_unit = 'seconds';
+			}
 			$popups[] = array(
 				'enabled'        => ! empty( $raw['enabled'] ),
 				'title'          => isset( $raw['title'] ) ? sanitize_text_field( $raw['title'] ) : '',
@@ -324,6 +351,8 @@ add_action(
 				'route_patterns' => isset( $raw['route_patterns'] ) ? sanitize_textarea_field( $raw['route_patterns'] ) : '',
 				'cta_label'      => isset( $raw['cta_label'] ) ? sanitize_text_field( $raw['cta_label'] ) : '',
 				'cta_url'        => isset( $raw['cta_url'] ) ? gedu_store_popup_url( $raw['cta_url'] ) : '',
+				'delay_amount'   => isset( $raw['delay_amount'] ) ? gedu_store_number( $raw['delay_amount'], 0 ) : 0,
+				'delay_unit'     => $delay_unit,
 				'frequency'      => $frequency,
 			);
 		}
