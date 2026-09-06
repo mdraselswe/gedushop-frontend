@@ -11,6 +11,7 @@ interface RoutePopupConfig {
   title: string;
   message: string;
   routes: string[];
+  bgImageUrl?: string;
   ctaLabel?: string;
   ctaUrl?: string;
   frequency?: "always" | "once_per_session" | "once_per_browser";
@@ -133,11 +134,12 @@ export default function RoutePopup() {
 
   const ctaUrl = popup.ctaUrl?.trim();
   const ctaLabel = popup.ctaLabel?.trim();
+  const bgImageUrl = popup.bgImageUrl?.trim();
   const external = !!ctaUrl && /^https?:\/\//i.test(ctaUrl);
 
   return (
     <div
-      className="fixed inset-0 z-[90] flex items-end justify-center bg-plum-950/45 px-3 py-4 backdrop-blur-sm sm:items-center sm:p-6"
+      className="fixed inset-0 z-[90] flex items-end justify-center bg-plum-950/55 px-3 py-4 backdrop-blur-md sm:items-center sm:p-6"
       role="dialog"
       aria-modal="true"
       aria-labelledby="route-popup-title"
@@ -145,28 +147,47 @@ export default function RoutePopup() {
         if (event.target === event.currentTarget) closePopup();
       }}
     >
-      <div className="relative w-full max-w-lg overflow-hidden rounded-[1.75rem] bg-white shadow-[0_24px_80px_rgba(34,28,54,0.35)] ring-1 ring-white/70">
-        <div className="grain bg-gradient-to-br from-plum-600 via-plum-500 to-coral-500 px-5 pb-10 pt-5 text-white sm:px-7 sm:pt-7">
+      <div className="relative w-full max-w-lg overflow-hidden rounded-[2rem] bg-white shadow-[0_28px_90px_rgba(34,28,54,0.38)] ring-1 ring-white/80">
+        <div
+          className="relative min-h-48 overflow-hidden bg-gradient-to-br from-plum-700 via-plum-500 to-coral-400 px-5 pb-14 pt-5 text-white sm:min-h-56 sm:px-7 sm:pt-7"
+          style={
+            bgImageUrl
+              ? {
+                  backgroundImage: `linear-gradient(135deg, rgba(34, 28, 54, 0.7), rgba(233, 109, 101, 0.42)), url(${bgImageUrl})`,
+                  backgroundPosition: "center",
+                  backgroundSize: "cover",
+                }
+              : undefined
+          }
+        >
+          {!bgImageUrl && (
+            <>
+              <span className="absolute -right-14 -top-16 size-48 rounded-full bg-white/20 blur-2xl" aria-hidden />
+              <span className="absolute -bottom-20 left-10 size-56 rounded-full bg-coral-200/20 blur-3xl" aria-hidden />
+              <span className="absolute bottom-6 right-8 size-24 rounded-full border border-white/20" aria-hidden />
+            </>
+          )}
+          <div className="absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-black/28 to-transparent" aria-hidden />
           <button
             type="button"
             onClick={closePopup}
             aria-label="Close popup"
-            className="absolute right-3 top-3 z-10 rounded-full bg-white/15 p-2 text-white transition-colors hover:bg-white/25"
+            className="absolute right-3 top-3 z-10 rounded-full bg-white/18 p-2 text-white shadow-sm ring-1 ring-white/20 transition-colors hover:bg-white/28"
           >
             <X className="size-5" strokeWidth={2.5} />
           </button>
-          <span className="mb-4 flex size-12 items-center justify-center rounded-2xl bg-white/15 ring-1 ring-white/20 sm:size-14">
+          <span className="relative mb-4 flex size-12 items-center justify-center rounded-2xl bg-white/18 shadow-sm ring-1 ring-white/25 backdrop-blur sm:size-14">
             <Gift className="size-6" strokeWidth={2.25} />
           </span>
-          <h2 id="route-popup-title" className="max-w-[18rem] font-heading text-2xl font-semibold leading-tight tracking-tight sm:max-w-md sm:text-3xl">
+          <h2 id="route-popup-title" className="relative max-w-[18rem] font-heading text-2xl font-semibold leading-tight tracking-tight drop-shadow-sm sm:max-w-md sm:text-3xl">
             {popup.title}
           </h2>
         </div>
-        <div className="-mt-6 rounded-t-[1.75rem] bg-white px-5 pb-5 pt-6 sm:px-7 sm:pb-7">
-          <p className="whitespace-pre-line text-sm leading-6 text-plum-600 sm:text-base sm:leading-7">
+        <div className="-mt-8 relative rounded-t-[2rem] bg-white px-5 pb-5 pt-9 sm:px-7 sm:pb-7 sm:pt-10">
+          <p className="whitespace-pre-line text-[15px] leading-7 text-plum-600 sm:text-base sm:leading-8">
             {popup.message}
           </p>
-          <div className="mt-5 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
+          <div className="mt-6 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
             <button
               type="button"
               onClick={closePopup}
@@ -181,7 +202,7 @@ export default function RoutePopup() {
                   target="_blank"
                   rel="noopener noreferrer"
                   onClick={closePopup}
-                  className="rounded-full bg-coral-500 px-6 py-3 text-center text-sm font-extrabold text-white shadow-[var(--shadow-coral)] transition-all hover:bg-coral-600 active:scale-[0.98]"
+                  className="rounded-full bg-gradient-to-r from-coral-500 to-coral-600 px-6 py-3 text-center text-sm font-extrabold text-white shadow-[var(--shadow-coral)] transition-all hover:brightness-105 active:scale-[0.98]"
                 >
                   {ctaLabel}
                 </a>
@@ -189,7 +210,7 @@ export default function RoutePopup() {
                 <Link
                   href={ctaUrl}
                   onClick={closePopup}
-                  className="rounded-full bg-coral-500 px-6 py-3 text-center text-sm font-extrabold text-white shadow-[var(--shadow-coral)] transition-all hover:bg-coral-600 active:scale-[0.98]"
+                  className="rounded-full bg-gradient-to-r from-coral-500 to-coral-600 px-6 py-3 text-center text-sm font-extrabold text-white shadow-[var(--shadow-coral)] transition-all hover:brightness-105 active:scale-[0.98]"
                 >
                   {ctaLabel}
                 </Link>
