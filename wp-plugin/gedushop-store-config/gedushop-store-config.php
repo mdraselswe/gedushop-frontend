@@ -2,7 +2,7 @@
 /**
  * Plugin Name: GeduShop Store Configuration
  * Description: One screen for delivery charges and the free-delivery threshold, with a public read-only endpoint for the headless storefront.
- * Version:     1.1.1
+ * Version:     1.2.0
  * Author:      GeduShop
  * Requires PHP: 7.4
  * Requires Plugins: woocommerce
@@ -17,6 +17,69 @@ const GEDU_STORE_SETTINGS_DEFAULTS = array(
 	'outside_dhaka_charge'  => 120,
 	'free_delivery_minimum' => 1500,
 );
+const GEDU_STORE_POPUPS_OPTION = 'gedushop_route_popups';
+
+function gedu_store_popup_defaults() {
+	return array(
+		'enabled'        => false,
+		'title'          => '',
+		'message'        => '',
+		'route_patterns' => '',
+		'cta_label'      => '',
+		'cta_url'        => '',
+		'frequency'      => 'once_per_session',
+	);
+}
+
+function gedu_store_current_popups() {
+	$saved    = get_option( GEDU_STORE_POPUPS_OPTION, array() );
+	$defaults = gedu_store_popup_defaults();
+	$popups   = array();
+
+	for ( $i = 0; $i < 5; $i++ ) {
+		$popup    = isset( $saved[ $i ] ) && is_array( $saved[ $i ] ) ? $saved[ $i ] : array();
+		$popups[] = array_merge( $defaults, $popup );
+	}
+
+	return $popups;
+}
+
+function gedu_store_public_popups() {
+	$public = array();
+	foreach ( gedu_store_current_popups() as $index => $popup ) {
+		$title   = trim( (string) $popup['title'] );
+		$message = trim( (string) $popup['message'] );
+		$routes  = array_values(
+			array_filter(
+				array_map(
+					'trim',
+					preg_split( '/\r\n|\r|\n/', (string) $popup['route_patterns'] )
+				)
+			)
+		);
+
+		if ( empty( $popup['enabled'] ) || '' === $title || '' === $message || empty( $routes ) ) {
+			continue;
+		}
+
+		$frequency = in_array( $popup['frequency'], array( 'always', 'once_per_session', 'once_per_browser' ), true )
+			? $popup['frequency']
+			: 'once_per_session';
+		$signature = md5( wp_json_encode( array( $title, $message, $routes, $popup['cta_label'], $popup['cta_url'], $frequency ) ) );
+
+		$public[] = array(
+			'id'        => 'popup_' . ( $index + 1 ) . '_' . substr( $signature, 0, 10 ),
+			'title'     => $title,
+			'message'   => $message,
+			'routes'    => $routes,
+			'ctaLabel'  => trim( (string) $popup['cta_label'] ),
+			'ctaUrl'    => trim( (string) $popup['cta_url'] ),
+			'frequency' => $frequency,
+		);
+	}
+
+	return $public;
+}
 
 /** Return the relevant shipping methods, keyed by policy name. */
 function gedu_store_shipping_methods() {
@@ -45,6 +108,17 @@ function gedu_store_shipping_methods() {
 
 function gedu_store_number( $value, $fallback ) {
 	return is_numeric( $value ) ? max( 0, (float) $value ) : (float) $fallback;
+}
+
+function gedu_store_popup_url( $value ) {
+	$url = trim( sanitize_text_field( $value ) );
+	if ( '' === $url ) {
+		return '';
+	}
+	if ( '/' === $url[0] ) {
+		return $url;
+	}
+	return esc_url_raw( $url );
 }
 
 /** Read WooCommerce itself, so changes made in either admin screen cannot drift. */
@@ -84,6 +158,19 @@ add_action(
 				'permission_callback' => '__return_true',
 			)
 		);
+		register_rest_route(
+			'gedushop/v1',
+			'/popups',
+			array(
+				'methods'             => 'GET',
+				'callback'            => function () {
+					$response = rest_ensure_response( gedu_store_public_popups() );
+					$response->header( 'Cache-Control', 'no-store' );
+					return $response;
+				},
+				'permission_callback' => '__return_true',
+			)
+		);
 	}
 );
 
@@ -106,6 +193,7 @@ function gedu_store_render_settings_page() {
 		return;
 	}
 	$values = gedu_store_current_settings();
+	$popups = gedu_store_current_popups();
 	?>
 	<div class="wrap">
 		<h1>GeduShop Store Settings</h1>
@@ -134,6 +222,57 @@ function gedu_store_render_settings_page() {
 					</tr>
 				<?php endforeach; ?>
 			</table>
+			<h2>Route popup modals</h2>
+			<p class="description">Enable a popup only when you need it. Route patterns support exact paths like <code>/</code>, specific product paths like <code>/product/product-slug/</code>, wildcard groups like <code>/product/*</code>, and <code>*</code> for every page.</p>
+			<?php foreach ( $popups as $index => $popup ) : ?>
+				<div style="margin:16px 0;padding:16px;border:1px solid #dcdcde;border-radius:8px;background:#fff;">
+					<h3 style="margin-top:0;"><?php echo esc_html( 'Popup ' . ( $index + 1 ) ); ?></h3>
+					<table class="form-table" role="presentation">
+						<tr>
+							<th scope="row">Enabled</th>
+							<td>
+								<label>
+									<input type="checkbox" name="popups[<?php echo esc_attr( $index ); ?>][enabled]" value="1" <?php checked( ! empty( $popup['enabled'] ) ); ?> />
+									Show this popup when its route matches
+								</label>
+							</td>
+						</tr>
+						<tr>
+							<th scope="row"><label for="popup_<?php echo esc_attr( $index ); ?>_routes">Routes</label></th>
+							<td>
+								<textarea class="large-text code" rows="3" id="popup_<?php echo esc_attr( $index ); ?>_routes" name="popups[<?php echo esc_attr( $index ); ?>][route_patterns]" placeholder="/&#10;/product/*"><?php echo esc_textarea( $popup['route_patterns'] ); ?></textarea>
+								<p class="description">One route pattern per line. First enabled matching popup is shown.</p>
+							</td>
+						</tr>
+						<tr>
+							<th scope="row"><label for="popup_<?php echo esc_attr( $index ); ?>_title">Title</label></th>
+							<td><input class="regular-text" type="text" id="popup_<?php echo esc_attr( $index ); ?>_title" name="popups[<?php echo esc_attr( $index ); ?>][title]" value="<?php echo esc_attr( $popup['title'] ); ?>" /></td>
+						</tr>
+						<tr>
+							<th scope="row"><label for="popup_<?php echo esc_attr( $index ); ?>_message">Message</label></th>
+							<td><textarea class="large-text" rows="4" id="popup_<?php echo esc_attr( $index ); ?>_message" name="popups[<?php echo esc_attr( $index ); ?>][message]"><?php echo esc_textarea( $popup['message'] ); ?></textarea></td>
+						</tr>
+						<tr>
+							<th scope="row"><label for="popup_<?php echo esc_attr( $index ); ?>_cta_label">Button label</label></th>
+							<td><input class="regular-text" type="text" id="popup_<?php echo esc_attr( $index ); ?>_cta_label" name="popups[<?php echo esc_attr( $index ); ?>][cta_label]" value="<?php echo esc_attr( $popup['cta_label'] ); ?>" placeholder="Shop now" /></td>
+						</tr>
+						<tr>
+							<th scope="row"><label for="popup_<?php echo esc_attr( $index ); ?>_cta_url">Button URL</label></th>
+							<td><input class="regular-text" type="text" id="popup_<?php echo esc_attr( $index ); ?>_cta_url" name="popups[<?php echo esc_attr( $index ); ?>][cta_url]" value="<?php echo esc_attr( $popup['cta_url'] ); ?>" placeholder="/shop/" /></td>
+						</tr>
+						<tr>
+							<th scope="row"><label for="popup_<?php echo esc_attr( $index ); ?>_frequency">Frequency</label></th>
+							<td>
+								<select id="popup_<?php echo esc_attr( $index ); ?>_frequency" name="popups[<?php echo esc_attr( $index ); ?>][frequency]">
+									<option value="always" <?php selected( $popup['frequency'], 'always' ); ?>>Every visit</option>
+									<option value="once_per_session" <?php selected( $popup['frequency'], 'once_per_session' ); ?>>Once per browser session</option>
+									<option value="once_per_browser" <?php selected( $popup['frequency'], 'once_per_browser' ); ?>>Once until content changes</option>
+								</select>
+							</td>
+						</tr>
+					</table>
+				</div>
+			<?php endforeach; ?>
 			<?php submit_button( 'Save store settings' ); ?>
 		</form>
 	</div>
@@ -169,6 +308,26 @@ add_action(
 			$option[ $update[0] ]    = wc_format_decimal( $update[1] );
 			update_option( $methods[ $key ]->get_instance_option_key(), $option );
 		}
+
+		$popups = array();
+		$posted = isset( $_POST['popups'] ) && is_array( $_POST['popups'] ) ? wp_unslash( $_POST['popups'] ) : array(); // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
+		for ( $i = 0; $i < 5; $i++ ) {
+			$raw       = isset( $posted[ $i ] ) && is_array( $posted[ $i ] ) ? $posted[ $i ] : array();
+			$frequency = isset( $raw['frequency'] ) ? sanitize_text_field( $raw['frequency'] ) : 'once_per_session';
+			if ( ! in_array( $frequency, array( 'always', 'once_per_session', 'once_per_browser' ), true ) ) {
+				$frequency = 'once_per_session';
+			}
+			$popups[] = array(
+				'enabled'        => ! empty( $raw['enabled'] ),
+				'title'          => isset( $raw['title'] ) ? sanitize_text_field( $raw['title'] ) : '',
+				'message'        => isset( $raw['message'] ) ? sanitize_textarea_field( $raw['message'] ) : '',
+				'route_patterns' => isset( $raw['route_patterns'] ) ? sanitize_textarea_field( $raw['route_patterns'] ) : '',
+				'cta_label'      => isset( $raw['cta_label'] ) ? sanitize_text_field( $raw['cta_label'] ) : '',
+				'cta_url'        => isset( $raw['cta_url'] ) ? gedu_store_popup_url( $raw['cta_url'] ) : '',
+				'frequency'      => $frequency,
+			);
+		}
+		update_option( GEDU_STORE_POPUPS_OPTION, $popups, false );
 
 		wp_safe_redirect( admin_url( 'admin.php?page=gedushop-store-settings&updated=1' ) );
 		exit;

@@ -7,6 +7,7 @@ import { ToastProvider } from "@/context/ToastContext";
 import { InStockProvider } from "@/context/InStockContext";
 import { StoreSettingsProvider } from "@/context/StoreSettingsContext";
 import AnnouncementBar from "@/components/AnnouncementBar";
+import RoutePopup from "@/components/RoutePopup";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import ScrollToTop from "@/components/ScrollToTop";
@@ -107,6 +108,7 @@ export default async function RootLayout({
         <CartProvider>
           <PageShell>
             <AnnouncementBar />
+            <RoutePopup />
             <Header />
             <div className="mx-auto flex w-full max-w-[120rem] flex-1">
               <Sidebar categories={categories} />
