@@ -145,20 +145,12 @@ export default function RoutePopup() {
         if (event.target === event.currentTarget) closePopup();
       }}
     >
-      <div className="relative w-full max-w-lg overflow-hidden rounded-2xl bg-white shadow-[0_28px_90px_rgba(34,28,54,0.38)] ring-1 ring-white/80 sm:rounded-3xl">
-        <div className="relative min-h-48 overflow-hidden bg-[radial-gradient(circle_at_82%_16%,rgba(255,255,255,0.32),transparent_24%),radial-gradient(circle_at_12%_88%,rgba(250,197,193,0.35),transparent_30%),linear-gradient(135deg,#221c36_0%,#4f4274_48%,#e96d65_100%)] px-5 pb-14 pt-5 text-white sm:min-h-56 sm:px-7 sm:pt-7">
-          <span className="absolute -right-12 top-7 size-36 rounded-[2rem] bg-white/12 rotate-12 ring-1 ring-white/20" aria-hidden />
-          <span className="absolute right-8 top-20 size-20 rounded-full bg-coral-200/25 blur-sm" aria-hidden />
-          <span className="absolute bottom-7 right-11 h-14 w-24 rounded-full bg-white/12 rotate-[-12deg] ring-1 ring-white/20" aria-hidden />
-          <span className="absolute bottom-12 left-7 size-14 rounded-2xl bg-white/10 rotate-12 ring-1 ring-white/15" aria-hidden />
-          <svg className="absolute right-2 top-8 h-40 w-44 text-white/22 sm:right-7 sm:h-44 sm:w-52" viewBox="0 0 220 180" fill="none" aria-hidden>
-            <path d="M42 122c22-34 50-51 84-51 26 0 47 10 65 31" stroke="currentColor" strokeWidth="14" strokeLinecap="round" />
-            <path d="M84 62c6-21 19-34 40-38 16-3 31 0 44 10" stroke="currentColor" strokeWidth="13" strokeLinecap="round" />
-            <path d="M56 133h111c12 0 22 10 22 22v2H34v-2c0-12 10-22 22-22Z" fill="currentColor" />
-            <circle cx="68" cy="54" r="18" fill="currentColor" />
-            <circle cx="167" cy="51" r="14" fill="currentColor" />
-          </svg>
-          <div className="absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-black/28 to-transparent" aria-hidden />
+      <div className="relative w-full max-w-lg overflow-hidden rounded-2xl bg-white shadow-[0_28px_90px_rgba(34,28,54,0.38)] ring-1 ring-white/80 sm:rounded-[1.35rem]">
+        <div className="relative min-h-44 overflow-hidden bg-[radial-gradient(circle_at_78%_18%,rgba(255,255,255,0.28),transparent_22%),radial-gradient(circle_at_18%_88%,rgba(250,197,193,0.34),transparent_32%),linear-gradient(135deg,#221c36_0%,#4f4274_52%,#e96d65_100%)] px-5 pb-12 pt-5 text-white sm:min-h-52 sm:px-7 sm:pt-7">
+          <span className="absolute -right-10 -top-10 size-44 rounded-full bg-white/12 blur-sm" aria-hidden />
+          <span className="absolute right-10 top-20 size-24 rounded-[1.5rem] bg-coral-200/20 rotate-12 ring-1 ring-white/18" aria-hidden />
+          <span className="absolute bottom-5 left-6 size-16 rounded-2xl bg-white/10 -rotate-12 ring-1 ring-white/15" aria-hidden />
+          <span className="absolute inset-x-0 bottom-0 h-28 bg-gradient-to-t from-plum-950/55 via-plum-950/18 to-transparent" aria-hidden />
           <button
             type="button"
             onClick={closePopup}
@@ -170,12 +162,14 @@ export default function RoutePopup() {
           <span className="relative mb-4 flex size-12 items-center justify-center rounded-2xl bg-white/18 shadow-sm ring-1 ring-white/25 backdrop-blur sm:size-14">
             <Gift className="size-6" strokeWidth={2.25} />
           </span>
-          <h2 id="route-popup-title" className="relative max-w-[18rem] font-heading text-2xl font-semibold leading-tight tracking-tight drop-shadow-sm sm:max-w-md sm:text-3xl">
-            {popup.title}
-          </h2>
+          <div className="relative max-w-[22rem] rounded-2xl bg-plum-950/28 p-3 ring-1 ring-white/16 backdrop-blur-sm sm:max-w-md sm:p-4">
+            <h2 id="route-popup-title" className="font-heading text-2xl font-semibold leading-tight tracking-tight text-white drop-shadow-sm sm:text-3xl">
+              {popup.title}
+            </h2>
+          </div>
         </div>
-        <div className="relative -mt-8 rounded-t-2xl bg-white px-5 pb-5 pt-9 sm:rounded-t-3xl sm:px-7 sm:pb-7 sm:pt-10">
-          <p className="whitespace-pre-line text-[15px] leading-7 text-plum-600 sm:text-base sm:leading-8">
+        <div className="relative -mt-6 rounded-t-2xl bg-white px-5 pb-5 pt-9 sm:rounded-t-[1.35rem] sm:px-7 sm:pb-7 sm:pt-10">
+          <p className="whitespace-pre-line text-[15px] font-semibold leading-7 text-plum-700 sm:text-base sm:leading-8">
             {popup.message}
           </p>
           <div className="mt-6 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
