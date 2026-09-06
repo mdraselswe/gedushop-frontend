@@ -25,7 +25,6 @@ Each popup slot supports:
 - enabled/disabled
 - one route pattern per line
 - title and message
-- optional background image URL
 - optional button label and URL
 - frequency: every visit, once per browser session, or once until content changes
 

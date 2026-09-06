@@ -2,7 +2,7 @@
 /**
  * Plugin Name: GeduShop Store Configuration
  * Description: One screen for delivery charges and the free-delivery threshold, with a public read-only endpoint for the headless storefront.
- * Version:     1.2.1
+ * Version:     1.2.2
  * Author:      GeduShop
  * Requires PHP: 7.4
  * Requires Plugins: woocommerce
@@ -25,7 +25,6 @@ function gedu_store_popup_defaults() {
 		'title'          => '',
 		'message'        => '',
 		'route_patterns' => '',
-		'bg_image_url'   => '',
 		'cta_label'      => '',
 		'cta_url'        => '',
 		'frequency'      => 'once_per_session',
@@ -66,15 +65,13 @@ function gedu_store_public_popups() {
 		$frequency = in_array( $popup['frequency'], array( 'always', 'once_per_session', 'once_per_browser' ), true )
 			? $popup['frequency']
 			: 'once_per_session';
-		$bg_image_url = gedu_store_popup_url( $popup['bg_image_url'] );
-		$signature    = md5( wp_json_encode( array( $title, $message, $routes, $bg_image_url, $popup['cta_label'], $popup['cta_url'], $frequency ) ) );
+		$signature = md5( wp_json_encode( array( $title, $message, $routes, $popup['cta_label'], $popup['cta_url'], $frequency ) ) );
 
 		$public[] = array(
 			'id'        => 'popup_' . ( $index + 1 ) . '_' . substr( $signature, 0, 10 ),
 			'title'     => $title,
 			'message'   => $message,
 			'routes'    => $routes,
-			'bgImageUrl' => $bg_image_url,
 			'ctaLabel'  => trim( (string) $popup['cta_label'] ),
 			'ctaUrl'    => trim( (string) $popup['cta_url'] ),
 			'frequency' => $frequency,
@@ -256,13 +253,6 @@ function gedu_store_render_settings_page() {
 							<td><textarea class="large-text" rows="4" id="popup_<?php echo esc_attr( $index ); ?>_message" name="popups[<?php echo esc_attr( $index ); ?>][message]"><?php echo esc_textarea( $popup['message'] ); ?></textarea></td>
 						</tr>
 						<tr>
-							<th scope="row"><label for="popup_<?php echo esc_attr( $index ); ?>_bg_image_url">Background image URL</label></th>
-							<td>
-								<input class="large-text" type="text" id="popup_<?php echo esc_attr( $index ); ?>_bg_image_url" name="popups[<?php echo esc_attr( $index ); ?>][bg_image_url]" value="<?php echo esc_attr( $popup['bg_image_url'] ); ?>" placeholder="https://wp.gedushop.com/wp-content/uploads/..." />
-								<p class="description">Optional. Use a WordPress media image URL for a richer popup header.</p>
-							</td>
-						</tr>
-						<tr>
 							<th scope="row"><label for="popup_<?php echo esc_attr( $index ); ?>_cta_label">Button label</label></th>
 							<td><input class="regular-text" type="text" id="popup_<?php echo esc_attr( $index ); ?>_cta_label" name="popups[<?php echo esc_attr( $index ); ?>][cta_label]" value="<?php echo esc_attr( $popup['cta_label'] ); ?>" placeholder="Shop now" /></td>
 						</tr>
@@ -332,7 +322,6 @@ add_action(
 				'title'          => isset( $raw['title'] ) ? sanitize_text_field( $raw['title'] ) : '',
 				'message'        => isset( $raw['message'] ) ? sanitize_textarea_field( $raw['message'] ) : '',
 				'route_patterns' => isset( $raw['route_patterns'] ) ? sanitize_textarea_field( $raw['route_patterns'] ) : '',
-				'bg_image_url'   => isset( $raw['bg_image_url'] ) ? gedu_store_popup_url( $raw['bg_image_url'] ) : '',
 				'cta_label'      => isset( $raw['cta_label'] ) ? sanitize_text_field( $raw['cta_label'] ) : '',
 				'cta_url'        => isset( $raw['cta_url'] ) ? gedu_store_popup_url( $raw['cta_url'] ) : '',
 				'frequency'      => $frequency,
