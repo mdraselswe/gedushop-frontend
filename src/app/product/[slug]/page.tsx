@@ -57,6 +57,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     `Buy ${product.name} online in Bangladesh at ৳${priceNum}. Cash on delivery, genuine & quality-checked.`
   ).slice(0, 180);
   const title = `${product.name} — Price in Bangladesh`;
+  const image = product.images[0]?.src;
   return {
     title,
     description,
@@ -65,7 +66,13 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       title,
       description,
       type: "website",
-      images: [HOME_OG_IMAGE],
+      images: image ? [{ url: image, alt: product.images[0]?.alt || product.name }] : [HOME_OG_IMAGE],
+    },
+    twitter: {
+      card: "summary_large_image",
+      title,
+      description,
+      images: [image ?? HOME_OG_IMAGE.url],
     },
   };
 }
