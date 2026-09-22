@@ -23,7 +23,6 @@ export default function ReturnPolicyPage() {
           <li>You received fewer items than the quantity you ordered</li>
           <li>You received the wrong product, size, colour or variation</li>
           <li>The product arrived broken, damaged, defective or not working</li>
-          <li>The product is significantly different from its description</li>
         </ul>
       </div>
 
