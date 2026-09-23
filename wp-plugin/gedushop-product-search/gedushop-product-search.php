@@ -2,7 +2,7 @@
 /**
  * Plugin Name: GeduShop Product Search
  * Description: Weighted multilingual product search for the headless storefront, with aliases, synonyms, typo tolerance, filters and relevance ranking.
- * Version:     1.0.0
+ * Version:     1.0.1
  * Author:      GeduShop
  * Requires PHP: 7.4
  * Requires Plugins: woocommerce

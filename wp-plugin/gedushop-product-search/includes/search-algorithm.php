@@ -113,7 +113,7 @@ if ( ! function_exists( 'gedu_search_query_variants' ) ) {
 }
 
 if ( ! function_exists( 'gedu_search_field_score' ) ) {
-	function gedu_search_field_score( $query, $field, $weight ) {
+	function gedu_search_field_score( $query, $field, $weight, $allow_prefix = false, $allow_fuzzy = false ) {
 		$query = gedu_search_normalize( $query );
 		$field = gedu_search_normalize( $field );
 		if ( '' === $query || '' === $field ) {
@@ -150,35 +150,49 @@ if ( ! function_exists( 'gedu_search_field_score' ) ) {
 			return $weight * 0.95;
 		}
 
-		$all_prefix = true;
-		foreach ( $query_tokens as $token ) {
-			$matched = false;
-			if ( strlen( $token ) >= 3 ) {
-				foreach ( $field_tokens as $candidate ) {
-					if ( 0 === strpos( $candidate, $token ) ) {
-						$matched = true;
-						break;
+		if ( $allow_prefix ) {
+			$all_prefix = true;
+			foreach ( $query_tokens as $token ) {
+				$matched = false;
+				if ( strlen( $token ) >= 4 ) {
+					foreach ( $field_tokens as $candidate ) {
+						if ( 0 === strpos( $candidate, $token ) ) {
+							$matched = true;
+							break;
+						}
 					}
 				}
+				if ( ! $matched ) {
+					$all_prefix = false;
+					break;
+				}
 			}
-			if ( ! $matched ) {
-				$all_prefix = false;
-				break;
+			if ( $all_prefix ) {
+				return $weight * 0.60;
 			}
-		}
-		if ( $all_prefix ) {
-			return $weight * 0.70;
 		}
 
 		// PHP's levenshtein() is byte-based, so fuzzy matching is deliberately
-		// limited to ASCII. Bangla/Banglish concept matching comes from synonyms.
+		// limited to ASCII and high-signal fields. Requiring the same first
+		// character and rejecting prefix pairs avoids semantic collisions such as
+		// "dress"/"press", "care"/"car", and "table"/"tablet".
+		if ( ! $allow_fuzzy ) {
+			return 0.0;
+		}
 		$all_fuzzy = true;
 		foreach ( $query_tokens as $token ) {
 			$matched = false;
-			if ( strlen( $token ) >= 4 && preg_match( '/^[a-z0-9]+$/', $token ) ) {
-				$allowed = strlen( $token ) >= 8 ? 2 : 1;
+			if ( strlen( $token ) >= 5 && preg_match( '/^[a-z0-9]+$/', $token ) ) {
+				$allowed = strlen( $token ) >= 9 ? 2 : 1;
 				foreach ( $field_tokens as $candidate ) {
-					if ( preg_match( '/^[a-z0-9]+$/', $candidate ) && levenshtein( $token, $candidate ) <= $allowed ) {
+					if (
+						preg_match( '/^[a-z0-9]+$/', $candidate ) &&
+						$token[0] === $candidate[0] &&
+						abs( strlen( $token ) - strlen( $candidate ) ) <= $allowed &&
+						0 !== strpos( $candidate, $token ) &&
+						0 !== strpos( $token, $candidate ) &&
+						levenshtein( $token, $candidate ) <= $allowed
+					) {
 						$matched = true;
 						break;
 					}
@@ -195,30 +209,44 @@ if ( ! function_exists( 'gedu_search_field_score' ) ) {
 
 if ( ! function_exists( 'gedu_search_score_record' ) ) {
 	/**
-	 * A product must satisfy a whole query in at least one field or across the
-	 * combined record. Strong structured fields outweigh long-form prose.
+	 * A product must satisfy a whole query in a high-signal catalogue field.
+	 * Descriptions can improve the rank of an already relevant candidate, but
+	 * incidental words in marketing copy can never create a result by themselves.
 	 */
 	function gedu_search_score_record( $record, $variants ) {
-		$weights = array(
-			'title'       => 100,
-			'sku'         => 120,
-			'aliases'     => 90,
-			'tags'        => 70,
-			'attributes'  => 60,
-			'categories'  => 55,
-			'short'       => 30,
+		$primary_fields = array(
+			'title'      => array( 100, false, true ),
+			'sku'        => array( 120, false, false ),
+			'aliases'    => array( 90, false, true ),
+			'tags'       => array( 70, false, false ),
+			'attributes' => array( 60, false, false ),
+			'categories' => array( 55, false, false ),
+		);
+		$supporting_fields = array(
+			'short'       => 25,
 			'description' => 10,
 		);
 		$best = 0.0;
 		foreach ( $variants as $variant ) {
-			$score    = 0.0;
-			$combined = array();
-			foreach ( $weights as $field => $weight ) {
-				$value      = isset( $record[ $field ] ) ? (string) $record[ $field ] : '';
-				$combined[] = $value;
-				$score     += gedu_search_field_score( $variant, $value, $weight );
+			$primary_score = 0.0;
+			$combined      = array();
+			foreach ( $primary_fields as $field => $config ) {
+				$value          = isset( $record[ $field ] ) ? (string) $record[ $field ] : '';
+				$combined[]     = $value;
+				$primary_score += gedu_search_field_score( $variant, $value, $config[0], $config[1], $config[2] );
 			}
-			$score += gedu_search_field_score( $variant, implode( ' ', $combined ), 18 );
+			$primary_score += gedu_search_field_score( $variant, implode( ' ', $combined ), 18 );
+
+			// Reject weak or description-only matches before adding supporting score.
+			if ( $primary_score < 15 ) {
+				continue;
+			}
+
+			$score = $primary_score;
+			foreach ( $supporting_fields as $field => $weight ) {
+				$value  = isset( $record[ $field ] ) ? (string) $record[ $field ] : '';
+				$score += gedu_search_field_score( $variant, $value, $weight );
+			}
 			$best   = max( $best, $score );
 		}
 		return $best;

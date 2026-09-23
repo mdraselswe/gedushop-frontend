@@ -13,7 +13,7 @@ $record = array(
 	'title'       => 'silicone suction feeding set',
 	'sku'         => 'feed-100',
 	'aliases'     => 'weaning kit',
-	'tags'        => 'baby dining',
+	'tags'        => 'baby dining bowl',
 	'attributes'  => 'food grade silicone',
 	'categories'  => 'feeding nursing',
 	'short'       => 'plate bowl spoon and cup',
@@ -31,6 +31,24 @@ gedu_test_assert( 0.0 === gedu_search_score_record( $record, array( 'stroller' )
 
 $title_score = gedu_search_score_record( $record, array( 'feeding set' ) );
 $body_score  = gedu_search_score_record( $record, array( 'first foods' ) );
-gedu_test_assert( $title_score > $body_score, 'ranks title matches above description-only matches' );
+gedu_test_assert( $title_score > 0, 'accepts a strong title match' );
+gedu_test_assert( 0.0 === $body_score, 'rejects a description-only match' );
+
+$false_positive = array(
+	'title'       => 'baby educational musical phone toy',
+	'sku'         => '',
+	'aliases'     => '',
+	'tags'        => 'learning toy',
+	'attributes'  => 'plastic multicolor',
+	'categories'  => 'toys',
+	'short'       => 'press the button to play music',
+	'description' => 'keep children away from mobile phones',
+);
+gedu_test_assert( 0.0 === gedu_search_score_record( $false_positive, array( 'dress' ) ), 'does not fuzzy-match dress to press' );
+gedu_test_assert( 0.0 === gedu_search_score_record( $false_positive, array( 'mobile' ) ), 'does not qualify from incidental description text' );
+
+$tablet = $false_positive;
+$tablet['title'] = 'lcd writing tablet for kids';
+gedu_test_assert( 0.0 === gedu_search_score_record( $tablet, array( 'table' ) ), 'does not fuzzy-match table to tablet' );
 
 fwrite( STDOUT, "All product search algorithm tests passed.\n" );

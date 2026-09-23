@@ -4,7 +4,8 @@ Free, self-hosted product search for the headless storefront. It adds:
 
 - weighted relevance across title, SKU, aliases, tags, categories, attributes and descriptions;
 - editable English, Bangla and Banglish synonym groups;
-- limited English typo tolerance and prefix matching;
+- conservative English typo tolerance restricted to titles and search aliases;
+- precision safeguards so incidental description text cannot create a result;
 - product-level **Search aliases** under **Product data → General**;
 - the public endpoint `/wp-json/gedushop/v1/product-search`;
 - compatibility with the storefront's category, sale, stock, price, sort and pagination controls.
