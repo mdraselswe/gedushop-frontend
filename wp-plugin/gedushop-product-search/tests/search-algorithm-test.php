@@ -1,6 +1,7 @@
 <?php
 
 require_once dirname( __DIR__ ) . '/includes/search-algorithm.php';
+require_once dirname( __DIR__ ) . '/includes/migration-data.php';
 
 function gedu_test_assert( $condition, $message ) {
 	if ( ! $condition ) {
@@ -50,5 +51,21 @@ gedu_test_assert( 0.0 === gedu_search_score_record( $false_positive, array( 'mob
 $tablet = $false_positive;
 $tablet['title'] = 'lcd writing tablet for kids';
 gedu_test_assert( 0.0 === gedu_search_score_record( $tablet, array( 'table' ) ), 'does not fuzzy-match table to tablet' );
+
+$feeding_aliases = gedu_search_suggest_aliases( 'Mini Glass Baby Feeding Bottle', 'Feeding & Nursing' );
+gedu_test_assert( in_array( 'dudher botol', $feeding_aliases, true ), 'suggests a Banglish product alias' );
+gedu_test_assert( in_array( 'দুধের বোতল', $feeding_aliases, true ), 'suggests a Bangla product alias' );
+
+$future_aliases = gedu_search_suggest_aliases( 'Future Kids Activity Product', 'Toys' );
+gedu_test_assert( in_array( 'khelna', $future_aliases, true ), 'category rules cover future products' );
+gedu_test_assert( in_array( 'খেলনা', $future_aliases, true ), 'future products receive Bangla category vocabulary' );
+
+$merged_aliases = gedu_search_merge_aliases( 'custom phrase, khelna', array( 'khelna', 'খেলনা' ) );
+gedu_test_assert( false !== strpos( $merged_aliases, 'custom phrase' ), 'preserves existing custom aliases' );
+gedu_test_assert( 1 === substr_count( $merged_aliases, 'khelna' ), 'does not duplicate existing aliases' );
+gedu_test_assert( $merged_aliases === gedu_search_merge_aliases( $merged_aliases, array( 'khelna', 'খেলনা' ) ), 'alias migration is idempotent' );
+
+$record['aliases'] = implode( ', ', $feeding_aliases );
+gedu_test_assert( gedu_search_score_record( $record, array( 'দুধের বোতল' ) ) > 0, 'Bangla aliases participate in product matching' );
 
 fwrite( STDOUT, "All product search algorithm tests passed.\n" );

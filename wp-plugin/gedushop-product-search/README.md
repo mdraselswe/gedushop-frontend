@@ -6,6 +6,9 @@ Free, self-hosted product search for the headless storefront. It adds:
 - editable English, Bangla and Banglish synonym groups;
 - conservative English typo tolerance restricted to titles and search aliases;
 - precision safeguards so incidental description text cannot create a result;
+- curated English, Bangla and Banglish aliases generated from product type and
+  category for both current and future products;
+- an additive, idempotent catalogue migration with preview and JSON backup;
 - product-level **Search aliases** under **Product data → General**;
 - the public endpoint `/wp-json/gedushop/v1/product-search`;
 - compatibility with the storefront's category, sale, stock, price, sort and pagination controls.
@@ -20,6 +23,15 @@ Upload it from **Plugins → Add New → Upload Plugin**, activate it, then visi
 The first search builds an index from existing published products. Product,
 category and tag updates invalidate it automatically. No external search
 service, API key or recurring fee is required.
+
+## Catalogue migration
+
+Open **WooCommerce → Product Search** after installing an update. Review the
+alias preview, download the current search-data backup, then select **Apply safe
+catalogue migration**. Existing aliases are preserved, a server-side backup is
+saved before the first migration, and repeat runs do not add duplicates. The
+curated rules remain active for future products even after the current catalogue
+has been migrated.
 
 The storefront automatically falls back to WooCommerce's original title/SKU
 search if this plugin is not installed or its endpoint is temporarily
