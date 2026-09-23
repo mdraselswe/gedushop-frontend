@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import ProductCard from "@/components/ProductCard";
 import { useCart } from "@/context/CartContext";
 import { apiFetch, STORE_API } from "@/lib/api";
+import { decodeStoreProduct } from "@/lib/decode";
 import { comboSaving, isCombo } from "@/lib/wp";
 import type { StoreProduct } from "@/lib/types";
 
@@ -30,7 +31,7 @@ export default function CombosGrid({ initial }: { initial: StoreProduct[] }) {
     void apiFetch(`${STORE_API}/products?per_page=100`)
       .then((r) => (r.ok ? (r.json() as Promise<StoreProduct[]>) : null))
       .then((all) => {
-        if (live && all) setCombos(all.filter(isCombo));
+        if (live && all) setCombos(all.map(decodeStoreProduct).filter(isCombo));
       })
       .catch(() => {
         // Leave the build's list standing — slightly old beats empty.
