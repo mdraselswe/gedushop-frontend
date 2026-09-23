@@ -9,7 +9,7 @@ import { ArrowLeft, ArrowRight, Clock, ImageOff, Loader2, X } from "lucide-react
 import type { StoreProduct } from "@/lib/types";
 import { decodeEntities } from "@/lib/decode";
 import { formatPrice } from "@/lib/format";
-import { apiFetch, STORE_API } from "@/lib/api";
+import { fetchProductCollection } from "@/lib/productSearch";
 import { SearchIcon } from "./Icons";
 
 const DEBOUNCE_MS = 250;
@@ -49,7 +49,10 @@ function SearchBarInner() {
   const abortRef = useRef<AbortController | null>(null);
   const mobileInputRef = useRef<HTMLInputElement>(null);
 
-  useEffect(() => setHistory(getHistory()), []);
+  useEffect(() => {
+    const frame = requestAnimationFrame(() => setHistory(getHistory()));
+    return () => cancelAnimationFrame(frame);
+  }, []);
 
   const remember = useCallback((term: string) => {
     const t = term.trim();
@@ -70,26 +73,30 @@ function SearchBarInner() {
   }, []);
 
   // Keep the input in sync when the URL changes (back button, sidebar links…)
-  useEffect(() => setQuery(urlQuery), [urlQuery]);
+  useEffect(() => {
+    const frame = requestAnimationFrame(() => setQuery(urlQuery));
+    return () => cancelAnimationFrame(frame);
+  }, [urlQuery]);
 
   // Debounced live search
   useEffect(() => {
     const q = query.trim();
     abortRef.current?.abort();
     if (q.length < MIN_CHARS) {
-      setResults([]);
-      setLoading(false);
+      const frame = requestAnimationFrame(() => {
+        setResults([]);
+        setLoading(false);
+      });
       // keep the dropdown open — it shows recent searches when the query is empty
-      return;
+      return () => cancelAnimationFrame(frame);
     }
-    setLoading(true);
+    const loadingFrame = requestAnimationFrame(() => setLoading(true));
     const controller = new AbortController();
     abortRef.current = controller;
     const t = setTimeout(async () => {
       try {
-        const res = await apiFetch(`${STORE_API}/products?search=${encodeURIComponent(q)}&per_page=6`, {
-          signal: controller.signal,
-        });
+        const params = new URLSearchParams({ search: q, per_page: "6", orderby: "relevance", order: "desc" });
+        const res = await fetchProductCollection(params, { signal: controller.signal });
         if (res.ok) {
           setResults(await res.json());
           if (!mobileOpen) setOpen(true);
@@ -101,6 +108,7 @@ function SearchBarInner() {
       }
     }, DEBOUNCE_MS);
     return () => {
+      cancelAnimationFrame(loadingFrame);
       clearTimeout(t);
       controller.abort();
     };

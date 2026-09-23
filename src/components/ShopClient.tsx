@@ -20,7 +20,7 @@ function ShopContent({
   sortParam,
 }: Props & { search?: string; sale?: boolean; sortParam?: string | null }) {
   const defaultSort =
-    sortParam === "date" ? "date" : sortParam === "price" ? "price_asc" : "popularity";
+    sortParam === "date" ? "date" : sortParam === "price" ? "price_asc" : search ? "relevance" : "popularity";
   const filtered = Boolean(search || sale || sortParam);
   const title = search
     ? `Results for “${search}”`

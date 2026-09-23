@@ -7,6 +7,7 @@ import ProductGrid from "@/components/ProductGrid";
 import ProductGridSkeleton from "@/components/ProductGridSkeleton";
 import { apiFetch, STORE_API } from "@/lib/api";
 import { decodeEntities } from "@/lib/decode";
+import { fetchProductCollection } from "@/lib/productSearch";
 import { useInStock } from "@/context/InStockContext";
 import type { StoreCategory, StoreProduct } from "@/lib/types";
 
@@ -14,6 +15,7 @@ const PER_PAGE = 24;
 const MINOR = 100; // BDT minor unit (2) → Store API price filters are in the smallest unit
 
 const SORTS = [
+  { key: "relevance", label: "Relevance", orderby: "relevance", order: "desc" },
   { key: "popularity", label: "Popular", orderby: "popularity", order: "desc" },
   { key: "date", label: "Newest", orderby: "date", order: "desc" },
   { key: "price_asc", label: "Price: Low to High", orderby: "price", order: "asc" },
@@ -73,6 +75,7 @@ export default function ProductBrowser({
   const [filterOpen, setFilterOpen] = useState(false);
   const [sortOpen, setSortOpen] = useState(false);
   const seeded = useRef(initialProducts != null);
+  const sortOptions = search ? SORTS : SORTS.filter((option) => option.key !== "relevance");
 
   // Shop page has no fixed category → load the list for the category picker.
   const [catList, setCatList] = useState<StoreCategory[]>(categories);
@@ -102,7 +105,7 @@ export default function ProductBrowser({
     q.set("orderby", s.orderby);
     q.set("order", s.order);
 
-    apiFetch(`${STORE_API}/products?${q}`)
+    fetchProductCollection(q)
       .then(async (r) => {
         if (!r.ok) return { list: [], pages: 1, count: 0 };
         const list: StoreProduct[] = await r.json();
@@ -189,7 +192,7 @@ export default function ProductBrowser({
               <>
                 <div className="fixed inset-0 z-40" onClick={() => setSortOpen(false)} />
                 <div className="absolute right-0 z-50 mt-2 w-56 overflow-hidden rounded-2xl bg-white py-1 shadow-[var(--shadow-lift)] ring-1 ring-plum-100">
-                  {SORTS.map((s) => (
+                  {sortOptions.map((s) => (
                     <button
                       key={s.key}
                       onClick={() => {
