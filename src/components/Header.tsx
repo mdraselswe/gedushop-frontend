@@ -20,7 +20,7 @@ export default function Header() {
 
   return (
     <header
-      className={`sticky top-0 z-40 border-b bg-white/95 backdrop-blur transition-shadow ${
+      className={`site-chrome sticky top-0 z-40 border-b bg-white/95 backdrop-blur transition-shadow ${
         scrolled ? "border-plum-100/60 shadow-[var(--shadow-soft)]" : "border-transparent"
       }`}
     >

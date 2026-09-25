@@ -1,5 +1,5 @@
 import { Check } from "lucide-react";
-import { decodeEntities } from "@/lib/decode";
+import { decodeEntities, plainTextFromHtml } from "@/lib/decode";
 
 /**
  * WooCommerce short_description is a free-form HTML blob (often emoji marketing
@@ -22,10 +22,9 @@ export default function Highlights({ html }: { html: string }) {
 
   if (lines.length <= 1) {
     return (
-      <div
-        className="mt-6 max-w-[65ch] text-sm leading-relaxed text-plum-600 [&_img]:hidden [&_p]:my-2 [&_strong]:text-plum-800"
-        dangerouslySetInnerHTML={{ __html: html }}
-      />
+      <p className="mt-6 max-w-[65ch] whitespace-pre-line text-sm leading-relaxed text-plum-600">
+        {plainTextFromHtml(html)}
+      </p>
     );
   }
 

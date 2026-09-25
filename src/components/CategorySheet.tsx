@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import { X } from "lucide-react";
 import type { StoreCategory } from "@/lib/types";
 import { categoryIcon, Flame, Sparkles, Zap } from "@/lib/categoryIcons";
+import { useDialogFocus } from "@/lib/useDialogFocus";
 
 const COLLECTIONS = [
   { href: "/", label: "Popular", Icon: Flame },
@@ -22,6 +23,7 @@ export default function CategorySheet({
   categories: StoreCategory[];
 }) {
   const [shown, setShown] = useState(false);
+  const dialogRef = useDialogFocus<HTMLDivElement>(open);
 
   useEffect(() => {
     if (!open) return;
@@ -45,7 +47,7 @@ export default function CategorySheet({
   if (!open) return null;
 
   return (
-    <div className="fixed inset-0 z-[70] lg:hidden" role="dialog" aria-modal="true" aria-label="Categories">
+    <div ref={dialogRef} tabIndex={-1} className="fixed inset-0 z-[70] lg:hidden" role="dialog" aria-modal="true" aria-label="Categories">
       <div
         className={`absolute inset-0 bg-plum-900/40 backdrop-blur-sm transition-opacity duration-200 ${shown ? "opacity-100" : "opacity-0"}`}
         onClick={close}

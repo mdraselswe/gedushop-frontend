@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 import { Gift, X } from "lucide-react";
 import { apiFetch, GEDU_API } from "@/lib/api";
+import { useDialogFocus } from "@/lib/useDialogFocus";
 
 interface RoutePopupConfig {
   id: string;
@@ -108,6 +109,7 @@ export default function RoutePopup() {
     });
   }, [closedPopup, pathname, popups]);
   const popupKey = popup ? `${popup.id}:${pathname}` : null;
+  const dialogRef = useDialogFocus<HTMLDivElement>(Boolean(popup && readyPopupKey === popupKey));
 
   useEffect(() => {
     if (!popup || !popupKey) return;
@@ -150,7 +152,9 @@ export default function RoutePopup() {
 
   return (
     <div
-      className="fixed inset-0 z-[90] flex items-end justify-center bg-plum-950/55 px-3 py-4 backdrop-blur-md sm:items-center sm:p-6"
+      ref={dialogRef}
+      tabIndex={-1}
+      className="site-chrome fixed inset-0 z-[90] flex items-end justify-center bg-plum-950/55 px-3 py-4 backdrop-blur-md sm:items-center sm:p-6"
       role="dialog"
       aria-modal="true"
       aria-labelledby="route-popup-title"

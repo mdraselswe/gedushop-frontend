@@ -9,6 +9,7 @@ import { decodeEntities } from "@/lib/decode";
 import { getCategories, getCategoryBySlug, getProductsPaged } from "@/lib/wp";
 import { productCardPayloads } from "@/lib/productCardPayload";
 import { HOME_OG_IMAGE, SITE_URL } from "@/lib/seo";
+import { serializeJsonLd } from "@/lib/jsonLd";
 
 interface Props {
   params: Promise<{ slug: string }>;
@@ -84,7 +85,7 @@ export default async function CategoryPage({ params }: Props) {
 
   return (
     <div className="space-y-4 px-4 pb-4 pt-4">
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbLd) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: serializeJsonLd(breadcrumbLd) }} />
       <Breadcrumbs
         items={[{ label: "Home", href: "/" }, { label: "Shop", href: "/shop" }, { label: category.name }]}
       />

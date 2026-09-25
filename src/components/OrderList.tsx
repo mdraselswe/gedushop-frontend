@@ -5,7 +5,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { CircleAlert, Loader2, PackageSearch, Search } from "lucide-react";
 import { decodeEntities } from "@/lib/decode";
 import { apiFetch, GEDU_API } from "@/lib/api";
-import { getOrders, mergeOrders, type StoredOrder } from "@/lib/orderHistory";
+import { addOrder, getOrders, mergeOrders, ORDER_HISTORY_CHANGED, type StoredOrder } from "@/lib/orderHistory";
 import { STATUS_SHORT, formatOrderDate, isCancelled } from "@/lib/orderStatus";
 
 /** How many rows refresh their status without being asked. */
@@ -55,6 +55,14 @@ export default function OrderList() {
   const [showLookup, setShowLookup] = useState(false);
   const refreshed = useRef(false);
 
+  const loadLocalOrders = useCallback(() => {
+    const stored = getOrders();
+    setRows(stored);
+    setReady(true);
+    setChecked((n) => Math.min(n, stored.length));
+    return stored;
+  }, []);
+
   const refresh = useCallback(async (list: StoredOrder[], from: number, count: number) => {
     const slice = list.slice(from, from + count);
     if (!slice.length) return;
@@ -67,12 +75,18 @@ export default function OrderList() {
             {
               method: "POST",
               headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({ phone: o.phone, order_id: String(o.id) }),
+              body: JSON.stringify({
+                order_id: String(o.id),
+                ...(o.accessToken ? { access_token: o.accessToken } : { phone: o.phone }),
+              }),
             },
             STATUS_ATTEMPTS,
           );
           if (!res.ok) return null;
           const data = await res.json();
+          if (data.accessToken) {
+            addOrder({ ...o, phone: undefined, accessToken: String(data.accessToken) });
+          }
           return [String(o.id), data.status as string] as const;
         } catch {
           // offline, or the order was deleted in wp-admin — keep the stored row
@@ -90,14 +104,29 @@ export default function OrderList() {
   }, []);
 
   useEffect(() => {
-    const stored = getOrders();
-    setRows(stored);
-    setReady(true);
-    if (!refreshed.current && stored.length) {
-      refreshed.current = true;
-      void refresh(stored, 0, AUTO_REFRESH);
-    }
-  }, [refresh]);
+    const load = () => {
+      const stored = loadLocalOrders();
+      if (!refreshed.current && stored.length) {
+        refreshed.current = true;
+        void refresh(stored, 0, AUTO_REFRESH);
+      }
+    };
+    queueMicrotask(load);
+
+    const onStorage = (e: StorageEvent) => {
+      if (e.key === "gedu_orders") load();
+    };
+    window.addEventListener(ORDER_HISTORY_CHANGED, load);
+    window.addEventListener("storage", onStorage);
+    window.addEventListener("focus", load);
+    window.addEventListener("pageshow", load);
+    return () => {
+      window.removeEventListener(ORDER_HISTORY_CHANGED, load);
+      window.removeEventListener("storage", onStorage);
+      window.removeEventListener("focus", load);
+      window.removeEventListener("pageshow", load);
+    };
+  }, [loadLocalOrders, refresh]);
 
   function onLookup(found: LookupOrder[], phone: string) {
     const stored = found.map((o) => toStored(o, phone));
@@ -162,7 +191,7 @@ export default function OrderList() {
               <div className="mt-3 flex items-center justify-between gap-3">
                 <span className="text-base font-extrabold tabular-nums text-plum-800">{o.total}</span>
                 <Link
-                  href={`/track?order=${o.id}&phone=${encodeURIComponent(o.phone)}`}
+                  href={`/track?order=${o.id}`}
                   className="rounded-full border border-plum-200 px-5 py-2 text-xs font-extrabold text-plum-600 transition-colors hover:bg-plum-50"
                 >
                   View details

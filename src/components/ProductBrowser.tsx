@@ -10,6 +10,7 @@ import { decodeEntities } from "@/lib/decode";
 import { fetchProductCollection } from "@/lib/productSearch";
 import { useInStock } from "@/context/InStockContext";
 import type { StoreCategory, StoreProduct } from "@/lib/types";
+import { useDialogFocus } from "@/lib/useDialogFocus";
 
 const PER_PAGE = 24;
 const MINOR = 100; // BDT minor unit (2) → Store API price filters are in the smallest unit
@@ -73,6 +74,7 @@ export default function ProductBrowser({
   const [loading, setLoading] = useState(initialProducts == null);
 
   const [filterOpen, setFilterOpen] = useState(false);
+  const filterDialogRef = useDialogFocus<HTMLDivElement>(filterOpen);
   const [sortOpen, setSortOpen] = useState(false);
   const seeded = useRef(initialProducts != null);
   const sortOptions = search ? SORTS : SORTS.filter((option) => option.key !== "relevance");
@@ -265,7 +267,7 @@ export default function ProductBrowser({
 
       {/* Filter panel: bottom sheet on mobile, right drawer on sm+ */}
       {filterOpen && (
-        <div className="fixed inset-0 z-[70]" role="dialog" aria-modal="true" aria-label="Filters">
+        <div ref={filterDialogRef} tabIndex={-1} className="fixed inset-0 z-[70]" role="dialog" aria-modal="true" aria-label="Filters">
           <div className="absolute inset-0 bg-plum-900/40 backdrop-blur-sm" onClick={() => setFilterOpen(false)} />
           <div className="absolute inset-x-0 bottom-0 max-h-[85dvh] overflow-y-auto rounded-t-3xl bg-white pb-[env(safe-area-inset-bottom)] shadow-2xl sm:inset-y-0 sm:right-0 sm:left-auto sm:max-h-none sm:w-[24rem] sm:rounded-none">
             <div className="sticky top-0 flex items-center justify-between border-b border-plum-100 bg-white px-5 py-4">

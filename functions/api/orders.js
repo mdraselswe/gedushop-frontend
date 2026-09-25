@@ -14,10 +14,12 @@
  * Set in the Pages project (Settings → Environment variables):
  *   WC_CONSUMER_KEY / WC_CONSUMER_SECRET  — the READ-ONLY WooCommerce pair
  *
- * NOT YET RATE LIMITED. Woo order ids run in sequence, so somebody holding a
- * phone number can walk the id space until a pair lands. Before this sees real
- * traffic it needs a per-IP WAF rule and, better, a per-phone counter in KV.
+ * Requests are throttled at the edge by both source and phone/order pair. The
+ * cache-backed limiter costs no paid KV binding; a WAF rule can still be added
+ * later as an optional outer layer.
  */
+
+import { checkRateLimit, fingerprint, rateLimited } from "../_shared/security.js";
 
 const WP = "https://wp.gedushop.com/wp-json/wc/v3";
 
@@ -123,6 +125,21 @@ export async function onRequestPost(context) {
   if (!/^\d{1,10}$/.test(orderId)) {
     return json({ error: "Enter a valid order number." }, 400);
   }
+
+  const broadLimit = await checkRateLimit(request, {
+    scope: "orders-ip",
+    limit: 15,
+    windowSeconds: 10 * 60,
+  });
+  if (!broadLimit.allowed) return rateLimited(broadLimit.retryAfter);
+
+  const pairLimit = await checkRateLimit(request, {
+    scope: "orders-pair",
+    limit: 6,
+    windowSeconds: 10 * 60,
+    discriminator: await fingerprint(`${phoneKey(phone)}|${orderId}`),
+  });
+  if (!pairLimit.allowed) return rateLimited(pairLimit.retryAfter);
 
   const wanted = phoneKey(phone);
 

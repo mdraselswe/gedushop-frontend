@@ -64,7 +64,7 @@ export default function CartView() {
               className="relative size-16 shrink-0 overflow-hidden rounded-xl bg-gradient-to-br from-plum-50 to-coral-50/40"
             >
               {item.images[0] && (
-                <Image src={item.images[0].thumbnail || item.images[0].src} alt={item.name} fill sizes="64px" className="object-cover" />
+                <Image src={item.images[0].thumbnail || item.images[0].src} alt={decodeEntities(item.name)} fill sizes="64px" className="object-cover" />
               )}
             </Link>
             <div className="min-w-0 flex-1">

@@ -11,7 +11,7 @@ export const metadata: Metadata = {
 export default function DeliveryPage() {
   return (
     <LegalPage title="Delivery">
-      <p>We deliver across Bangladesh with cash on delivery — pay only when your order reaches you.</p>
+      <p>We deliver across Bangladesh. Cash on Delivery is available, and another payment option may appear at checkout when enabled.</p>
 
       <div>
         <h2>Delivery charges</h2>
@@ -29,7 +29,12 @@ export default function DeliveryPage() {
 
       <div>
         <h2>Payment</h2>
-        <p>All orders are cash on delivery. Please keep the exact amount ready when your order arrives.</p>
+        <p>For Cash on Delivery, please keep the exact amount ready. If you select bKash, follow only the number and instructions displayed at checkout and keep the transaction reference.</p>
+      </div>
+
+      <div>
+        <h2>Delays and address changes</h2>
+        <p>Times are estimates and can be affected by holidays, weather, courier coverage or an unreachable phone. Contact us before dispatch if an address needs to change; a change after dispatch may not be possible.</p>
       </div>
     </LegalPage>
   );

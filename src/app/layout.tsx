@@ -15,6 +15,7 @@ import MessengerButton from "@/components/MessengerButton";
 import SiteJsonLd from "@/components/SiteJsonLd";
 import Analytics from "@/components/Analytics";
 import MetaPixel from "@/components/MetaPixel";
+import CookieConsent from "@/components/CookieConsent";
 import BottomNav from "@/components/BottomNav";
 import CartDockButton from "@/components/CartDockButton";
 import CartDrawer from "@/components/CartDrawer";
@@ -121,6 +122,7 @@ export default async function RootLayout({
           <BottomNav categories={categories} />
           <ScrollToTop />
           <MessengerButton />
+          <CookieConsent />
         </CartProvider>
         </InStockProvider>
         </WishlistProvider>

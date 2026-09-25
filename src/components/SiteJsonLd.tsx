@@ -1,4 +1,5 @@
 import { PHONE } from "@/lib/contact";
+import { serializeJsonLd } from "@/lib/jsonLd";
 
 const SITE = process.env.NEXT_PUBLIC_SITE_URL ?? "https://gedushop.com";
 
@@ -43,6 +44,6 @@ export default function SiteJsonLd() {
   ];
 
   return (
-    <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(data) }} />
+    <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: serializeJsonLd(data) }} />
   );
 }

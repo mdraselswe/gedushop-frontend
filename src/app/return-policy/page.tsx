@@ -11,6 +11,7 @@ export const metadata: Metadata = {
 export default function ReturnPolicyPage() {
   return (
     <LegalPage title="Return & Refund Policy">
+      <p className="text-xs font-semibold text-plum-400">Last updated: 26 September 2026</p>
       <p>
         We carefully check and pack every order. If there is a genuine problem with your delivery, we&apos;ll review
         your claim and help with a suitable solution.
@@ -64,6 +65,25 @@ export default function ReturnPolicyPage() {
       </div>
 
       <div>
+        <h2>Return shipping</h2>
+        <p>
+          Contact us and receive return instructions before sending anything. For a verified wrong, missing,
+          damaged or defective item caused by us or the delivery process, GeduShop will arrange or cover the
+          reasonable return/replacement delivery cost. An unapproved shipment or an ineligible return may remain
+          the customer&apos;s responsibility.
+        </p>
+      </div>
+
+      <div>
+        <h2>Combos and partial claims</h2>
+        <p>
+          If only one item in a combo or multi-item order has a verified problem, we may replace or refund the
+          affected item rather than the complete order. Any linked free gift or promotional benefit may need to be
+          returned when the whole qualifying purchase is refunded.
+        </p>
+      </div>
+
+      <div>
         <h2>Refunds</h2>
         <p>
           Approved refunds are sent via bKash or Nagad after any required return is received and checked. Refunds
@@ -79,7 +99,13 @@ export default function ReturnPolicyPage() {
           <li>Items returned without their original packaging, accessories, tags or free gifts</li>
           <li>Requests made after 3 days of delivery</li>
           <li>Change-of-mind requests where the correct, undamaged product was delivered</li>
+          <li>Opened hygiene-sensitive or personalised items, unless they arrived wrong, damaged or defective</li>
         </ul>
+      </div>
+
+      <div>
+        <h2>Need another review?</h2>
+        <p>If you disagree with a claim decision, reply with your order number and the reason. We will review the available evidence again and explain the outcome.</p>
       </div>
     </LegalPage>
   );

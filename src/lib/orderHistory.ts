@@ -15,8 +15,10 @@
 
 export interface StoredOrder {
   id: number | string;
-  /** Needed to re-authenticate against /track on every refresh. */
-  phone: string;
+  /** Opaque order credential. New rows use this instead of retaining a phone. */
+  accessToken?: string;
+  /** Legacy credential, kept only while an older row is migrated. */
+  phone?: string;
   /** ISO date the order was placed. */
   date: string;
   /** Already formatted with the currency symbol — the list needs no totals object. */
@@ -27,15 +29,33 @@ export interface StoredOrder {
 
 const KEY = "gedu_orders";
 const MAX = 50;
+export const ORDER_HISTORY_CHANGED = "gedu:orders-changed";
+
+function isStoredOrder(value: unknown): value is StoredOrder {
+  if (!value || typeof value !== "object") return false;
+  const o = value as Partial<Record<keyof StoredOrder, unknown>>;
+  return (
+    (typeof o.id === "number" || typeof o.id === "string") &&
+    (typeof o.accessToken === "string" || typeof o.phone === "string") &&
+    typeof o.date === "string" &&
+    typeof o.total === "string" &&
+    typeof o.summary === "string"
+  );
+}
 
 export function getOrders(): StoredOrder[] {
   if (typeof window === "undefined") return [];
   try {
     const raw = JSON.parse(localStorage.getItem(KEY) || "[]");
-    return Array.isArray(raw) ? raw : [];
+    return Array.isArray(raw) ? raw.filter(isStoredOrder) : [];
   } catch {
     return [];
   }
+}
+
+export function hasOrder(id: number | string): boolean {
+  if (typeof window === "undefined") return false;
+  return getOrders().some((o) => String(o.id) === String(id));
 }
 
 /** Newest first, one row per order id — a success page reopened twice adds nothing. */
@@ -50,6 +70,7 @@ function write(list: StoredOrder[]) {
     });
     deduped.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
     localStorage.setItem(KEY, JSON.stringify(deduped.slice(0, MAX)));
+    window.dispatchEvent(new Event(ORDER_HISTORY_CHANGED));
   } catch {
     // storage full / disabled — the lookup form still works
   }

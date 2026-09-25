@@ -11,6 +11,9 @@ const eslintConfig = defineConfig([
     ".next/**",
     "out/**",
     "build/**",
+    // Tool-managed nested repositories are tested in their own worktrees.
+    ".kilo/worktrees/**",
+    ".wrangler/**",
     "next-env.d.ts",
   ]),
 ]);

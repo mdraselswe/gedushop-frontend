@@ -10,6 +10,7 @@ import type { StoreProduct } from "@/lib/types";
 import { decodeEntities } from "@/lib/decode";
 import { formatPrice } from "@/lib/format";
 import { fetchProductCollection } from "@/lib/productSearch";
+import { useDialogFocus } from "@/lib/useDialogFocus";
 import { SearchIcon } from "./Icons";
 
 const DEBOUNCE_MS = 250;
@@ -43,6 +44,7 @@ function SearchBarInner() {
   const [results, setResults] = useState<StoreProduct[]>([]);
   const [open, setOpen] = useState(false); // desktop dropdown
   const [mobileOpen, setMobileOpen] = useState(false); // full-screen overlay
+  const mobileDialogRef = useDialogFocus<HTMLDivElement>(mobileOpen);
   const [loading, setLoading] = useState(false);
   const [history, setHistory] = useState<string[]>([]);
   const boxRef = useRef<HTMLFormElement>(null);
@@ -321,6 +323,8 @@ function SearchBarInner() {
       {mobileOpen &&
         createPortal(
           <div
+            ref={mobileDialogRef}
+            tabIndex={-1}
             className="fixed inset-0 z-[80] flex flex-col bg-white md:hidden"
             role="dialog"
             aria-modal="true"

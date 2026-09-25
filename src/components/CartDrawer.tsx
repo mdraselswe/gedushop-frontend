@@ -6,6 +6,7 @@ import { useCart } from "@/context/CartContext";
 import { decodeEntities } from "@/lib/decode";
 import { formatPrice } from "@/lib/format";
 import { cartItemsTotal } from "@/lib/cart-total";
+import { useDialogFocus } from "@/lib/useDialogFocus";
 import { CartIcon, CloseIcon, MinusIcon, PlusIcon, TrashIcon } from "./Icons";
 import FreeShippingBar from "./FreeShippingBar";
 import CouponField from "./CouponField";
@@ -23,11 +24,14 @@ function productSlug(permalink?: string): string | null {
 /** Right-side cart drawer (Chaldal-style). Slides in on add-to-cart, lg+ only. */
 export default function CartDrawer() {
   const { cart, drawerOpen, setDrawerOpen, setQuantity, removeItem, pendingIds } = useCart();
+  const dialogRef = useDialogFocus<HTMLDivElement>(drawerOpen);
   const count = cart?.items_count ?? 0;
 
   return (
     <div
-      className={`fixed right-0 top-0 z-50 hidden h-dvh w-[21rem] flex-col bg-white shadow-2xl shadow-plum-900/20 transition-transform duration-300 lg:flex ${
+      ref={dialogRef}
+      tabIndex={-1}
+      className={`site-chrome fixed right-0 top-0 z-50 hidden h-dvh w-[21rem] flex-col bg-white shadow-2xl shadow-plum-900/20 transition-transform duration-300 lg:flex ${
         drawerOpen ? "translate-x-0" : "translate-x-full"
       }`}
       role="dialog"
@@ -71,7 +75,7 @@ export default function CartDrawer() {
                     {item.images[0] ? (
                       <Image
                         src={item.images[0].thumbnail || item.images[0].src}
-                        alt={item.name}
+                        alt={decodeEntities(item.name)}
                         fill
                         sizes="48px"
                         className="object-cover"

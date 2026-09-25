@@ -19,7 +19,7 @@ export default function NotFound() {
   const [isProductUrl, setIsProductUrl] = useState<boolean | null>(null);
 
   useEffect(() => {
-    setIsProductUrl(/^\/product\/[^/]+\/?$/.test(window.location.pathname));
+    queueMicrotask(() => setIsProductUrl(/^\/product\/[^/]+\/?$/.test(window.location.pathname)));
   }, []);
 
   const onMiss = useCallback(() => setShowNotFound(true), []);

@@ -15,17 +15,32 @@ export default function WishlistPage() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    let cancelled = false;
     if (ids.length === 0) {
-      setProducts([]);
-      setLoading(false);
-      return;
+      queueMicrotask(() => {
+        if (cancelled) return;
+        setProducts([]);
+        setLoading(false);
+      });
+      return () => {
+        cancelled = true;
+      };
     }
-    setLoading(true);
+    queueMicrotask(() => {
+      if (!cancelled) setLoading(true);
+    });
     apiFetch(`${STORE_API}/products?include=${ids.join(",")}&per_page=100`)
       .then((r) => (r.ok ? r.json() : []))
-      .then((d: StoreProduct[]) => setProducts(Array.isArray(d) ? d : []))
+      .then((d: StoreProduct[]) => {
+        if (!cancelled) setProducts(Array.isArray(d) ? d : []);
+      })
       .catch(() => {})
-      .finally(() => setLoading(false));
+      .finally(() => {
+        if (!cancelled) setLoading(false);
+      });
+    return () => {
+      cancelled = true;
+    };
   }, [ids]);
 
   return (

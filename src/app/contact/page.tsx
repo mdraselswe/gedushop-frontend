@@ -40,7 +40,7 @@ const CHANNELS = [
     label: "Email",
     value: EMAIL,
     href: `mailto:${EMAIL}`,
-    note: "We reply within a day",
+    note: "Email support",
   },
   {
     Icon: Facebook,
@@ -93,6 +93,11 @@ export default function ContactPage() {
             We deliver all over Bangladesh — cash on delivery.
           </span>
         </span>
+      </div>
+
+      <div className="mt-3 rounded-2xl bg-plum-50/60 p-4 text-sm leading-relaxed text-plum-600 ring-1 ring-plum-100/60">
+        <p className="font-extrabold text-plum-800">For faster order support</p>
+        <p className="mt-1">Send your order number, the phone used at checkout and a short description. For a return claim, include the evidence listed in the Return &amp; Refund Policy. Please do not send passwords, PINs or one-time codes.</p>
       </div>
     </div>
   );

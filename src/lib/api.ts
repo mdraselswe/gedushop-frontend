@@ -18,18 +18,28 @@ export const GEDU_API = PROD ? "/wp/gedushop/v1" : `${DIRECT}/wp-json/gedushop/v
  * times before giving up.
  */
 export async function apiFetch(url: string, init?: RequestInit, attempts = 6): Promise<Response> {
+  const method = (init?.method ?? "GET").toUpperCase();
+  // Retrying an unknown POST outcome can create the same order, review, or cart
+  // mutation twice. Only reads are safe to replay automatically. A shopper can
+  // still retry a failed write explicitly; checkout carries an idempotency key
+  // so that even that manual retry resolves to the original order.
+  const totalAttempts = method === "GET" || method === "HEAD" ? Math.max(1, attempts) : 1;
   let last: Response | null = null;
-  for (let i = 0; i < attempts; i++) {
+  let lastError: unknown = null;
+  for (let i = 0; i < totalAttempts; i++) {
     try {
       const res = await fetch(url, init);
       if (res.ok) return res;
       last = res;
       if (res.status !== 403 && res.status < 500) return res;
-    } catch {
+    } catch (error) {
+      lastError = error;
       // network hiccup — retry
     }
-    await new Promise((r) => setTimeout(r, 300 * (i + 1)));
+    if (i + 1 < totalAttempts) {
+      await new Promise((r) => setTimeout(r, 300 * (i + 1)));
+    }
   }
   if (last) return last;
-  return fetch(url, init);
+  throw lastError ?? new Error(`Request failed: ${method} ${url}`);
 }

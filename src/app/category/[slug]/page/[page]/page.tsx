@@ -6,6 +6,7 @@ import ProductBrowser from "@/components/ProductBrowser";
 import { categoryIcon } from "@/lib/categoryIcons";
 import { getCategories, getCategoryBySlug, getProductsPaged } from "@/lib/wp";
 import { productCardPayloads } from "@/lib/productCardPayload";
+import { serializeJsonLd } from "@/lib/jsonLd";
 
 const SITE = process.env.NEXT_PUBLIC_SITE_URL ?? "https://gedushop.com";
 const PER_PAGE = 24;
@@ -69,7 +70,7 @@ export default async function PagedCategoryPage({ params }: Props) {
 
   return (
     <div className="space-y-4 px-4 pb-4 pt-4">
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbLd) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: serializeJsonLd(breadcrumbLd) }} />
       <Breadcrumbs items={[
         { label: "Home", href: "/" },
         { label: "Shop", href: "/shop/" },

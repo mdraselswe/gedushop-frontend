@@ -15,6 +15,8 @@
  *   SUITE_URL           — e.g. https://app.gedusuite.com
  */
 
+import { checkRateLimit, fingerprint } from "./_shared/security.js";
+
 /** Base64 HMAC-SHA256, the same shape WooCommerce signs its webhooks with. */
 async function sign(body, secret) {
   const key = await crypto.subtle.importKey(
@@ -41,10 +43,59 @@ export async function onRequestPost(context) {
     return new Response(null, { status: 204 });
   }
 
-  const body = await request.text();
-  if (!body || body.length > MAX_BODY) {
+  const raw = await request.text();
+  if (!raw || raw.length > MAX_BODY) {
     return new Response(null, { status: 204 });
   }
+
+  let parsed;
+  try {
+    parsed = JSON.parse(raw);
+  } catch {
+    return new Response(null, { status: 204 });
+  }
+
+  const phone = String(parsed?.phone ?? "").trim();
+  const items = Array.isArray(parsed?.items) ? parsed.items.slice(0, 30) : [];
+  if (!/^01[3-9]\d{8}$/.test(phone) || items.length === 0) {
+    return new Response(null, { status: 204 });
+  }
+
+  const ipLimit = await checkRateLimit(request, {
+    scope: "abandoned-ip",
+    limit: 30,
+    windowSeconds: 60 * 60,
+  });
+  const phoneLimit = await checkRateLimit(request, {
+    scope: "abandoned-phone",
+    limit: 12,
+    windowSeconds: 60 * 60,
+    discriminator: await fingerprint(phone),
+  });
+  if (!ipLimit.allowed || !phoneLimit.allowed) {
+    // The beacon is deliberately silent; the shopper's checkout must not fail.
+    return new Response(null, { status: 204 });
+  }
+
+  const normalized = {
+    phone,
+    name: String(parsed.name ?? "").trim().slice(0, 120),
+    address: String(parsed.address ?? "").trim().slice(0, 500),
+    area: String(parsed.area ?? "").trim().slice(0, 120),
+    district: String(parsed.district ?? "").trim().slice(0, 120),
+    items: items
+      .map((item) => ({
+        productId: Number(item?.productId),
+        name: String(item?.name ?? "").trim().slice(0, 200),
+        quantity: Math.max(1, Math.min(99, Number(item?.quantity) || 1)),
+        lineTotal: Math.max(0, Number(item?.lineTotal) || 0),
+      }))
+      .filter((item) => Number.isInteger(item.productId) && item.productId > 0 && item.name),
+    total: Math.max(0, Number(parsed.total) || 0),
+  };
+
+  if (normalized.items.length === 0) return new Response(null, { status: 204 });
+  const body = JSON.stringify(normalized);
 
   const target = `${env.SUITE_URL.replace(/\/$/, "")}/api/cron/abandoned-cart`;
 

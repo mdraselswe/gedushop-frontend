@@ -19,7 +19,7 @@ export default function PageShell({ children }: { children: React.ReactNode }) {
 
   return (
     <div
-      className={`flex flex-1 flex-col transition-[padding] duration-300 ${
+      className={`site-page-shell flex flex-1 flex-col transition-[padding] duration-300 ${
         drawerOpen ? "lg:pr-[21rem]" : ""
       }`}
     >

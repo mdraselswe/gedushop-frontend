@@ -24,7 +24,7 @@ function SidebarInner({ categories }: { categories: StoreCategory[] }) {
     }`;
 
   return (
-    <aside className="sticky top-[4.2rem] hidden h-[calc(100vh-4.2rem)] w-64 shrink-0 overflow-y-auto border-r border-plum-100/60 bg-white px-3 py-4 lg:block xl:w-72">
+    <aside className="site-chrome sticky top-[4.2rem] hidden h-[calc(100vh-4.2rem)] w-64 shrink-0 overflow-y-auto border-r border-plum-100/60 bg-white px-3 py-4 lg:block xl:w-72">
       <nav className="space-y-1">
         {COLLECTIONS.map(({ href, label, Icon }) => {
           const active =

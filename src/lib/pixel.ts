@@ -1,4 +1,6 @@
 /** Fire a Meta (Facebook) Pixel standard event, safely (no-op if pixel absent). */
+import { hasMarketingConsent } from "@/lib/consent";
+
 type Fbq = (...args: unknown[]) => void;
 
 const PIXEL_ID = process.env.NEXT_PUBLIC_FB_PIXEL_ID;
@@ -50,6 +52,7 @@ function scheduleFlush() {
 
 function enqueue(run: (fbq: Fbq) => void) {
   if (typeof window === "undefined") return;
+  if (!hasMarketingConsent()) return;
   const fbq = getFbq();
   if (fbq) {
     run(fbq);

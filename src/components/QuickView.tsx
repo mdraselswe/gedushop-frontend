@@ -6,6 +6,8 @@ import { createPortal } from "react-dom";
 import { ArrowRight, Eye, X } from "lucide-react";
 import type { StoreProduct } from "@/lib/types";
 import { discountPercent, formatPrice } from "@/lib/format";
+import { plainTextFromHtml } from "@/lib/decode";
+import { useDialogFocus } from "@/lib/useDialogFocus";
 import AddToCartButton from "./AddToCartButton";
 import ProductGallery from "./ProductGallery";
 
@@ -16,6 +18,7 @@ import ProductGallery from "./ProductGallery";
 export default function QuickView({ product }: { product: StoreProduct }) {
   const [open, setOpen] = useState(false);
   const [shown, setShown] = useState(false); // drives the enter/leave transition
+  const dialogRef = useDialogFocus<HTMLDivElement>(open);
 
   useEffect(() => {
     if (!open) return;
@@ -32,7 +35,6 @@ export default function QuickView({ product }: { product: StoreProduct }) {
       document.removeEventListener("keydown", onKey);
       document.body.style.overflow = "";
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open]);
 
   function close() {
@@ -59,6 +61,8 @@ export default function QuickView({ product }: { product: StoreProduct }) {
         // Portal to <body>: the card wraps everything in a <Link>, so rendering
         // the modal in place would make every click inside it navigate.
         <div
+          ref={dialogRef}
+          tabIndex={-1}
           className={`fixed inset-0 z-[60] flex items-end justify-center p-0 transition-opacity duration-200 sm:items-center sm:p-6 ${
             shown ? "opacity-100" : "opacity-0"
           }`}
@@ -110,10 +114,9 @@ export default function QuickView({ product }: { product: StoreProduct }) {
                 </p>
 
                 {product.short_description && (
-                  <div
-                    className="mt-3 line-clamp-4 text-xs leading-relaxed text-plum-500 [&_img]:hidden"
-                    dangerouslySetInnerHTML={{ __html: product.short_description }}
-                  />
+                  <p className="mt-3 line-clamp-4 whitespace-pre-line text-xs leading-relaxed text-plum-500">
+                    {plainTextFromHtml(product.short_description)}
+                  </p>
                 )}
 
                 <div className="mt-auto flex items-center justify-between gap-3 pt-5">

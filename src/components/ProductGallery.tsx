@@ -7,6 +7,7 @@ import ShareButton from "./ShareButton";
 import type { StoreImage, StoreProduct } from "@/lib/types";
 import { useLiveProduct } from "@/lib/liveProduct";
 import { discountPercent } from "@/lib/format";
+import { useDialogFocus } from "@/lib/useDialogFocus";
 
 const MIN_ZOOM = 1;
 const MAX_ZOOM = 4;
@@ -53,6 +54,7 @@ export default function ProductGallery({
   const [override, setOverride] = useState<StoreImage | null>(null);
   const touchStartX = useRef<number | null>(null);
   const swiped = useRef(false);
+  const thumbRail = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
     const onVarImage = (e: Event) => {
@@ -78,6 +80,18 @@ export default function ProductGallery({
     },
     [slideCount],
   );
+
+  useEffect(() => {
+    const rail = thumbRail.current;
+    const active = rail?.querySelector<HTMLElement>('[data-active="true"]');
+    active?.scrollIntoView({ behavior: "smooth", block: "nearest", inline: "center" });
+  }, [index, override]);
+
+  const scrollThumbs = useCallback((dir: 1 | -1) => {
+    const rail = thumbRail.current;
+    if (!rail) return;
+    rail.scrollBy({ left: dir * Math.min(rail.clientWidth * 0.8, 260), behavior: "smooth" });
+  }, []);
 
   if (images.length === 0 && !hasVideo) {
     return (
@@ -188,43 +202,49 @@ export default function ProductGallery({
       </div>
 
       {many && (
-        <div className="no-scrollbar mt-3 flex gap-2 overflow-x-auto">
-          {images.map((img, i) => (
-            <button
-              key={img.id}
-              onClick={() => {
-                setOverride(null);
-                setIndex(i);
-              }}
-              aria-label={`Image ${i + 1}`}
-              className={`relative size-16 shrink-0 overflow-hidden rounded-xl border-2 bg-white transition-colors ${
-                i === index && !override ? "border-coral-500" : "border-transparent hover:border-plum-200"
-              }`}
-            >
-              <Image src={img.thumbnail || img.src} alt="" fill sizes="64px" className="object-cover" />
-            </button>
-          ))}
-          {hasVideo && (
-            <button
-              onClick={() => {
-                setOverride(null);
-                setIndex(images.length);
-              }}
-              aria-label="Play product video"
-              className={`relative size-16 shrink-0 overflow-hidden rounded-xl border-2 bg-plum-900 transition-colors ${
-                isVideo ? "border-coral-500" : "border-transparent hover:border-plum-200"
-              }`}
-            >
-              {images[0] && (
-                <Image src={images[0].thumbnail || images[0].src} alt="" fill sizes="64px" className="object-cover opacity-50" />
-              )}
-              <span className="absolute inset-0 flex items-center justify-center">
-                <span className="flex size-7 items-center justify-center rounded-full bg-white/90 text-plum-700">
-                  <Play className="size-3.5 fill-current" strokeWidth={0} />
+        <div className="mt-3 grid grid-cols-[auto_1fr_auto] items-center gap-2">
+          <ThumbRailButton dir={-1} onClick={() => scrollThumbs(-1)} />
+          <div ref={thumbRail} className="no-scrollbar flex min-w-0 snap-x gap-2 overflow-x-auto scroll-smooth px-0.5">
+            {images.map((img, i) => (
+              <button
+                key={img.id}
+                onClick={() => {
+                  setOverride(null);
+                  setIndex(i);
+                }}
+                data-active={i === index && !override}
+                aria-label={`Image ${i + 1}`}
+                className={`relative size-16 shrink-0 snap-center overflow-hidden rounded-xl border-2 bg-white transition-colors ${
+                  i === index && !override ? "border-coral-500" : "border-transparent hover:border-plum-200"
+                }`}
+              >
+                <Image src={img.thumbnail || img.src} alt="" fill sizes="64px" className="object-cover" />
+              </button>
+            ))}
+            {hasVideo && (
+              <button
+                onClick={() => {
+                  setOverride(null);
+                  setIndex(images.length);
+                }}
+                data-active={isVideo}
+                aria-label="Play product video"
+                className={`relative size-16 shrink-0 snap-center overflow-hidden rounded-xl border-2 bg-plum-900 transition-colors ${
+                  isVideo ? "border-coral-500" : "border-transparent hover:border-plum-200"
+                }`}
+              >
+                {images[0] && (
+                  <Image src={images[0].thumbnail || images[0].src} alt="" fill sizes="64px" className="object-cover opacity-50" />
+                )}
+                <span className="absolute inset-0 flex items-center justify-center">
+                  <span className="flex size-7 items-center justify-center rounded-full bg-white/90 text-plum-700">
+                    <Play className="size-3.5 fill-current" strokeWidth={0} />
+                  </span>
                 </span>
-              </span>
-            </button>
-          )}
+              </button>
+            )}
+          </div>
+          <ThumbRailButton dir={1} onClick={() => scrollThumbs(1)} />
         </div>
       )}
 
@@ -232,6 +252,20 @@ export default function ProductGallery({
         <Lightbox images={images} name={name} index={index} setIndex={setIndex} onClose={() => setLightbox(false)} />
       )}
     </div>
+  );
+}
+
+function ThumbRailButton({ dir, onClick }: { dir: 1 | -1; onClick: () => void }) {
+  const Icon = dir === 1 ? ChevronRight : ChevronLeft;
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      aria-label={dir === 1 ? "Show more thumbnails" : "Show previous thumbnails"}
+      className="flex size-9 shrink-0 items-center justify-center rounded-full bg-white text-plum-600 shadow-[var(--shadow-soft)] ring-1 ring-plum-100 transition-colors hover:bg-plum-600 hover:text-white"
+    >
+      <Icon className="size-4.5" strokeWidth={2.5} />
+    </button>
   );
 }
 
@@ -264,6 +298,7 @@ function Lightbox({
   onClose: () => void;
 }) {
   const [zoom, setZoom] = useState(1);
+  const dialogRef = useDialogFocus<HTMLDivElement>(true);
   const [pan, setPan] = useState({ x: 0, y: 0 });
   const drag = useRef<{ x: number; y: number; panX: number; panY: number } | null>(null);
   const swipeX = useRef<number | null>(null);
@@ -305,14 +340,14 @@ function Lightbox({
   }, [go, onClose, step]);
 
   useEffect(() => {
-    if (zoom === 1) setPan({ x: 0, y: 0 });
+    if (zoom === 1) queueMicrotask(() => setPan({ x: 0, y: 0 }));
   }, [zoom]);
 
   const btn =
     "flex size-10 items-center justify-center rounded-full bg-white/10 text-white backdrop-blur transition-colors hover:bg-white/25 disabled:opacity-40";
 
   return (
-    <div data-lightbox className="fixed inset-0 z-[70] flex flex-col bg-plum-900/95 backdrop-blur-sm" role="dialog" aria-modal="true" aria-label={`${name} images`}>
+    <div ref={dialogRef} tabIndex={-1} data-lightbox className="fixed inset-0 z-[70] flex flex-col bg-plum-900/95 backdrop-blur-sm" role="dialog" aria-modal="true" aria-label={`${name} images`}>
       <div className="flex items-center justify-between p-3">
         <span className="rounded-full bg-white/10 px-3 py-1 text-xs font-bold text-white">
           {index + 1} / {images.length}

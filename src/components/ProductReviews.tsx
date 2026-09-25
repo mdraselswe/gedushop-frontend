@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { Camera, Loader2, Star, X } from "lucide-react";
 import type { StoreReview } from "@/lib/types";
-import { decodeEntities } from "@/lib/decode";
+import { decodeEntities, plainTextFromHtml } from "@/lib/decode";
 import { apiFetch, GEDU_API } from "@/lib/api";
 import Stars from "./Stars";
 
@@ -238,10 +238,9 @@ export default function ProductReviews({
                 {r.verified && <span className="rounded-full bg-emerald-50 px-2 py-0.5 text-[10px] font-bold text-emerald-600">Verified</span>}
                 <span className="ml-auto text-xs text-plum-300">{formatDate(r.date_created)}</span>
               </div>
-              <div
-                className="mt-1.5 text-sm leading-relaxed text-plum-600 [&_p]:m-0"
-                dangerouslySetInnerHTML={{ __html: r.review }}
-              />
+              <p className="mt-1.5 whitespace-pre-line text-sm leading-relaxed text-plum-600">
+                {plainTextFromHtml(r.review)}
+              </p>
               {r.photos && r.photos.length > 0 && (
                 <div className="mt-2 flex flex-wrap gap-2">
                   {r.photos.map((p, i) => (

@@ -72,19 +72,21 @@ export default function ProductBuyBox({ product: initial }: { product: StoreProd
   useEffect(() => {
     const attrs = (product.attributes ?? []).filter((a) => a.has_variations);
     if (attrs.length === 0) return;
-    setSelected((s) => {
-      let changed = false;
-      const next = { ...s };
-      for (const a of attrs) {
-        if (!next[a.name]) {
-          const def = a.terms.find((t) => t.default) ?? a.terms[0];
-          if (def) {
-            next[a.name] = def.slug;
-            changed = true;
+    queueMicrotask(() => {
+      setSelected((s) => {
+        let changed = false;
+        const next = { ...s };
+        for (const a of attrs) {
+          if (!next[a.name]) {
+            const def = a.terms.find((t) => t.default) ?? a.terms[0];
+            if (def) {
+              next[a.name] = def.slug;
+              changed = true;
+            }
           }
         }
-      }
-      return changed ? next : s;
+        return changed ? next : s;
+      });
     });
   }, [product]);
 

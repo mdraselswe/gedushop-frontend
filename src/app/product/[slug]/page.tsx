@@ -22,6 +22,7 @@ import {
   primaryCategory,
 } from "@/lib/wp";
 import { HOME_OG_IMAGE, SITE_URL } from "@/lib/seo";
+import { serializeJsonLd } from "@/lib/jsonLd";
 
 interface Props {
   params: Promise<{ slug: string }>;
@@ -143,8 +144,8 @@ export default async function ProductPage({ params }: Props) {
 
   return (
     <div className="mx-auto max-w-5xl px-4 pt-4">
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbLd) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: serializeJsonLd(jsonLd) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: serializeJsonLd(breadcrumbLd) }} />
       <Breadcrumbs
         items={[
           { label: "Home", href: "/" },

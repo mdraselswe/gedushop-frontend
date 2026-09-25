@@ -17,8 +17,10 @@ export function InStockProvider({ children }: { children: React.ReactNode }) {
   const [ready, setReady] = useState(false);
 
   useEffect(() => {
-    setInStockOnlyState(localStorage.getItem(KEY) === "1");
-    setReady(true);
+    queueMicrotask(() => {
+      setInStockOnlyState(localStorage.getItem(KEY) === "1");
+      setReady(true);
+    });
   }, []);
 
   const setInStockOnly = (v: boolean) => {

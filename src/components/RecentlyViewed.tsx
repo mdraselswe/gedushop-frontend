@@ -19,7 +19,7 @@ export default function RecentlyViewed({ excludeSlug, title = "Recently viewed" 
   const [canScrollRight, setCanScrollRight] = useState(false);
 
   useEffect(() => {
-    setItems(getRecent().filter((x) => x.slug !== excludeSlug));
+    queueMicrotask(() => setItems(getRecent().filter((x) => x.slug !== excludeSlug)));
   }, [excludeSlug]);
 
   useEffect(() => {

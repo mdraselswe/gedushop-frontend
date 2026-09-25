@@ -35,6 +35,8 @@ interface FormState {
   note: string;
 }
 
+type FieldName = keyof FormState | "terms" | "trxId";
+
 const EMPTY: FormState = { name: "", phone: "", email: "", address: "", area: "", district: "", note: "" };
 
 /** Official bKash logomark (brand pink). Sized by height, width auto — no aspect mismatch. */
@@ -46,6 +48,15 @@ function BkashLogo({ className = "" }: { className?: string }) {
   );
 }
 
+function FieldError({ name, message }: { name: FieldName; message?: string }) {
+  if (!message) return null;
+  return (
+    <p id={`checkout-${name}-error`} role="alert" className="-mt-1 px-1 text-xs font-bold text-red-600">
+      {message}
+    </p>
+  );
+}
+
 export default function CheckoutForm() {
   const storeSettings = useStoreSettings();
   const { cart, loading, updateShipping, shippingLoading } = useCart();
@@ -53,7 +64,10 @@ export default function CheckoutForm() {
   const [form, setForm] = useState<FormState>(EMPTY);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [fieldErrors, setFieldErrors] = useState<Partial<Record<FieldName, string>>>({});
   const trackedCheckout = useRef(false);
+  /** Stable across manual retries so the backend can return the first order. */
+  const checkoutKey = useRef<string | null>(null);
   /** Stops the abandoned-cart beacon once the order is actually placed. */
   const orderPlaced = useRef(false);
   /** The last snapshot sent, so a keystroke that changes nothing sends nothing. */
@@ -156,12 +170,19 @@ export default function CheckoutForm() {
   }, [cart, form.phone, form.name, form.address, form.area, form.district]);
 
   function set<K extends keyof FormState>(key: K) {
-    return (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) =>
+    return (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+      setFieldErrors((current) => ({ ...current, [key]: undefined }));
       setForm((f) => ({ ...f, [key]: e.target.value }));
+    };
+  }
+
+  function focusField(name: FieldName) {
+    requestAnimationFrame(() => document.getElementById(`checkout-${name}`)?.focus());
   }
 
   function onDistrictChange(e: React.ChangeEvent<HTMLSelectElement>) {
     const district = e.target.value;
+    setFieldErrors((current) => ({ ...current, district: undefined, area: undefined }));
     // The area belongs to the district it was picked under — a Dhaka thana is
     // not an option anywhere else, and free text typed for another district is
     // not one of Dhaka's — so a district change always clears it.
@@ -178,6 +199,7 @@ export default function CheckoutForm() {
 
   function onAreaChange(e: React.ChangeEvent<HTMLSelectElement>) {
     const area = e.target.value;
+    setFieldErrors((current) => ({ ...current, area: undefined }));
     setForm((f) => ({ ...f, area }));
     // Inside Dhaka only for Dhaka Sadar; WordPress decides that from the city.
     if (area) updateShipping({ country: "BD", state: DHAKA_CODE, city: area });
@@ -186,33 +208,47 @@ export default function CheckoutForm() {
   async function submit(e: React.FormEvent) {
     e.preventDefault();
     setError(null);
+    const nextErrors: Partial<Record<FieldName, string>> = {};
     // WooCommerce needs a first name as much as a last one, and refuses the
     // order without it. Guarded here rather than trusting the input’s
     // `required` attribute, for the same reason the phone below is.
     if (!form.name.trim()) {
-      setError("Please enter your name.");
-      return;
+      nextErrors.name = "Please enter your name.";
     }
     if (!/^01[3-9]\d{8}$/.test(form.phone.trim())) {
-      setError("Please enter a valid Bangladeshi mobile number (11 digits, e.g. 01712345678).");
-      return;
+      nextErrors.phone = "Enter an 11-digit Bangladeshi mobile number, e.g. 01712345678.";
     }
+    if (form.email.trim() && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email.trim())) {
+      nextErrors.email = "Please enter a valid email address or leave it blank.";
+    }
+    if (!form.address.trim()) nextErrors.address = "Please enter the full delivery address.";
+    if (!form.district) nextErrors.district = "Please select the delivery district.";
     // The area is what decides Dhaka's delivery charge, so an order cannot go
     // without one. The select is `required` too — this is the guard that does
     // not depend on the browser honouring it.
     if (form.district === DHAKA_CODE && !DHAKA_AREAS.includes(form.area)) {
-      setError("Please select your area / thana.");
-      return;
+      nextErrors.area = "Please select your area / thana.";
     }
     if (!agreed) {
-      setError("Please accept the Terms & Conditions to place your order.");
-      return;
+      nextErrors.terms = "Please accept the Terms & Conditions to place your order.";
     }
     if (method === "bkash" && !trxId.trim()) {
-      setError("Please enter your bKash Transaction ID after sending the money.");
+      nextErrors.trxId = "Enter the bKash Transaction ID after sending the payment.";
+    }
+    const firstInvalid = (Object.keys(nextErrors) as FieldName[])[0];
+    if (firstInvalid) {
+      setFieldErrors(nextErrors);
+      setError("Please check the highlighted field and try again.");
+      focusField(firstInvalid);
       return;
     }
+    setFieldErrors({});
     setSubmitting(true);
+
+    if (!checkoutKey.current) {
+      checkoutKey.current = crypto.randomUUID();
+    }
+    const idempotencyKey = checkoutKey.current;
 
     const [firstName, ...rest] = form.name.trim().split(/\s+/);
     // WooCommerce refuses the whole order — "Last name is required" — when this
@@ -240,6 +276,7 @@ export default function CheckoutForm() {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
+          "X-Gedu-Idempotency-Key": idempotencyKey,
           ...(token ? { "Cart-Token": token } : {}),
         },
         body: JSON.stringify({
@@ -268,6 +305,7 @@ export default function CheckoutForm() {
           "gedu_last_order",
           JSON.stringify({
             id: data.order_id,
+            accessToken: data.gedushop_access_token,
             items: cart!.items.map((i) => ({
               // Parent product id — the same value AddToCart/ViewContent report as
               // content_ids, so Purchase lines up against the same catalogue entry.
@@ -307,7 +345,9 @@ export default function CheckoutForm() {
       // failed, the history should still be written.
       addOrder({
         id: data.order_id,
-        phone: form.phone.trim(),
+        ...(data.gedushop_access_token
+          ? { accessToken: String(data.gedushop_access_token) }
+          : { phone: form.phone.trim() }),
         date: new Date().toISOString(),
         total: formatPrice(String(grandTotal), cart!.totals),
         summary: cart!.items.map((i) => `${decodeEntities(i.name)} × ${i.quantity}`).join(", "),
@@ -373,10 +413,12 @@ export default function CheckoutForm() {
   }
 
   return (
-    <form onSubmit={submit} className="mt-4 grid gap-5 pb-8 md:grid-cols-[1fr_360px] lg:grid-cols-[1fr_420px]">
+    <form noValidate onSubmit={submit} className="mt-4 grid gap-5 pb-8 md:grid-cols-[1fr_360px] lg:grid-cols-[1fr_420px]">
       <div className="space-y-3">
-        <input required value={form.name} onChange={set("name")} placeholder="Full name *" className={inputCls} autoComplete="name" />
+        <input id="checkout-name" required value={form.name} onChange={set("name")} placeholder="Full name *" className={inputCls} autoComplete="name" aria-invalid={Boolean(fieldErrors.name)} aria-describedby={fieldErrors.name ? "checkout-name-error" : undefined} />
+        <FieldError name="name" message={fieldErrors.name} />
         <input
+          id="checkout-phone"
           required
           value={form.phone}
           onChange={set("phone")}
@@ -386,7 +428,10 @@ export default function CheckoutForm() {
           pattern="01[3-9][0-9]{8}"
           title="11-digit Bangladeshi mobile number, e.g. 01712345678"
           autoComplete="tel"
+          aria-invalid={Boolean(fieldErrors.phone)}
+          aria-describedby={fieldErrors.phone ? "checkout-phone-error" : undefined}
         />
+        <FieldError name="phone" message={fieldErrors.phone} />
         {/* Said out loud because it is true from the keystroke after this one:
             the number is saved as it is typed, not when the order is placed
             (see the abandoned-cart beacon above). A customer who gets a call
@@ -396,8 +441,10 @@ export default function CheckoutForm() {
         <p className="-mt-1 px-1 text-xs text-plum-400">
           If you don&apos;t finish your order, we may call this number to help.
         </p>
-        <input value={form.email} onChange={set("email")} placeholder="Email (optional)" className={inputCls} type="email" autoComplete="email" />
+        <input id="checkout-email" value={form.email} onChange={set("email")} placeholder="Email (optional)" className={inputCls} type="email" autoComplete="email" aria-invalid={Boolean(fieldErrors.email)} aria-describedby={fieldErrors.email ? "checkout-email-error" : undefined} />
+        <FieldError name="email" message={fieldErrors.email} />
         <textarea
+          id="checkout-address"
           required
           value={form.address}
           onChange={set("address")}
@@ -405,13 +452,19 @@ export default function CheckoutForm() {
           rows={2}
           className={inputCls}
           autoComplete="street-address"
+          aria-invalid={Boolean(fieldErrors.address)}
+          aria-describedby={fieldErrors.address ? "checkout-address-error" : undefined}
         />
+        <FieldError name="address" message={fieldErrors.address} />
         <div className="grid gap-3 sm:grid-cols-2">
           <select
+            id="checkout-district"
             required
             value={form.district}
             onChange={onDistrictChange}
             className={`${inputCls} ${form.district ? "text-plum-800" : "text-plum-300"}`}
+            aria-invalid={Boolean(fieldErrors.district)}
+            aria-describedby={fieldErrors.district ? "checkout-district-error" : undefined}
           >
             <option value="" disabled>
               Select district *
@@ -424,10 +477,13 @@ export default function CheckoutForm() {
           </select>
           {isDhaka ? (
             <select
+              id="checkout-area"
               required
               value={form.area}
               onChange={onAreaChange}
               className={`${inputCls} ${form.area ? "text-plum-800" : "text-plum-300"}`}
+              aria-invalid={Boolean(fieldErrors.area)}
+              aria-describedby={fieldErrors.area ? "checkout-area-error" : undefined}
             >
               <option value="" disabled>
                 Select area / thana *
@@ -442,6 +498,8 @@ export default function CheckoutForm() {
             <input value={form.area} onChange={set("area")} placeholder="Area / Thana (optional)" className={inputCls} autoComplete="address-level3" />
           )}
         </div>
+        <FieldError name="district" message={fieldErrors.district} />
+        <FieldError name="area" message={fieldErrors.area} />
         <textarea value={form.note} onChange={set("note")} placeholder="Order note (optional)" rows={2} className={inputCls} />
 
         {/* Payment method */}
@@ -487,12 +545,19 @@ export default function CheckoutForm() {
                 Open bKash → Send Money → enter the number → send the exact amount → then put the Transaction ID below.
               </p>
               <input
+                id="checkout-trxId"
                 required
                 value={trxId}
-                onChange={(e) => setTrxId(e.target.value)}
+                onChange={(e) => {
+                  setTrxId(e.target.value);
+                  setFieldErrors((current) => ({ ...current, trxId: undefined }));
+                }}
                 placeholder="bKash Transaction ID *"
                 className={inputCls}
+                aria-invalid={Boolean(fieldErrors.trxId)}
+                aria-describedby={fieldErrors.trxId ? "checkout-trxId-error" : undefined}
               />
+              <FieldError name="trxId" message={fieldErrors.trxId} />
               <input
                 value={sender}
                 onChange={(e) => setSender(e.target.value)}
@@ -585,10 +650,16 @@ export default function CheckoutForm() {
         </p>
         <label className="mt-3 flex cursor-pointer items-start gap-2.5 text-xs font-semibold text-plum-500">
           <input
+            id="checkout-terms"
             type="checkbox"
             checked={agreed}
-            onChange={(e) => setAgreed(e.target.checked)}
+            onChange={(e) => {
+              setAgreed(e.target.checked);
+              setFieldErrors((current) => ({ ...current, terms: undefined }));
+            }}
             className="mt-px size-4 shrink-0 accent-coral-500"
+            aria-invalid={Boolean(fieldErrors.terms)}
+            aria-describedby={fieldErrors.terms ? "checkout-terms-error" : undefined}
           />
           <span>
             I agree to the{" "}
@@ -604,6 +675,7 @@ export default function CheckoutForm() {
             </Link>
           </span>
         </label>
+        <FieldError name="terms" message={fieldErrors.terms} />
         {error && <p className="mt-3 rounded-xl bg-red-50 px-3 py-2 text-xs font-bold text-red-600">{error}</p>}
         <button
           type="submit"

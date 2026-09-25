@@ -16,7 +16,7 @@ export default function CartDockButton() {
     <button
       onClick={() => setDrawerOpen(true)}
       aria-label="Open cart"
-      className="fixed right-[max(0px,calc((100vw-120rem)/2))] top-1/3 z-40 hidden flex-col items-center overflow-hidden rounded-l-2xl shadow-lg shadow-plum-900/20 transition-transform hover:-translate-x-0.5 lg:flex"
+      className="site-chrome fixed right-[max(0px,calc((100vw-120rem)/2))] top-1/3 z-40 hidden flex-col items-center overflow-hidden rounded-l-2xl shadow-lg shadow-plum-900/20 transition-transform hover:-translate-x-0.5 lg:flex"
     >
       <span className="flex flex-col items-center gap-1 bg-plum-600 px-4 pb-2.5 pt-3 text-white">
         <CartIcon className="size-6" />

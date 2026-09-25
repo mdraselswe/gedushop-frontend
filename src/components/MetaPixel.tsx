@@ -1,11 +1,24 @@
+"use client";
+
 import Script from "next/script";
+import { useEffect, useState } from "react";
+import { CONSENT_CHANGED, hasMarketingConsent } from "@/lib/consent";
 
 /** Meta (Facebook) Pixel base code + PageView. Renders only when the pixel ID
- *  is set at build time. Standard events (ViewContent, AddToCart, etc.) are
- *  fired from components via lib/pixel.ts. */
+ *  is set and marketing consent is granted. Standard events (ViewContent,
+ *  AddToCart, etc.) are fired from components via lib/pixel.ts. */
 export default function MetaPixel() {
   const id = process.env.NEXT_PUBLIC_FB_PIXEL_ID;
-  if (!id) return null;
+  const [allowed, setAllowed] = useState(false);
+
+  useEffect(() => {
+    const sync = () => setAllowed(hasMarketingConsent());
+    sync();
+    window.addEventListener(CONSENT_CHANGED, sync);
+    return () => window.removeEventListener(CONSENT_CHANGED, sync);
+  }, []);
+
+  if (!id || !allowed) return null;
   return (
     <>
       {/* afterInteractive, not lazyOnload: lazyOnload waits for the window

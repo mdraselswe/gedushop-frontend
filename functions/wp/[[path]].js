@@ -21,15 +21,35 @@ export async function onRequest(context) {
   if (cartToken) headers.set("cart-token", cartToken);
   const nonce = request.headers.get("nonce");
   if (nonce) headers.set("nonce", nonce);
+  const idempotencyKey = request.headers.get("x-gedu-idempotency-key");
+  if (idempotencyKey) headers.set("x-gedu-idempotency-key", idempotencyKey);
 
   const hasBody = request.method !== "GET" && request.method !== "HEAD";
   const body = hasBody ? await request.arrayBuffer() : undefined;
 
+  const safeToReplay = request.method === "GET" || request.method === "HEAD";
+  const attempts = safeToReplay ? 6 : 1;
   let res;
-  for (let i = 0; i < 6; i++) {
-    res = await fetch(target, { method: request.method, headers, body });
+  for (let i = 0; i < attempts; i++) {
+    try {
+      res = await fetch(target, { method: request.method, headers, body });
+    } catch {
+      if (i + 1 < attempts) {
+        await new Promise((r) => setTimeout(r, 200 * (i + 1)));
+      }
+      continue;
+    }
     if (res.ok || (res.status !== 403 && res.status < 500)) break;
-    await new Promise((r) => setTimeout(r, 200 * (i + 1)));
+    if (i + 1 < attempts) {
+      await new Promise((r) => setTimeout(r, 200 * (i + 1)));
+    }
+  }
+
+  if (!res) {
+    return new Response(JSON.stringify({ error: "Upstream temporarily unavailable." }), {
+      status: 502,
+      headers: { "content-type": "application/json", "cache-control": "no-store" },
+    });
   }
 
   const out = new Response(res.body, { status: res.status });

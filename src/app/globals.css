@@ -159,3 +159,12 @@ body {
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
   border-radius: inherit;
 }
+/* Checkout has its own compact, distraction-free header. :has() is supported
+   by every browser that can run this Next.js build; it adds no client JS. */
+body:has(.checkout-route) .site-chrome {
+  display: none !important;
+}
+
+body:has(.checkout-route) .site-page-shell {
+  padding-right: 0 !important;
+}

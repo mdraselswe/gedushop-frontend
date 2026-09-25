@@ -1,9 +1,22 @@
-import Script from "next/script";
+"use client";
 
-/** Google Analytics 4 — only renders when NEXT_PUBLIC_GA_ID is set (build env). */
+import Script from "next/script";
+import { useEffect, useState } from "react";
+import { CONSENT_CHANGED, hasAnalyticsConsent } from "@/lib/consent";
+
+/** Google Analytics 4 — renders only after analytics consent is granted. */
 export default function Analytics() {
   const id = process.env.NEXT_PUBLIC_GA_ID;
-  if (!id) return null;
+  const [allowed, setAllowed] = useState(false);
+
+  useEffect(() => {
+    const sync = () => setAllowed(hasAnalyticsConsent());
+    sync();
+    window.addEventListener(CONSENT_CHANGED, sync);
+    return () => window.removeEventListener(CONSENT_CHANGED, sync);
+  }, []);
+
+  if (!id || !allowed) return null;
   return (
     <>
       <Script src={`https://www.googletagmanager.com/gtag/js?id=${id}`} strategy="lazyOnload" />

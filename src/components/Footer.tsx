@@ -3,6 +3,7 @@ import Link from "next/link";
 import { Mail, MapPin, MessageCircle, Phone } from "lucide-react";
 import type { StoreCategory } from "@/lib/types";
 import { PHONE, PHONE_DISPLAY, WHATSAPP } from "@/lib/contact";
+import CookieSettingsButton from "./CookieSettingsButton";
 
 const EMAIL = "gedu.shop@gmail.com";
 
@@ -10,7 +11,7 @@ export default function Footer({ categories }: { categories: StoreCategory[] }) 
   const topCategories = categories.slice(0, 6);
 
   return (
-    <footer className="mt-10 border-t border-plum-100/70 bg-white/70 pb-28 md:pb-10">
+    <footer className="site-chrome mt-10 border-t border-plum-100/70 bg-white/70 pb-28 md:pb-10">
       <div className="mx-auto grid max-w-[120rem] gap-8 px-4 py-10 sm:grid-cols-2 lg:grid-cols-4 lg:px-8">
         {/* Brand */}
         <div className="sm:col-span-2 lg:col-span-1">
@@ -84,6 +85,7 @@ export default function Footer({ categories }: { categories: StoreCategory[] }) 
             <Link href="/terms" className="hover:text-coral-500">Terms</Link>
             <Link href="/return-policy" className="hover:text-coral-500">Returns</Link>
             <Link href="/delivery" className="hover:text-coral-500">Delivery</Link>
+            <CookieSettingsButton />
             <Link href="/about" className="hover:text-coral-500">About</Link>
             <Link href="/contact" className="hover:text-coral-500">Contact</Link>
           </nav>

@@ -11,8 +11,8 @@ export const metadata: Metadata = {
 };
 
 const VALUES = [
-  { Icon: BadgeCheck, title: "Quality checked", text: "Every item is picked and checked like we'd give it to our own kids." },
-  { Icon: Banknote, title: "Cash on delivery", text: "Pay only when your order reaches your door. No advance, no risk." },
+  { Icon: BadgeCheck, title: "Quality checked", text: "We inspect stock and packing before dispatch and clearly show the product information available to us." },
+  { Icon: Banknote, title: "Flexible payment", text: "Cash on Delivery is available, and bKash may be offered when enabled at checkout." },
   { Icon: Truck, title: "Nationwide delivery", text: "We deliver to every district in Bangladesh — city or village." },
   { Icon: HeartHandshake, title: "Fair prices", text: "Honest pricing on baby items and toys, with no hidden charges." },
 ];
@@ -40,13 +40,14 @@ export default function AboutPage() {
       <Reveal className="mt-6" as="section">
         <div className="rounded-3xl bg-white p-6 text-sm leading-relaxed text-plum-600 shadow-[var(--shadow-soft)] ring-1 ring-plum-100/50 md:p-8 md:text-base">
           <p>
-            GeduShop started with a simple idea — parents shouldn&apos;t have to choose between safe products and
-            fair prices. We hand-pick baby care items and toys we would happily give our own little ones, and we
-            keep the prices honest.
+            GeduShop is a Bangladesh-based online shop focused on practical baby items, toys and kids essentials.
+            We select products using the information available from suppliers, inspect stock and packing, and aim
+            to present materials, sizes and suitable ages clearly so parents can make an informed choice.
           </p>
           <p className="mt-4">
-            Order from anywhere in Bangladesh and pay cash on delivery. No accounts to create, no hidden charges —
-            just a quick, friendly way to shop for your child.
+            Order from anywhere in Bangladesh without creating an account. Product prices, available payment
+            choices and delivery charges are shown before you place the order, and our support channels remain open
+            for questions before and after purchase.
           </p>
         </div>
       </Reveal>

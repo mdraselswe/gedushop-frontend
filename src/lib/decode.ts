@@ -6,15 +6,37 @@ import type { StoreProduct } from "./types";
  * we decode them once. Server- and client-safe (no DOM needed).
  */
 export function decodeEntities(s: string): string {
-  return s
-    .replace(/&nbsp;/g, " ")
-    .replace(/&amp;/g, "&")
-    .replace(/&lt;/g, "<")
-    .replace(/&gt;/g, ">")
-    .replace(/&quot;/g, '"')
-    .replace(/&#0?39;/g, "'")
-    .replace(/&#(\d+);/g, (_, n) => String.fromCodePoint(Number(n)))
-    .replace(/&#x([0-9a-f]+);/gi, (_, n) => String.fromCodePoint(parseInt(n, 16)));
+  return normalizeCatalogCopy(
+    s
+      .replace(/&nbsp;/g, " ")
+      .replace(/&amp;/g, "&")
+      .replace(/&lt;/g, "<")
+      .replace(/&gt;/g, ">")
+      .replace(/&quot;/g, '"')
+      .replace(/&#0?39;/g, "'")
+      .replace(/&#(\d+);/g, (_, n) => String.fromCodePoint(Number(n)))
+      .replace(/&#x([0-9a-f]+);/gi, (_, n) => String.fromCodePoint(parseInt(n, 16))),
+  );
+}
+
+/** Correct known catalogue copy mistakes without changing ids, slugs, or API data. */
+export function normalizeCatalogCopy(value: string): string {
+  return value
+    .replace(/\bMagnatic\b/gi, "Magnetic")
+    .replace(/\bWatarproof\b/gi, "Waterproof")
+    .replace(/\bSilicon Bib\b/gi, "Silicone Bib");
+}
+
+/** Render customer-authored HTML as text; React supplies the escaping. */
+export function plainTextFromHtml(value: string): string {
+  return decodeEntities(
+    value
+      .replace(/<\/(p|div|li|h[1-6])>/gi, "\n")
+      .replace(/<br\s*\/?>/gi, "\n")
+      .replace(/<[^>]*>/g, "")
+      .replace(/\n{3,}/g, "\n\n")
+      .trim(),
+  );
 }
 
 /**

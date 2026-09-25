@@ -6,7 +6,7 @@ import Link from "next/link";
 import { Check, CircleAlert, Loader2, PackageCheck, Search } from "lucide-react";
 import { decodeEntities } from "@/lib/decode";
 import { apiFetch, GEDU_API } from "@/lib/api";
-import { addOrder } from "@/lib/orderHistory";
+import { addOrder, getOrders } from "@/lib/orderHistory";
 import { STATUS_LABEL, STATUS_STEP, STEPS, formatOrderDate as formatDate } from "@/lib/orderStatus";
 
 interface TrackedItem {
@@ -25,6 +25,7 @@ interface TrackResult {
   paymentMethodTitle: string;
   customerName: string;
   items: TrackedItem[];
+  accessToken?: string;
 }
 
 function OrderTrackerInner() {
@@ -39,7 +40,7 @@ function OrderTrackerInner() {
   const [error, setError] = useState<string | null>(null);
   const [result, setResult] = useState<TrackResult | null>(null);
 
-  async function track(orderIdVal: string, phoneVal: string) {
+  async function track(orderIdVal: string, phoneVal = "", accessToken = "") {
     setError(null);
     setResult(null);
     setLoading(true);
@@ -47,7 +48,10 @@ function OrderTrackerInner() {
       const res = await apiFetch(`${GEDU_API}/track`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ phone: phoneVal, order_id: orderIdVal }),
+        body: JSON.stringify({
+          order_id: orderIdVal,
+          ...(accessToken ? { access_token: accessToken } : { phone: phoneVal }),
+        }),
       });
       const data = await res.json();
       if (!res.ok) setError(data.error || "Something went wrong.");
@@ -58,7 +62,9 @@ function OrderTrackerInner() {
         // even though they never checked out in this browser.
         addOrder({
           id: data.id,
-          phone: phoneVal.trim(),
+          ...(data.accessToken
+            ? { accessToken: String(data.accessToken) }
+            : { phone: phoneVal.trim() }),
           date: data.dateCreated,
           total: `${data.currencySymbol}${Number(data.total).toLocaleString("en-IN")}`,
           summary: (data.items as TrackedItem[])
@@ -88,10 +94,17 @@ function OrderTrackerInner() {
     autoTracked.current = true;
     const o = params.get("order");
     const p = params.get("phone");
+    const saved = o ? getOrders().find((candidate) => String(candidate.id) === o) : undefined;
     // Deferred a tick: track()'s first line is setLoading(true), and calling
     // that synchronously inside the effect body is what this lint rule
     // actually flags — not the fetch itself.
-    if (o && p) queueMicrotask(() => void track(o, p));
+    if (p) {
+      const clean = new URL(window.location.href);
+      clean.searchParams.delete("phone");
+      window.history.replaceState(window.history.state, "", `${clean.pathname}${clean.search}${clean.hash}`);
+    }
+    if (o && saved?.accessToken) queueMicrotask(() => void track(o, "", saved.accessToken));
+    else if (o && (p || saved?.phone)) queueMicrotask(() => void track(o, p || saved?.phone || ""));
     // Runs once against the URL this page loaded with.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);

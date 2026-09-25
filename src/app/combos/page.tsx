@@ -3,6 +3,7 @@ import { PackageCheck } from "lucide-react";
 import Breadcrumbs from "@/components/Breadcrumbs";
 import CombosGrid from "@/components/CombosGrid";
 import { getCombos, comboSaving } from "@/lib/wp";
+import { serializeJsonLd } from "@/lib/jsonLd";
 
 export const metadata: Metadata = {
   title: "Combo Offers — Buy Sets & Save",
@@ -38,7 +39,7 @@ export default async function CombosPage() {
       {sorted.length > 0 && (
         <script
           type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(listLd) }}
+          dangerouslySetInnerHTML={{ __html: serializeJsonLd(listLd) }}
         />
       )}
       <Breadcrumbs items={[{ label: "Home", href: "/" }, { label: "Combo offers" }]} />

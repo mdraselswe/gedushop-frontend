@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { ChevronDown } from "lucide-react";
 import Breadcrumbs from "@/components/Breadcrumbs";
 import { DeliveryFaqAnswer } from "@/components/DeliverySettingsCopy";
+import { serializeJsonLd } from "@/lib/jsonLd";
 
 export const metadata: Metadata = {
   title: "FAQ — Frequently Asked Questions",
@@ -17,7 +18,7 @@ const FAQS = [
   },
   {
     q: "Do you offer Cash on Delivery (COD)?",
-    a: "Yes. Cash on Delivery is available all over Bangladesh — you pay only when the product reaches your hands. No advance payment required.",
+    a: "Yes. Cash on Delivery is available across Bangladesh. When bKash is enabled, it may also appear as a separate checkout option with the payment number and instructions.",
   },
   {
     q: "What are the delivery charges?",
@@ -26,15 +27,35 @@ const FAQS = [
   },
   {
     q: "How long does delivery take?",
-    a: "Inside Dhaka usually 1–2 days, outside Dhaka 2–4 days after the order is confirmed. Delivery time may vary during peak seasons.",
+    a: "Inside Dhaka usually 1–2 working days and outside Dhaka 3–5 working days after confirmation. Courier coverage, holidays, weather or an unreachable phone can add time.",
   },
   {
     q: "How can I track my order?",
-    a: "Use the Track Order page with your order number and the phone number you ordered with. You'll see the current status of your order.",
+    a: "Open Track Order. Orders saved on your current device can open securely without putting your phone number in the link; for an older or different device, enter the order number and phone used at checkout.",
   },
   {
     q: "Can I return or exchange a product?",
-    a: "Yes. If a product arrives damaged, defective or wrong, contact us within 3 days of delivery for a replacement or refund. Please keep the product unused with its packaging.",
+    a: "If a product arrives missing, damaged, defective or wrong, contact us within 3 days. Keep it unused with its packaging and provide the complete unboxing evidence described in our Return & Refund Policy.",
+  },
+  {
+    q: "Can I cancel or change an order?",
+    a: "Contact us as soon as possible. We can usually cancel or update details before dispatch, but a parcel already handed to the courier may no longer be changeable.",
+  },
+  {
+    q: "How is a bKash payment confirmed?",
+    a: "Choose bKash only when it appears at checkout, send the exact displayed amount to the displayed number, and enter the transaction ID. We verify the payment before dispatch; never share a PIN or one-time code.",
+  },
+  {
+    q: "What happens after I place an order?",
+    a: "You receive an order number and our team calls to confirm the order and address. After confirmation, the parcel is packed, handed to the courier and its status can be checked from Track Order.",
+  },
+  {
+    q: "Who pays return delivery?",
+    a: "For a verified wrong, missing, damaged or defective item caused by us or delivery, GeduShop arranges or covers the reasonable return or replacement delivery cost. Contact us for approval and instructions first.",
+  },
+  {
+    q: "Do I need an account, and how is my data used?",
+    a: "No account is required. We use your order details for confirmation, delivery and support, and optional analytics or advertising only according to your cookie choice. See the Privacy Policy for details.",
   },
   {
     q: "Are the products genuine and safe for kids?",
@@ -59,7 +80,7 @@ export default function FaqPage() {
 
   return (
     <div className="mx-auto max-w-3xl px-4 pb-10 pt-4">
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqLd) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: serializeJsonLd(faqLd) }} />
       <Breadcrumbs items={[{ label: "Home", href: "/" }, { label: "FAQ" }]} />
       <h1 className="font-heading text-2xl font-semibold tracking-tight text-plum-800 md:text-3xl">
         Frequently asked questions
