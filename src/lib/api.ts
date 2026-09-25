@@ -23,7 +23,15 @@ export async function apiFetch(url: string, init?: RequestInit, attempts = 6): P
   // mutation twice. Only reads are safe to replay automatically. A shopper can
   // still retry a failed write explicitly; checkout carries an idempotency key
   // so that even that manual retry resolves to the original order.
-  const totalAttempts = method === "GET" || method === "HEAD" ? Math.max(1, attempts) : 1;
+  const safeToReplay = method === "GET" || method === "HEAD";
+  // Production reads already pass through the edge proxy, which performs six
+  // upstream attempts. Cap the browser at two edge attempts so a full backend
+  // outage does not multiply into 36 requests and a very long loading state.
+  const totalAttempts = safeToReplay
+    ? PROD
+      ? Math.min(2, Math.max(1, attempts))
+      : Math.max(1, attempts)
+    : 1;
   let last: Response | null = null;
   let lastError: unknown = null;
   for (let i = 0; i < totalAttempts; i++) {

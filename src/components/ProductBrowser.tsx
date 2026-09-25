@@ -72,6 +72,7 @@ export default function ProductBrowser({
   const [total, setTotal] = useState(initialTotal ?? 0);
   const [totalPages, setTotalPages] = useState(initialTotal ? Math.ceil(initialTotal / PER_PAGE) : 1);
   const [loading, setLoading] = useState(initialProducts == null);
+  const [loadFailed, setLoadFailed] = useState(false);
 
   const [filterOpen, setFilterOpen] = useState(false);
   const filterDialogRef = useDialogFocus<HTMLDivElement>(filterOpen);
@@ -96,6 +97,7 @@ export default function ProductBrowser({
     // skeleton there would replace real products with a loading state to fetch
     // very nearly the same thing — a step backwards for the reader.
     if (!quiet) setLoading(true);
+    setLoadFailed(false);
     const q = new URLSearchParams({ per_page: String(PER_PAGE), page: String(page) });
     if (cat) q.set("category", cat);
     if (search) q.set("search", search);
@@ -109,7 +111,10 @@ export default function ProductBrowser({
 
     fetchProductCollection(q)
       .then(async (r) => {
-        if (!r.ok) return { list: [], pages: 1, count: 0 };
+        // An upstream outage is not an empty catalogue. Treating a 403/5xx as
+        // zero results used to erase the perfectly good build-time list and
+        // intermittently show "No products found" to every shopper.
+        if (!r.ok) throw new Error(`Product API returned ${r.status}`);
         const list: StoreProduct[] = await r.json();
         return {
           list: list.map((p) => ({ ...p, name: decodeEntities(p.name) })),
@@ -118,14 +123,16 @@ export default function ProductBrowser({
         };
       })
       .then(({ list, pages, count }) => {
+        setLoadFailed(false);
         setProducts(list);
         setTotalPages(pages);
         setTotal(count);
       })
-      // A failed quiet refresh leaves the build's list standing: slightly old
-      // beats empty. A failed first load has nothing to fall back to.
       .catch(() => {
-        if (!quiet) setProducts([]);
+        // Keep the last known-good products on screen. This applies to quiet
+        // initial refreshes and filter changes: a temporary WordPress/Hostinger
+        // failure must never masquerade as a real empty search result.
+        setLoadFailed(true);
       })
       .finally(() => setLoading(false));
   }, [cat, search, onSale, inStockOnly, minPrice, maxPrice, sort, page]);
@@ -238,6 +245,25 @@ export default function ProductBrowser({
       )}
 
       {/* Results */}
+      {loadFailed && (
+        <div
+          role="status"
+          className="flex flex-col gap-2 rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900 sm:flex-row sm:items-center sm:justify-between"
+        >
+          <span>
+            {products.length > 0
+              ? "Products could not be refreshed. Showing the last available results."
+              : "Products are temporarily unavailable. Please try again."}
+          </span>
+          <button
+            type="button"
+            onClick={() => fetchProducts(false)}
+            className="w-fit rounded-full bg-amber-900 px-4 py-2 text-xs font-extrabold text-white hover:bg-amber-800"
+          >
+            Try again
+          </button>
+        </div>
+      )}
       {loading ? (
         <ProductGridSkeleton count={12} />
       ) : (

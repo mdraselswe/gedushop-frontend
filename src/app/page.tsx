@@ -15,11 +15,10 @@ export const metadata: Metadata = {
 };
 
 export default async function HomePage() {
-  const { products, total } = await getProductsPaged({ perPage: 24, orderby: "popularity" }).catch(() => ({
-    products: [],
-    total: 0,
-    totalPages: 1,
-  }));
+  // Do not publish an empty homepage when WordPress is temporarily down.
+  // The build fetch already retries; if it still fails, keeping the current
+  // production deployment is safer than replacing it with "No products".
+  const { products, total } = await getProductsPaged({ perPage: 24, orderby: "popularity" });
 
   return (
     <div className="space-y-6 px-4 pb-4 pt-4">
