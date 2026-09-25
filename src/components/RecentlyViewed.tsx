@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { ChevronLeft, ChevronRight, ImageOff } from "lucide-react";
 import { getRecent, type RecentItem } from "@/lib/recentlyViewed";
+import { decodeEntities } from "@/lib/decode";
 
 const arrowBtn =
   "flex size-8 shrink-0 items-center justify-center rounded-full bg-white text-plum-600 shadow-[var(--shadow-soft)] ring-1 ring-plum-100/50 transition-colors hover:bg-plum-50 disabled:pointer-events-none disabled:opacity-30";
@@ -74,7 +75,7 @@ export default function RecentlyViewed({ excludeSlug, title = "Recently viewed" 
                 // eslint-disable-next-line @next/next/no-img-element
                 <img
                   src={p.image}
-                  alt={p.name}
+                  alt={decodeEntities(p.name)}
                   loading="lazy"
                   decoding="async"
                   className="absolute inset-0 h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
@@ -86,7 +87,9 @@ export default function RecentlyViewed({ excludeSlug, title = "Recently viewed" 
               )}
             </div>
             <div className="p-2.5">
-              <p className="line-clamp-2 min-h-[2.5em] text-xs font-semibold leading-snug text-plum-800">{p.name}</p>
+              <p className="line-clamp-2 min-h-[2.5em] text-xs font-semibold leading-snug text-plum-800">
+                {decodeEntities(p.name)}
+              </p>
               <p className="mt-1 text-sm font-extrabold text-plum-700 tabular-nums">{p.price}</p>
             </div>
           </Link>
