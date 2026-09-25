@@ -1,9 +1,10 @@
 import Image from "next/image";
-import Link from "next/link";
+import { Suspense } from "react";
 import { Mail, MapPin, MessageCircle, Phone } from "lucide-react";
 import type { StoreCategory } from "@/lib/types";
 import { PHONE, PHONE_DISPLAY, WHATSAPP } from "@/lib/contact";
 import CookieSettingsButton from "./CookieSettingsButton";
+import FooterTopLink, { FooterNavigationReset } from "./FooterTopLink";
 
 const EMAIL = "gedu.shop@gmail.com";
 
@@ -12,12 +13,15 @@ export default function Footer({ categories }: { categories: StoreCategory[] }) 
 
   return (
     <footer className="site-chrome mt-10 border-t border-plum-100/70 bg-white/70 pb-28 md:pb-10">
+      <Suspense fallback={null}>
+        <FooterNavigationReset />
+      </Suspense>
       <div className="mx-auto grid max-w-[120rem] gap-8 px-4 py-10 sm:grid-cols-2 lg:grid-cols-4 lg:px-8">
         {/* Brand */}
         <div className="sm:col-span-2 lg:col-span-1">
-          <Link href="/" aria-label="GeduShop home">
+          <FooterTopLink href="/" aria-label="GeduShop home">
             <Image src="/logo-light.png" alt="GeduShop" width={120} height={44} className="h-11 w-auto" />
-          </Link>
+          </FooterTopLink>
           <p className="mt-3 max-w-[32ch] text-sm leading-relaxed text-plum-500">
             Baby items, toys and kids essentials — safe, fun and fairly priced. Cash on delivery all over
             Bangladesh.
@@ -28,12 +32,12 @@ export default function Footer({ categories }: { categories: StoreCategory[] }) 
         <div>
           <h3 className="font-heading text-sm font-semibold text-plum-800">Shop</h3>
           <ul className="mt-3 space-y-2 text-sm text-plum-500">
-            <li><Link href="/shop" className="hover:text-coral-500">All products</Link></li>
-            <li><Link href="/shop?sale=1" className="hover:text-coral-500">Flash sales</Link></li>
-            <li><Link href="/shop?sort=date" className="hover:text-coral-500">New arrivals</Link></li>
-            <li><Link href="/my-orders" className="hover:text-coral-500">My orders</Link></li>
-            <li><Link href="/track" className="hover:text-coral-500">Track order</Link></li>
-            <li><Link href="/faq" className="hover:text-coral-500">FAQ &amp; Help</Link></li>
+            <li><FooterTopLink href="/shop" className="hover:text-coral-500">All products</FooterTopLink></li>
+            <li><FooterTopLink href="/shop?sale=1" className="hover:text-coral-500">Flash sales</FooterTopLink></li>
+            <li><FooterTopLink href="/shop?sort=date" className="hover:text-coral-500">New arrivals</FooterTopLink></li>
+            <li><FooterTopLink href="/my-orders" className="hover:text-coral-500">My orders</FooterTopLink></li>
+            <li><FooterTopLink href="/track" className="hover:text-coral-500">Track order</FooterTopLink></li>
+            <li><FooterTopLink href="/faq" className="hover:text-coral-500">FAQ &amp; Help</FooterTopLink></li>
           </ul>
         </div>
 
@@ -43,9 +47,9 @@ export default function Footer({ categories }: { categories: StoreCategory[] }) 
           <ul className="mt-3 space-y-2 text-sm text-plum-500">
             {topCategories.map((c) => (
               <li key={c.id}>
-                <Link href={`/category/${c.slug}`} className="hover:text-coral-500">
+                <FooterTopLink href={`/category/${c.slug}`} className="hover:text-coral-500">
                   {c.name}
-                </Link>
+                </FooterTopLink>
               </li>
             ))}
           </ul>
@@ -81,13 +85,13 @@ export default function Footer({ categories }: { categories: StoreCategory[] }) 
         <div className="mx-auto flex max-w-[120rem] flex-col items-center justify-between gap-3 px-4 pt-5 pb-[calc(8rem+env(safe-area-inset-bottom))] text-xs text-plum-400 sm:flex-row md:pb-5 md:pr-24 lg:pl-8">
           <p>© {new Date().getFullYear()} GeduShop. All rights reserved.</p>
           <nav className="flex flex-wrap items-center gap-x-4 gap-y-2">
-            <Link href="/privacy" className="hover:text-coral-500">Privacy</Link>
-            <Link href="/terms" className="hover:text-coral-500">Terms</Link>
-            <Link href="/return-policy" className="hover:text-coral-500">Returns</Link>
-            <Link href="/delivery" className="hover:text-coral-500">Delivery</Link>
+            <FooterTopLink href="/privacy" className="hover:text-coral-500">Privacy</FooterTopLink>
+            <FooterTopLink href="/terms" className="hover:text-coral-500">Terms</FooterTopLink>
+            <FooterTopLink href="/return-policy" className="hover:text-coral-500">Returns</FooterTopLink>
+            <FooterTopLink href="/delivery" className="hover:text-coral-500">Delivery</FooterTopLink>
             <CookieSettingsButton />
-            <Link href="/about" className="hover:text-coral-500">About</Link>
-            <Link href="/contact" className="hover:text-coral-500">Contact</Link>
+            <FooterTopLink href="/about" className="hover:text-coral-500">About</FooterTopLink>
+            <FooterTopLink href="/contact" className="hover:text-coral-500">Contact</FooterTopLink>
           </nav>
         </div>
       </div>
