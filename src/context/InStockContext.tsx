@@ -1,6 +1,6 @@
 "use client";
 
-import { createContext, useContext, useEffect, useState } from "react";
+import { createContext, useCallback, useContext, useEffect, useState } from "react";
 
 interface InStockCtx {
   inStockOnly: boolean;
@@ -23,11 +23,11 @@ export function InStockProvider({ children }: { children: React.ReactNode }) {
     });
   }, []);
 
-  const setInStockOnly = (v: boolean) => {
+  const setInStockOnly = useCallback((v: boolean) => {
     setInStockOnlyState(v);
     if (v) localStorage.setItem(KEY, "1");
     else localStorage.removeItem(KEY);
-  };
+  }, []);
 
   return <Ctx.Provider value={{ inStockOnly, setInStockOnly, ready }}>{children}</Ctx.Provider>;
 }

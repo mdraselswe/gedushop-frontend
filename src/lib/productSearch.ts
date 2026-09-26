@@ -10,17 +10,23 @@ export async function fetchProductCollection(
   init?: RequestInit,
 ): Promise<Response> {
   const search = params.get("search")?.trim();
-  if (!search) return apiFetch(`${STORE_API}/products?${params}`, init);
+  const advanced =
+    params.has("free_shipping") ||
+    params.has("min_rating") ||
+    params.has("age") ||
+    ["rating", "discount_percent", "discount_amount"].includes(params.get("orderby") ?? "");
+  if (!search && !advanced) return apiFetch(`${STORE_API}/products?${params}`, init);
 
   const smartParams = new URLSearchParams(params);
   smartParams.delete("search");
-  smartParams.set("q", search);
+  if (search) smartParams.set("q", search);
 
   try {
     const smart = await apiFetch(`${GEDU_API}/product-search?${smartParams}`, init, 3);
-    if (smart.ok) return smart;
+    if (smart.ok || advanced) return smart;
   } catch {
     if (init?.signal?.aborted) throw new DOMException("The operation was aborted", "AbortError");
+    if (advanced) throw new Error("Advanced product filters are temporarily unavailable");
   }
 
   const fallbackParams = new URLSearchParams(params);

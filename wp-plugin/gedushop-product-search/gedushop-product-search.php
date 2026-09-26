@@ -2,7 +2,7 @@
 /**
  * Plugin Name: GeduShop Product Search
  * Description: Weighted multilingual product search for the headless storefront, with aliases, synonyms, typo tolerance, filters and relevance ranking.
- * Version:     1.1.0
+ * Version:     1.2.0
  * Author:      GeduShop
  * Requires PHP: 7.4
  * Requires Plugins: woocommerce
@@ -17,7 +17,7 @@ require_once __DIR__ . '/includes/migration-data.php';
 
 const GEDU_SEARCH_ALIASES_META    = '_gedushop_search_aliases';
 const GEDU_SEARCH_SYNONYMS_OPTION = 'gedushop_search_synonyms';
-const GEDU_SEARCH_INDEX_TRANSIENT = 'gedushop_product_search_index_v1';
+const GEDU_SEARCH_INDEX_TRANSIENT = 'gedushop_product_search_index_v2';
 const GEDU_SEARCH_BACKUP_OPTION   = 'gedushop_search_migration_backup';
 
 function gedu_search_default_synonyms() {
@@ -130,6 +130,37 @@ function gedu_search_attribute_text( $product ) {
 	return implode( ' ', $values );
 }
 
+/** Normalized age options declared on a product (never guessed from copy). */
+function gedu_search_age_options( $product ) {
+	$options = array();
+	foreach ( $product->get_attributes() as $attribute ) {
+		$name = gedu_search_normalize( $attribute->get_name() );
+		if (
+			false === strpos( $name, 'age' ) &&
+			false === strpos( $name, 'recommended age' ) &&
+			false === strpos( $name, 'বয়স' ) &&
+			false === strpos( $name, 'বয়স' )
+		) {
+			continue;
+		}
+
+		$labels = array();
+		if ( $attribute->is_taxonomy() ) {
+			$labels = wp_list_pluck( wc_get_product_terms( $product->get_id(), $attribute->get_name(), array( 'fields' => 'all' ) ), 'name' );
+		} else {
+			$labels = $attribute->get_options();
+		}
+		foreach ( $labels as $label ) {
+			$label = trim( wp_strip_all_tags( (string) $label ) );
+			$key   = sanitize_title( $label );
+			if ( '' !== $key && '' !== $label ) {
+				$options[ $key ] = $label;
+			}
+		}
+	}
+	return $options;
+}
+
 /** Build a compact, normalized index from the current WooCommerce catalogue. */
 function gedu_search_get_index() {
 	$cached = get_transient( GEDU_SEARCH_INDEX_TRANSIENT );
@@ -171,6 +202,12 @@ function gedu_search_get_index() {
 		$min_price = $product->is_type( 'variable' ) ? $product->get_variation_price( 'min', true ) : $product->get_price();
 		$max_price = $product->is_type( 'variable' ) ? $product->get_variation_price( 'max', true ) : $product->get_price();
 		$created   = $product->get_date_created();
+		$regular_price = $product->is_type( 'variable' ) ? $product->get_variation_regular_price( 'min', true ) : $product->get_regular_price();
+		$current_price = (float) $min_price;
+		$regular_price = (float) $regular_price;
+		$discount_amount  = max( 0, $regular_price - $current_price );
+		$discount_percent = $regular_price > 0 ? ( $discount_amount / $regular_price ) * 100 : 0;
+		$age_options      = gedu_search_age_options( $product );
 		$stored_aliases    = $product->get_meta( GEDU_SEARCH_ALIASES_META, true );
 		$suggested_aliases = gedu_search_suggest_aliases( $product->get_name(), $categories['text'] );
 		$search_aliases    = gedu_search_merge_aliases( $stored_aliases, $suggested_aliases );
@@ -193,6 +230,11 @@ function gedu_search_get_index() {
 			'total_sales'   => (int) $product->get_total_sales(),
 			'rating'        => (float) $product->get_average_rating(),
 			'created'       => $created ? $created->getTimestamp() : 0,
+			'discount_amount'  => (int) round( $discount_amount * $factor ),
+			'discount_percent' => (float) $discount_percent,
+			'free_shipping'    => 'yes' === get_post_meta( $id, '_gedu_combo_free_shipping', true ),
+			'age_options'      => $age_options,
+			'age_keys'         => array_keys( $age_options ),
 		);
 	}
 
@@ -211,6 +253,15 @@ function gedu_search_compare_records( $a, $b, $orderby, $order ) {
 			break;
 		case 'title':
 			$comparison = strnatcasecmp( $a['title'], $b['title'] );
+			break;
+		case 'rating':
+			$comparison = $a['rating'] <=> $b['rating'];
+			break;
+		case 'discount_percent':
+			$comparison = $a['discount_percent'] <=> $b['discount_percent'];
+			break;
+		case 'discount_amount':
+			$comparison = $a['discount_amount'] <=> $b['discount_amount'];
 			break;
 		case 'popularity':
 			$comparison = $a['total_sales'] <=> $b['total_sales'];
@@ -245,9 +296,15 @@ function gedu_search_products( WP_REST_Request $request ) {
 	$stock    = sanitize_key( (string) $request->get_param( 'stock_status' ) );
 	$min      = max( 0, (int) $request->get_param( 'min_price' ) );
 	$max      = max( 0, (int) $request->get_param( 'max_price' ) );
+	$free_shipping = rest_sanitize_boolean( $request->get_param( 'free_shipping' ) );
+	$min_rating    = min( 5, max( 0, (float) $request->get_param( 'min_rating' ) ) );
+	$age           = sanitize_title( (string) $request->get_param( 'age' ) );
 	$orderby  = sanitize_key( (string) $request->get_param( 'orderby' ) );
 	$order    = 'asc' === strtolower( (string) $request->get_param( 'order' ) ) ? 'asc' : 'desc';
-	$orderby  = in_array( $orderby, array( 'relevance', 'popularity', 'date', 'price', 'title' ), true ) ? $orderby : 'relevance';
+	$orderby  = in_array( $orderby, array( 'relevance', 'popularity', 'date', 'price', 'title', 'rating', 'discount_percent', 'discount_amount' ), true ) ? $orderby : 'relevance';
+	if ( '' === trim( $query ) && 'relevance' === $orderby ) {
+		$orderby = 'popularity';
+	}
 
 	$synonyms = get_option( GEDU_SEARCH_SYNONYMS_OPTION, gedu_search_default_synonyms() );
 	$variants = gedu_search_query_variants( $query, gedu_search_parse_synonyms( $synonyms ) );
@@ -268,9 +325,18 @@ function gedu_search_products( WP_REST_Request $request ) {
 		if ( $max && $record['min_price'] > $max ) {
 			continue;
 		}
+		if ( $free_shipping && empty( $record['free_shipping'] ) ) {
+			continue;
+		}
+		if ( $min_rating && $record['rating'] < $min_rating ) {
+			continue;
+		}
+		if ( $age && ! in_array( $age, $record['age_keys'], true ) ) {
+			continue;
+		}
 
-		$record['_score'] = gedu_search_score_record( $record, $variants );
-		if ( $record['_score'] > 0 ) {
+		$record['_score'] = empty( $variants ) ? 0 : gedu_search_score_record( $record, $variants );
+		if ( empty( $variants ) || $record['_score'] > 0 ) {
 			$matches[] = $record;
 		}
 	}
@@ -291,6 +357,10 @@ function gedu_search_products( WP_REST_Request $request ) {
 		},
 		$slice
 	);
+	$records_by_id = array();
+	foreach ( $slice as $record ) {
+		$records_by_id[ $record['id'] ] = $record;
+	}
 
 	$data = array();
 	if ( ! empty( $ids ) ) {
@@ -310,7 +380,17 @@ function gedu_search_products( WP_REST_Request $request ) {
 		}
 		foreach ( $ids as $id ) {
 			if ( isset( $by_id[ $id ] ) ) {
-				$data[] = $by_id[ $id ];
+				$product = $by_id[ $id ];
+				if ( isset( $records_by_id[ $id ] ) ) {
+					if ( ! isset( $product['extensions']['gedushop'] ) || ! is_array( $product['extensions']['gedushop'] ) ) {
+						$product['extensions']['gedushop'] = array();
+					}
+					$product['extensions']['gedushop']['catalog_metrics'] = array(
+						'total_sales' => $records_by_id[ $id ]['total_sales'],
+						'created'     => $records_by_id[ $id ]['created'],
+					);
+				}
+				$data[] = $product;
 			}
 		}
 	}
@@ -333,7 +413,7 @@ add_action(
 				'callback'            => 'gedu_search_products',
 				'permission_callback' => '__return_true',
 				'args'                => array(
-					'q'            => array( 'required' => true, 'sanitize_callback' => 'sanitize_text_field' ),
+					'q'            => array( 'required' => false, 'default' => '', 'sanitize_callback' => 'sanitize_text_field' ),
 					'page'         => array( 'default' => 1, 'sanitize_callback' => 'absint' ),
 					'per_page'     => array( 'default' => 24, 'sanitize_callback' => 'absint' ),
 					'category'     => array( 'default' => 0, 'sanitize_callback' => 'absint' ),
@@ -341,11 +421,43 @@ add_action(
 					'stock_status' => array( 'default' => '', 'sanitize_callback' => 'sanitize_key' ),
 					'min_price'    => array( 'default' => 0, 'sanitize_callback' => 'absint' ),
 					'max_price'    => array( 'default' => 0, 'sanitize_callback' => 'absint' ),
+					'free_shipping' => array( 'default' => false, 'sanitize_callback' => 'rest_sanitize_boolean' ),
+					'min_rating'    => array( 'default' => 0, 'sanitize_callback' => 'floatval' ),
+					'age'           => array( 'default' => '', 'sanitize_callback' => 'sanitize_title' ),
 					'orderby'      => array( 'default' => 'relevance', 'sanitize_callback' => 'sanitize_key' ),
 					'order'        => array( 'default' => 'desc', 'sanitize_callback' => 'sanitize_key' ),
 				),
+	)
+);
+
+/** Filter facets that are safe to display for the current catalogue. */
+function gedu_search_filter_options() {
+	$ages = array();
+	foreach ( gedu_search_get_index() as $record ) {
+		foreach ( $record['age_options'] as $key => $label ) {
+			$ages[ $key ] = $label;
+		}
+	}
+	natcasesort( $ages );
+	$response = rest_ensure_response( array( 'ages' => $ages ) );
+	$response->header( 'Cache-Control', 'public, max-age=3600' );
+	return $response;
+}
+
+add_action(
+	'rest_api_init',
+	function () {
+		register_rest_route(
+			'gedushop/v1',
+			'/product-filter-options',
+			array(
+				'methods'             => 'GET',
+				'callback'            => 'gedu_search_filter_options',
+				'permission_callback' => '__return_true',
 			)
 		);
+	}
+);
 	}
 );
 

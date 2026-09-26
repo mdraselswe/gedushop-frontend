@@ -46,6 +46,11 @@ export interface StoreProduct {
       video?: string;
       /** Swatch hex by taxonomy then term slug, e.g. { pa_color: { blue: "#1e73be" } } */
       attribute_colors?: Record<string, Record<string, string>>;
+      /** Optional catalogue ranking data returned by the self-hosted search endpoint. */
+      catalog_metrics?: {
+        total_sales: number;
+        created: number;
+      };
       /**
        * This product ships free on its own — a plain product's own promotion
        * as often as a combo's, so it sits here rather than inside `combo`,

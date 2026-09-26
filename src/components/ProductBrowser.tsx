@@ -5,7 +5,7 @@ import Link from "next/link";
 import { ChevronDown, SlidersHorizontal, X, Check, ArrowDownUp } from "lucide-react";
 import ProductGrid from "@/components/ProductGrid";
 import ProductGridSkeleton from "@/components/ProductGridSkeleton";
-import { apiFetch, STORE_API } from "@/lib/api";
+import { apiFetch, GEDU_API, STORE_API } from "@/lib/api";
 import { decodeEntities } from "@/lib/decode";
 import { fetchProductCollection } from "@/lib/productSearch";
 import { useInStock } from "@/context/InStockContext";
@@ -21,6 +21,9 @@ const SORTS = [
   { key: "date", label: "Newest", orderby: "date", order: "desc" },
   { key: "price_asc", label: "Price: Low to High", orderby: "price", order: "asc" },
   { key: "price_desc", label: "Price: High to Low", orderby: "price", order: "desc" },
+  { key: "rating", label: "Top Rated", orderby: "rating", order: "desc" },
+  { key: "discount", label: "Biggest Discount", orderby: "discount_percent", order: "desc" },
+  { key: "saving", label: "Biggest Saving", orderby: "discount_amount", order: "desc" },
   { key: "title", label: "Name: A–Z", orderby: "title", order: "asc" },
 ] as const;
 type SortKey = (typeof SORTS)[number]["key"];
@@ -65,6 +68,9 @@ export default function ProductBrowser({
   const [onSale, setOnSale] = useState(defaultOnSale);
   const [minPrice, setMinPrice] = useState("");
   const [maxPrice, setMaxPrice] = useState("");
+  const [freeShipping, setFreeShipping] = useState(false);
+  const [minRating, setMinRating] = useState("");
+  const [age, setAge] = useState("");
   const [cat, setCat] = useState(categoryId ?? "");
   const [page, setPage] = useState(initialPage);
 
@@ -78,10 +84,12 @@ export default function ProductBrowser({
   const filterDialogRef = useDialogFocus<HTMLDivElement>(filterOpen);
   const [sortOpen, setSortOpen] = useState(false);
   const seeded = useRef(initialProducts != null);
+  const [urlHydrated, setUrlHydrated] = useState(false);
   const sortOptions = search ? SORTS : SORTS.filter((option) => option.key !== "relevance");
 
   // Shop page has no fixed category → load the list for the category picker.
   const [catList, setCatList] = useState<StoreCategory[]>(categories);
+  const [ageOptions, setAgeOptions] = useState<Record<string, string>>({});
   useEffect(() => {
     if (categoryId || catList.length) return;
     apiFetch(`${STORE_API}/products/categories?per_page=50&orderby=name`)
@@ -91,6 +99,68 @@ export default function ProductBrowser({
       )
       .catch(() => {});
   }, [categoryId, catList.length]);
+
+  useEffect(() => {
+    apiFetch(`${GEDU_API}/product-filter-options`, undefined, 2)
+      .then((response) => (response.ok ? response.json() : null))
+      .then((data: { ages?: Record<string, string> } | null) => setAgeOptions(data?.ages ?? {}))
+      .catch(() => {
+        // Age filters stay hidden until the catalogue and plugin expose them.
+      });
+  }, []);
+
+  useEffect(() => {
+    const readUrl = () => {
+      const params = new URLSearchParams(window.location.search);
+      const requestedSort = params.get("sort");
+      if (requestedSort && SORTS.some((option) => option.key === requestedSort)) {
+        setSort(requestedSort as SortKey);
+      } else {
+        setSort(defaultSort);
+      }
+      setOnSale(params.get("sale") === "1" || defaultOnSale);
+      setMinPrice(params.get("min_price") ?? "");
+      setMaxPrice(params.get("max_price") ?? "");
+      setFreeShipping(params.get("free_delivery") === "1");
+      setMinRating(params.get("rating") ?? "");
+      setAge(params.get("age") ?? "");
+      if (params.get("stock") === "1") setInStockOnly(true);
+      if (!categoryId) setCat(params.get("category") ?? "");
+      const hasInteractiveState = ["sort", "sale", "stock", "free_delivery", "rating", "age", "min_price", "max_price", "category", "search"].some((key) => params.has(key));
+      setPage(hasInteractiveState ? 1 : initialPage);
+      setUrlHydrated(true);
+    };
+
+    readUrl();
+    window.addEventListener("popstate", readUrl);
+    return () => window.removeEventListener("popstate", readUrl);
+  }, [categoryId, defaultOnSale, defaultSort, initialPage, setInStockOnly]);
+
+  useEffect(() => {
+    if (!urlHydrated) return;
+    const params = new URLSearchParams(window.location.search);
+    const setOptional = (key: string, value: string) => {
+      if (value) params.set(key, value);
+      else params.delete(key);
+    };
+
+    setOptional("sale", onSale ? "1" : "");
+    setOptional("stock", inStockOnly ? "1" : "");
+    setOptional("free_delivery", freeShipping ? "1" : "");
+    setOptional("rating", minRating);
+    setOptional("age", age);
+    setOptional("min_price", minPrice);
+    setOptional("max_price", maxPrice);
+    if (!categoryId) setOptional("category", cat);
+
+    if (sort === "popularity" || (search && sort === "relevance")) params.delete("sort");
+    else params.set("sort", sort);
+
+    const query = params.toString();
+    const nextUrl = `${window.location.pathname}${query ? `?${query}` : ""}${window.location.hash}`;
+    const currentUrl = `${window.location.pathname}${window.location.search}${window.location.hash}`;
+    if (nextUrl !== currentUrl) window.history.replaceState(null, "", nextUrl);
+  }, [age, cat, categoryId, freeShipping, inStockOnly, maxPrice, minPrice, minRating, onSale, search, sort, urlHydrated]);
 
   const fetchProducts = useCallback((quiet = false) => {
     // A quiet pass refreshes a list that is already on screen. Showing the
@@ -103,9 +173,12 @@ export default function ProductBrowser({
     if (search) q.set("search", search);
     if (onSale) q.set("on_sale", "true");
     if (inStockOnly) q.set("stock_status", "instock");
+    if (freeShipping) q.set("free_shipping", "true");
+    if (minRating) q.set("min_rating", minRating);
+    if (age) q.set("age", age);
     if (minPrice) q.set("min_price", String(Math.round(Number(minPrice) * MINOR)));
     if (maxPrice) q.set("max_price", String(Math.round(Number(maxPrice) * MINOR)));
-    const s = SORTS.find((x) => x.key === sort)!;
+    const s = SORTS.find((x) => x.key === sort) ?? SORTS[0];
     q.set("orderby", s.orderby);
     q.set("order", s.order);
 
@@ -117,9 +190,9 @@ export default function ProductBrowser({
         if (!r.ok) throw new Error(`Product API returned ${r.status}`);
         const list: StoreProduct[] = await r.json();
         return {
-          list: list.map((p) => ({ ...p, name: decodeEntities(p.name) })),
+          list: Array.isArray(list) ? list.map((p) => ({ ...p, name: decodeEntities(p.name) })) : [],
           pages: Number(r.headers.get("x-wp-totalpages") ?? 1),
-          count: Number(r.headers.get("x-wp-total") ?? list.length),
+          count: Number(r.headers.get("x-wp-total") ?? (Array.isArray(list) ? list.length : 0)),
         };
       })
       .then(({ list, pages, count }) => {
@@ -135,9 +208,10 @@ export default function ProductBrowser({
         setLoadFailed(true);
       })
       .finally(() => setLoading(false));
-  }, [cat, search, onSale, inStockOnly, minPrice, maxPrice, sort, page]);
+  }, [age, cat, search, onSale, inStockOnly, freeShipping, minRating, minPrice, maxPrice, sort, page]);
 
   useEffect(() => {
+    if (!urlHydrated) return;
     // A category page arrives with the products the build knew about, which is
     // what a crawler should see and what paints first. It is not what the shop
     // sells now: these pages are written at build time and the catalogue keeps
@@ -149,17 +223,26 @@ export default function ProductBrowser({
     const quiet = seeded.current;
     seeded.current = false;
     fetchProducts(quiet);
-  }, [fetchProducts]);
+  }, [fetchProducts, urlHydrated]);
 
   // Any filter/sort change resets to page 1.
   const resetPage = () => setPage(1);
 
   const activeCount =
-    (onSale ? 1 : 0) + (inStockOnly ? 1 : 0) + (minPrice || maxPrice ? 1 : 0) + (!categoryId && cat ? 1 : 0);
+    (onSale ? 1 : 0) +
+    (inStockOnly ? 1 : 0) +
+    (freeShipping ? 1 : 0) +
+    (minRating ? 1 : 0) +
+    (age ? 1 : 0) +
+    (minPrice || maxPrice ? 1 : 0) +
+    (!categoryId && cat ? 1 : 0);
 
   const clearAll = () => {
     setOnSale(false);
     setInStockOnly(false);
+    setFreeShipping(false);
+    setMinRating("");
+    setAge("");
     setMinPrice("");
     setMaxPrice("");
     if (!categoryId) setCat("");
@@ -238,6 +321,9 @@ export default function ProductBrowser({
           )}
           {onSale && <Chip label="Deals & Offers" onRemove={() => { setOnSale(false); resetPage(); }} />}
           {inStockOnly && <Chip label="In stock" onRemove={() => { setInStockOnly(false); resetPage(); }} />}
+          {freeShipping && <Chip label="Free delivery" onRemove={() => { setFreeShipping(false); resetPage(); }} />}
+          {minRating && <Chip label={`${minRating}★ & above`} onRemove={() => { setMinRating(""); resetPage(); }} />}
+          {age && <Chip label={`Age: ${ageOptions[age] ?? age}`} onRemove={() => { setAge(""); resetPage(); }} />}
           <button onClick={clearAll} className="text-xs font-bold text-plum-400 underline hover:text-coral-500">
             Clear all
           </button>
@@ -279,6 +365,9 @@ export default function ProductBrowser({
                 !search &&
                 !onSale &&
                 !inStockOnly &&
+                !freeShipping &&
+                !minRating &&
+                !age &&
                 !minPrice &&
                 !maxPrice &&
                 (!cat || Boolean(categoryId)) &&
@@ -345,11 +434,34 @@ export default function ProductBrowser({
                 </div>
               </Section>
 
+              <Section title="Customer rating">
+                <div className="flex flex-wrap gap-2">
+                  {["4", "3"].map((rating) => (
+                    <PillToggle key={rating} active={minRating === rating} onClick={() => { setMinRating(minRating === rating ? "" : rating); resetPage(); }}>
+                      {rating}★ & above
+                    </PillToggle>
+                  ))}
+                </div>
+              </Section>
+
+              {Object.keys(ageOptions).length > 0 && (
+                <Section title="Recommended age">
+                  <div className="flex flex-wrap gap-2">
+                    {Object.entries(ageOptions).map(([key, label]) => (
+                      <PillToggle key={key} active={age === key} onClick={() => { setAge(age === key ? "" : key); resetPage(); }}>
+                        {label}
+                      </PillToggle>
+                    ))}
+                  </div>
+                </Section>
+              )}
+
               {/* Availability / offers */}
               <Section title="Availability">
                 <div className="flex flex-col gap-2">
                   <CheckRow label="In stock only" checked={inStockOnly} onChange={(v) => { setInStockOnly(v); resetPage(); }} />
                   <CheckRow label="Deals & Offers" checked={onSale} onChange={(v) => { setOnSale(v); resetPage(); }} />
+                  <CheckRow label="Free delivery included" checked={freeShipping} onChange={(v) => { setFreeShipping(v); resetPage(); }} />
                 </div>
               </Section>
             </div>

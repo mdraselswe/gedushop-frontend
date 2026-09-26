@@ -18,10 +18,23 @@ function ShopContent({
   search,
   sale = false,
   sortParam,
-}: Props & { search?: string; sale?: boolean; sortParam?: string | null }) {
+  hasAdvanced = false,
+}: Props & { search?: string; sale?: boolean; sortParam?: string | null; hasAdvanced?: boolean }) {
   const defaultSort =
-    sortParam === "date" ? "date" : sortParam === "price" ? "price_asc" : search ? "relevance" : "popularity";
-  const filtered = Boolean(search || sale || sortParam);
+    sortParam === "date" ||
+    sortParam === "price_asc" ||
+    sortParam === "price_desc" ||
+    sortParam === "rating" ||
+    sortParam === "discount" ||
+    sortParam === "saving" ||
+    sortParam === "title"
+      ? sortParam
+      : sortParam === "price"
+        ? "price_asc"
+        : search
+          ? "relevance"
+          : "popularity";
+  const filtered = Boolean(search || sale || sortParam || hasAdvanced);
   const title = search
     ? `Results for “${search}”`
     : sale
@@ -61,6 +74,7 @@ function ShopRoute({ initialProducts, initialTotal, categories }: Props) {
       search={params.get("search") ?? undefined}
       sale={params.get("sale") === "1"}
       sortParam={params.get("sort")}
+      hasAdvanced={["stock", "free_delivery", "rating", "age", "min_price", "max_price", "category"].some((key) => params.has(key))}
     />
   );
 }

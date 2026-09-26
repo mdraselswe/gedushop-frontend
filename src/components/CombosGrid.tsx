@@ -5,7 +5,7 @@ import { useEffect, useState } from "react";
 import { ArrowDownUp, Check, ChevronDown, PackageOpen, SlidersHorizontal, X } from "lucide-react";
 import ProductGrid from "@/components/ProductGrid";
 import { useInStock } from "@/context/InStockContext";
-import { apiFetch, STORE_API } from "@/lib/api";
+import { apiFetch, GEDU_API } from "@/lib/api";
 import { decodeStoreProduct } from "@/lib/decode";
 import { comboSaving, isCombo } from "@/lib/wp";
 import type { StoreProduct } from "@/lib/types";
@@ -13,6 +13,9 @@ import { useDialogFocus } from "@/lib/useDialogFocus";
 
 const SORTS = [
   { key: "saving", label: "Biggest saving" },
+  { key: "saving_percent", label: "Highest saving %" },
+  { key: "popular", label: "Popular" },
+  { key: "newest", label: "Newest" },
   { key: "price_asc", label: "Price: Low to High" },
   { key: "price_desc", label: "Price: High to Low" },
   { key: "rating", label: "Customer rating" },
@@ -29,6 +32,11 @@ const PRICE_PRESETS = [
 
 function productPrice(product: StoreProduct) {
   return Number(product.prices.price) / 10 ** (product.prices.currency_minor_unit ?? 2);
+}
+
+function comboSavingPercent(product: StoreProduct) {
+  const total = product.extensions?.gedushop?.combo?.components_total ?? 0;
+  return total > 0 ? (comboSaving(product) / total) * 100 : 0;
 }
 
 /**
@@ -50,15 +58,22 @@ export default function CombosGrid({ initial }: { initial: StoreProduct[] }) {
   const [sort, setSort] = useState<SortKey>("saving");
   const [onSale, setOnSale] = useState(false);
   const [freeShipping, setFreeShipping] = useState(false);
+  const [minRating, setMinRating] = useState("");
+  const [age, setAge] = useState("");
+  const [ageOptions, setAgeOptions] = useState<Record<string, string>>({});
   const [minPrice, setMinPrice] = useState("");
   const [maxPrice, setMaxPrice] = useState("");
   const [filterOpen, setFilterOpen] = useState(false);
   const [sortOpen, setSortOpen] = useState(false);
   const filterDialogRef = useDialogFocus<HTMLDivElement>(filterOpen);
+  const [urlReady, setUrlReady] = useState(false);
+  const comboCategoryId = initial.flatMap((product) => product.categories).find((category) => category.slug === "combo-offers")?.id;
 
   useEffect(() => {
     let live = true;
-    void apiFetch(`${STORE_API}/products?per_page=100`)
+    const params = new URLSearchParams({ per_page: "100", orderby: "popularity", order: "desc" });
+    if (comboCategoryId) params.set("category", String(comboCategoryId));
+    void apiFetch(`${GEDU_API}/product-search?${params}`, undefined, 2)
       .then((r) => (r.ok ? (r.json() as Promise<StoreProduct[]>) : null))
       .then((all) => {
         if (live && all) setCombos(all.map(decodeStoreProduct).filter(isCombo));
@@ -69,13 +84,64 @@ export default function CombosGrid({ initial }: { initial: StoreProduct[] }) {
     return () => {
       live = false;
     };
+  }, [comboCategoryId]);
+
+  useEffect(() => {
+    apiFetch(`${GEDU_API}/product-filter-options`, undefined, 2)
+      .then((response) => (response.ok ? response.json() : null))
+      .then((data: { ages?: Record<string, string> } | null) => setAgeOptions(data?.ages ?? {}))
+      .catch(() => {});
   }, []);
+
+  useEffect(() => {
+    const readUrl = () => {
+      const params = new URLSearchParams(window.location.search);
+      const requestedSort = params.get("sort");
+      setSort(requestedSort && SORTS.some((option) => option.key === requestedSort) ? requestedSort as SortKey : "saving");
+      setOnSale(params.get("sale") === "1");
+      setFreeShipping(params.get("free_delivery") === "1");
+      setMinRating(params.get("rating") ?? "");
+      setAge(params.get("age") ?? "");
+      setMinPrice(params.get("min_price") ?? "");
+      setMaxPrice(params.get("max_price") ?? "");
+      if (params.get("stock") === "1") setInStockOnly(true);
+      setUrlReady(true);
+    };
+    readUrl();
+    window.addEventListener("popstate", readUrl);
+    return () => window.removeEventListener("popstate", readUrl);
+  }, [setInStockOnly]);
+
+  useEffect(() => {
+    if (!urlReady) return;
+    const params = new URLSearchParams(window.location.search);
+    const setOptional = (key: string, value: string) => value ? params.set(key, value) : params.delete(key);
+    setOptional("sale", onSale ? "1" : "");
+    setOptional("stock", inStockOnly ? "1" : "");
+    setOptional("free_delivery", freeShipping ? "1" : "");
+    setOptional("rating", minRating);
+    setOptional("age", age);
+    setOptional("min_price", minPrice);
+    setOptional("max_price", maxPrice);
+    setOptional("sort", sort === "saving" ? "" : sort);
+    const query = params.toString();
+    const nextUrl = `${window.location.pathname}${query ? `?${query}` : ""}${window.location.hash}`;
+    const currentUrl = `${window.location.pathname}${window.location.search}${window.location.hash}`;
+    if (nextUrl !== currentUrl) window.history.replaceState(null, "", nextUrl);
+  }, [age, freeShipping, inStockOnly, maxPrice, minPrice, minRating, onSale, sort, urlReady]);
 
   const filtered = combos.filter((product) => {
     const price = productPrice(product);
     if (inStockOnly && (!product.is_in_stock || !product.is_purchasable)) return false;
     if (onSale && !product.on_sale) return false;
     if (freeShipping && !product.extensions?.gedushop?.free_shipping) return false;
+    if (minRating && Number(product.average_rating) < Number(minRating)) return false;
+    if (age) {
+      const matchesAge = product.attributes?.some((attribute) =>
+        attribute.terms.some((term) => term.slug === age),
+      );
+      if (!matchesAge) return false;
+    }
     if (minPrice && price < Number(minPrice)) return false;
     if (maxPrice && price > Number(maxPrice)) return false;
     return true;
@@ -85,6 +151,17 @@ export default function CombosGrid({ initial }: { initial: StoreProduct[] }) {
     if (sort === "price_asc") return productPrice(a) - productPrice(b);
     if (sort === "price_desc") return productPrice(b) - productPrice(a);
     if (sort === "rating") return Number(b.average_rating) - Number(a.average_rating);
+    if (sort === "saving_percent") return comboSavingPercent(b) - comboSavingPercent(a);
+    if (sort === "popular") {
+      const aSales = a.extensions?.gedushop?.catalog_metrics?.total_sales ?? a.review_count;
+      const bSales = b.extensions?.gedushop?.catalog_metrics?.total_sales ?? b.review_count;
+      return bSales - aSales || Number(b.average_rating) - Number(a.average_rating);
+    }
+    if (sort === "newest") {
+      const aCreated = a.extensions?.gedushop?.catalog_metrics?.created ?? a.id;
+      const bCreated = b.extensions?.gedushop?.catalog_metrics?.created ?? b.id;
+      return bCreated - aCreated;
+    }
     if (sort === "title") return a.name.localeCompare(b.name);
     return comboSaving(b) - comboSaving(a);
   });
@@ -93,12 +170,16 @@ export default function CombosGrid({ initial }: { initial: StoreProduct[] }) {
     (onSale ? 1 : 0) +
     (freeShipping ? 1 : 0) +
     (inStockOnly ? 1 : 0) +
+    (minRating ? 1 : 0) +
+    (age ? 1 : 0) +
     (minPrice || maxPrice ? 1 : 0);
 
   const clearAll = () => {
     setOnSale(false);
     setFreeShipping(false);
     setInStockOnly(false);
+    setMinRating("");
+    setAge("");
     setMinPrice("");
     setMaxPrice("");
   };
@@ -187,8 +268,10 @@ export default function CombosGrid({ initial }: { initial: StoreProduct[] }) {
             />
           )}
           {inStockOnly && <Chip label="In stock" onRemove={() => setInStockOnly(false)} />}
-          {onSale && <Chip label="Deals & Offers" onRemove={() => setOnSale(false)} />}
+          {onSale && <Chip label="Extra discount" onRemove={() => setOnSale(false)} />}
           {freeShipping && <Chip label="Free delivery" onRemove={() => setFreeShipping(false)} />}
+          {minRating && <Chip label={`${minRating}★ & above`} onRemove={() => setMinRating("")} />}
+          {age && ageOptions[age] && <Chip label={`Age: ${ageOptions[age]}`} onRemove={() => setAge("")} />}
           <button type="button" onClick={clearAll} className="text-xs font-bold text-plum-400 underline hover:text-coral-500">
             Clear all
           </button>
@@ -241,10 +324,32 @@ export default function CombosGrid({ initial }: { initial: StoreProduct[] }) {
                 </div>
               </Section>
 
+              <Section title="Customer rating">
+                <div className="flex flex-wrap gap-2">
+                  {["4", "3"].map((rating) => (
+                    <PillToggle key={rating} active={minRating === rating} onClick={() => setMinRating(minRating === rating ? "" : rating)}>
+                      {rating}★ & above
+                    </PillToggle>
+                  ))}
+                </div>
+              </Section>
+
+              {Object.keys(ageOptions).length > 0 && (
+                <Section title="Recommended age">
+                  <div className="flex flex-wrap gap-2">
+                    {Object.entries(ageOptions).map(([key, label]) => (
+                      <PillToggle key={key} active={age === key} onClick={() => setAge(age === key ? "" : key)}>
+                        {label}
+                      </PillToggle>
+                    ))}
+                  </div>
+                </Section>
+              )}
+
               <Section title="Availability & offers">
                 <div className="flex flex-col gap-2">
                   <CheckRow label="In stock only" checked={inStockOnly} onChange={setInStockOnly} />
-                  <CheckRow label="Deals & Offers" checked={onSale} onChange={setOnSale} />
+                  <CheckRow label="Extra price discount" checked={onSale} onChange={setOnSale} />
                   <CheckRow label="Free delivery included" checked={freeShipping} onChange={setFreeShipping} />
                 </div>
               </Section>

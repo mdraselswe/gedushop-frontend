@@ -11,7 +11,10 @@ Free, self-hosted product search for the headless storefront. It adds:
 - an additive, idempotent catalogue migration with preview and JSON backup;
 - product-level **Search aliases** under **Product data → General**;
 - the public endpoint `/wp-json/gedushop/v1/product-search`;
-- compatibility with the storefront's category, sale, stock, price, sort and pagination controls.
+- compatibility with the storefront's category, sale, stock, price, rating,
+  free-delivery, declared-age, discount sort and pagination controls;
+- a lightweight filter-options endpoint that only exposes age choices actually
+  assigned to products, so the storefront never invents or shows empty age groups.
 
 ## Install
 
