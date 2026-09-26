@@ -110,7 +110,7 @@ function OrderTrackerInner() {
   }, []);
 
   const inputCls =
-    "w-full rounded-xl border border-plum-100 bg-white px-4 py-3 text-sm text-plum-800 placeholder:text-plum-300 outline-none focus:border-plum-300 focus:ring-2 focus:ring-plum-100";
+    "w-full rounded-xl border border-plum-100 bg-white px-4 py-3 text-sm text-plum-800 placeholder:text-plum-300 outline-none";
 
   const step = result ? (STATUS_STEP[result.status] ?? 0) : 0;
 

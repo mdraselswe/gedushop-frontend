@@ -290,7 +290,7 @@ function SearchBarInner() {
           if (results.length > 0 || (query.trim().length < MIN_CHARS && history.length > 0)) setOpen(true);
         }}
         placeholder="Search toys, baby items…"
-        className="w-full rounded-full border border-plum-100 bg-white py-2.5 pl-4 pr-16 text-sm text-plum-800 placeholder:text-plum-300 shadow-sm outline-none focus:border-plum-300 focus:ring-2 focus:ring-plum-100"
+        className="w-full rounded-full border border-plum-100 bg-white py-2.5 pl-4 pr-16 text-sm text-plum-800 placeholder:text-plum-300 outline-none"
       />
 
       {query && (
@@ -352,7 +352,7 @@ function SearchBarInner() {
                     }
                   }}
                   placeholder="Search toys, baby items…"
-                  className="w-full rounded-full border border-plum-100 bg-plum-50/50 py-2.5 pl-4 pr-10 text-plum-800 placeholder:text-plum-300 outline-none focus:border-plum-300"
+                  className="w-full rounded-full border border-plum-100 bg-plum-50/50 py-2.5 pl-4 pr-10 text-plum-800 placeholder:text-plum-300 outline-none"
                 />
                 {query && (
                   <button

@@ -109,7 +109,7 @@ export default function ProductReviews({
   }
 
   const inputCls =
-    "w-full rounded-xl border border-plum-100 bg-white px-4 py-2.5 text-sm text-plum-800 placeholder:text-plum-300 outline-none focus:border-plum-300 focus:ring-2 focus:ring-plum-100";
+    "w-full rounded-xl border border-plum-100 bg-white px-4 py-2.5 text-sm text-plum-800 placeholder:text-plum-300 outline-none";
 
   return (
     <section className="mt-8 rounded-3xl bg-white p-6 shadow-[var(--shadow-soft)] ring-1 ring-plum-100/50">

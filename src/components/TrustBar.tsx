@@ -8,7 +8,7 @@ const ITEMS = [
 
 export default function TrustBar() {
   return (
-    <div className="fancy-surface grid grid-cols-3 gap-2 rounded-3xl p-2.5 sm:flex sm:flex-wrap sm:justify-center sm:gap-x-12 sm:gap-y-3 sm:p-4 lg:gap-x-20">
+    <div className="grid grid-cols-3 gap-2 border-y border-plum-100/70 py-3 sm:flex sm:flex-wrap sm:justify-center sm:gap-x-12 sm:gap-y-3 sm:py-4 lg:gap-x-20">
       {ITEMS.map(({ Icon, title, sub }) => (
         <div
           key={title}

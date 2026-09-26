@@ -36,9 +36,9 @@ export default function ProductCard({ product }: { product: StoreProduct }) {
   const quickProduct = productCardPayload(product);
 
   return (
-    <article className="group relative flex flex-col overflow-hidden rounded-[1.75rem] border border-white/80 bg-white/92 shadow-[var(--shadow-soft)] ring-1 ring-plum-100/40 transition-[transform,box-shadow,border-color] duration-300 hover:-translate-y-1.5 hover:border-coral-100 hover:shadow-[var(--shadow-float)] motion-reduce:transform-none motion-reduce:transition-none">
+    <article className="group relative flex h-full flex-col overflow-hidden rounded-2xl border border-plum-100/70 bg-white transition-[transform,border-color,box-shadow] duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] hover:-translate-y-0.5 hover:border-coral-200 hover:shadow-[0_10px_28px_rgba(47,39,73,0.08)] motion-reduce:transform-none motion-reduce:transition-none">
       <Link href={`/product/${product.slug}`} className="flex flex-1 flex-col">
-        <div className="relative mx-2 mt-2 aspect-square overflow-hidden rounded-[1.35rem] bg-gradient-to-br from-plum-50 to-coral-50/50 ring-1 ring-plum-100/50">
+        <div className="relative mx-2 mt-2 aspect-square overflow-hidden rounded-xl bg-gradient-to-br from-plum-50 to-coral-50/50">
           {image ? (
             // Plain <img> + WP srcset: static export can't run the Next optimizer,
             // so this lets the browser fetch a sized WebP instead of the full image.
@@ -50,7 +50,7 @@ export default function ProductCard({ product }: { product: StoreProduct }) {
               alt={image.alt || product.name}
               loading="lazy"
               decoding="async"
-              className="absolute inset-0 h-full w-full object-cover transition-transform duration-500 ease-out group-hover:scale-[1.055] motion-reduce:transform-none motion-reduce:transition-none"
+              className="absolute inset-0 h-full w-full object-cover transition-transform duration-700 ease-[cubic-bezier(0.22,1,0.36,1)] group-hover:scale-[1.035] motion-reduce:transform-none motion-reduce:transition-none"
             />
           ) : (
             <div className="flex h-full items-center justify-center">

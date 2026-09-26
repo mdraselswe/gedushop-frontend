@@ -172,7 +172,7 @@ export default function ProductBrowser({
   return (
     <div className="space-y-3">
       {/* Toolbar */}
-      <div className="fancy-surface flex items-center justify-between gap-2 rounded-2xl p-2">
+      <div className="flex items-center justify-between gap-2 border-y border-plum-100/70 py-2">
         <button
           onClick={() => setFilterOpen(true)}
           className="flex items-center gap-2 rounded-full bg-white px-4 py-2 text-sm font-bold text-plum-700 shadow-sm ring-1 ring-plum-100 transition-all hover:-translate-y-0.5 hover:ring-coral-300"
@@ -265,10 +265,10 @@ export default function ProductBrowser({
         </div>
       )}
       {loading ? (
-        <ProductGridSkeleton count={12} />
+        <ProductGridSkeleton count={24} />
       ) : (
         <>
-          <ProductGrid products={products} reveal respectStockFilter={false} />
+          <ProductGrid products={products} respectStockFilter={false} />
           {totalPages > 1 && (
             <ClientPager
               page={page}
@@ -334,13 +334,13 @@ export default function ProductBrowser({
                   <input
                     type="number" inputMode="numeric" min={0} placeholder="Min ৳"
                     value={minPrice} onChange={(e) => { setMinPrice(e.target.value); resetPage(); }}
-                    className="w-full rounded-xl px-3 py-2 text-sm font-semibold text-plum-700 ring-1 ring-plum-200 focus:outline-none focus:ring-coral-400"
+                    className="w-full rounded-xl border border-plum-100 px-3 py-2 text-sm font-semibold text-plum-700 outline-none"
                   />
                   <span className="text-plum-300">–</span>
                   <input
                     type="number" inputMode="numeric" min={0} placeholder="Max ৳"
                     value={maxPrice} onChange={(e) => { setMaxPrice(e.target.value); resetPage(); }}
-                    className="w-full rounded-xl px-3 py-2 text-sm font-semibold text-plum-700 ring-1 ring-plum-200 focus:outline-none focus:ring-coral-400"
+                    className="w-full rounded-xl border border-plum-100 px-3 py-2 text-sm font-semibold text-plum-700 outline-none"
                   />
                 </div>
               </Section>

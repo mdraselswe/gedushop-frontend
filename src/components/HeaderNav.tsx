@@ -28,7 +28,7 @@ function HeaderNavInner() {
   }
 
   return (
-    <nav className="ml-auto hidden items-center gap-1 rounded-full bg-plum-50/70 p-1 text-sm font-semibold ring-1 ring-plum-100/60 md:flex">
+    <nav className="ml-auto hidden items-center gap-5 text-sm font-semibold md:flex">
       {LINKS.map(({ href, label }) => {
         const active = isActive(href);
         return (
@@ -36,10 +36,10 @@ function HeaderNavInner() {
             key={href}
             href={href}
             aria-current={active ? "page" : undefined}
-            className={`rounded-full px-3 py-2 transition-all ${
+            className={`border-b-2 px-0.5 py-2 transition-colors ${
               active
-                ? "bg-white text-coral-600 shadow-sm ring-1 ring-plum-100/70"
-                : "text-plum-600 hover:bg-white/70 hover:text-coral-500"
+                ? "border-coral-400 text-coral-600"
+                : "border-transparent text-plum-600 hover:text-coral-500"
             }`}
           >
             {label}

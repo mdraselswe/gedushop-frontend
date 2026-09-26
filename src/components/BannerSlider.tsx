@@ -116,16 +116,16 @@ export default function BannerSlider() {
     >
       <div
         ref={trackRef}
-        className="no-scrollbar -mr-4 flex snap-x snap-mandatory overflow-x-auto scroll-smooth pb-1 md:mr-0"
+        className="no-scrollbar -mr-4 flex snap-x snap-mandatory gap-3 overflow-x-auto scroll-smooth pb-1 md:mr-0"
       >
         {SLIDES.map(({ title, subtitle, cta, bg, image, imageAlt }, index) => (
           <a
             key={title}
             href="/shop"
-            className={`grain relative flex min-h-64 w-full shrink-0 snap-start items-center justify-between gap-4 overflow-hidden rounded-[2rem] bg-gradient-to-br ${bg} p-6 text-white shadow-[var(--shadow-float)] ring-1 ring-white/30 md:min-h-80 md:p-10`}
+            className={`grain relative flex w-[88%] shrink-0 snap-start items-center justify-between gap-4 overflow-hidden rounded-3xl bg-gradient-to-br ${bg} p-6 text-white md:w-[46%] md:p-8`}
           >
             <span
-              className="pointer-events-none absolute inset-y-0 right-0 w-[66%] overflow-hidden md:w-[60%]"
+              className="pointer-events-none absolute inset-y-0 right-0 w-[62%] overflow-hidden md:w-[58%]"
               style={{
                 maskImage: "linear-gradient(to right, transparent 0%, rgba(0,0,0,.75) 34%, black 58%)",
                 WebkitMaskImage: "linear-gradient(to right, transparent 0%, rgba(0,0,0,.75) 34%, black 58%)",
@@ -135,20 +135,20 @@ export default function BannerSlider() {
                 src={image}
                 alt={imageAlt}
                 fill
-                sizes="(min-width: 768px) 55vw, 62vw"
+                sizes="(min-width: 768px) 28vw, 55vw"
                 className="object-cover object-center transition-transform duration-700 group-hover:scale-[1.03]"
               />
             </span>
             {/* soft radial highlight for depth */}
             <span className="pointer-events-none absolute -right-10 -top-16 size-52 rounded-full bg-white/15 blur-2xl" aria-hidden />
-            <div className="relative z-10 max-w-[72%] md:max-w-[54%]">
+            <div className="relative z-10 max-w-[68%]">
               {index === 0 ? (
-                <h1 className="font-heading text-2xl font-semibold leading-[1.1] tracking-tight md:text-4xl lg:text-5xl">{title}</h1>
+                <h1 className="font-heading text-xl font-semibold leading-[1.15] tracking-tight md:text-3xl">{title}</h1>
               ) : (
-                <h2 className="font-heading text-2xl font-semibold leading-[1.1] tracking-tight md:text-4xl lg:text-5xl">{title}</h2>
+                <h2 className="font-heading text-xl font-semibold leading-[1.15] tracking-tight md:text-3xl">{title}</h2>
               )}
-              <p className="mt-3 max-w-[32ch] text-xs leading-relaxed text-white/85 md:text-base">{subtitle}</p>
-              <span className="mt-5 inline-flex items-center gap-2 rounded-full bg-white px-5 py-2.5 text-xs font-extrabold text-plum-700 shadow-lg shadow-plum-900/10 transition-transform group-hover:translate-x-1 md:text-sm">
+              <p className="mt-1.5 max-w-[26ch] text-xs opacity-90 md:text-sm">{subtitle}</p>
+              <span className="mt-4 inline-flex items-center gap-1.5 rounded-full bg-white px-5 py-2 text-xs font-extrabold text-plum-700 shadow-sm transition-transform group-hover:scale-105 md:text-sm">
                 {cta}
                 <span aria-hidden>→</span>
               </span>

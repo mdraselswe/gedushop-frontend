@@ -267,7 +267,7 @@ function LookupForm({
   }
 
   const inputCls =
-    "w-full rounded-xl border border-plum-100 bg-white px-4 py-3 text-sm text-plum-800 placeholder:text-plum-300 outline-none focus:border-plum-300 focus:ring-2 focus:ring-plum-100";
+    "w-full rounded-xl border border-plum-100 bg-white px-4 py-3 text-sm text-plum-800 placeholder:text-plum-300 outline-none";
 
   return (
     <div className="fancy-surface-strong rounded-3xl p-5">

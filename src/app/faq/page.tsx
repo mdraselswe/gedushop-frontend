@@ -85,7 +85,7 @@ export default function FaqPage() {
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: serializeJsonLd(faqLd) }} />
       <Breadcrumbs items={[{ label: "Home", href: "/" }, { label: "FAQ" }]} />
 
-      <section className="grain relative isolate overflow-hidden rounded-[2rem] bg-gradient-to-br from-plum-700 via-plum-600 to-coral-500 px-5 py-7 text-white shadow-[0_24px_70px_-35px_rgba(79,66,116,0.85)] sm:px-8 sm:py-9">
+      <section className="grain relative isolate overflow-hidden rounded-2xl bg-gradient-to-br from-plum-700 via-plum-600 to-coral-500 px-5 py-7 text-white sm:px-8 sm:py-9">
         <div aria-hidden="true" className="absolute -right-14 -top-16 -z-10 size-48 rounded-full bg-white/10 blur-2xl" />
         <div aria-hidden="true" className="absolute -bottom-20 left-1/3 -z-10 size-52 rounded-full bg-coral-300/20 blur-3xl" />
 
@@ -133,7 +133,7 @@ export default function FaqPage() {
         ))}
       </div>
 
-      <section className="mt-7 flex flex-col gap-4 rounded-3xl border border-plum-100 bg-white p-5 shadow-[var(--shadow-soft)] sm:flex-row sm:items-center sm:justify-between sm:p-6">
+      <section className="mt-7 flex flex-col gap-4 border-t border-plum-100 py-6 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h2 className="font-heading text-lg font-semibold text-plum-800">Still need a little help?</h2>
           <p className="mt-1 text-sm text-plum-500">Our team is happy to help before or after your order.</p>

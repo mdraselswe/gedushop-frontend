@@ -9,8 +9,7 @@ const categories = [
 
 export default function HomeSeoContent() {
   return (
-    <section className="fancy-surface relative overflow-hidden rounded-[2rem] p-5 md:p-7">
-      <span aria-hidden className="absolute -right-12 -top-16 size-44 rounded-full bg-coral-100/50 blur-3xl" />
+    <section className="relative border-t border-plum-100/70 py-7 md:py-9">
       <span className="section-kicker">Shop with confidence</span>
       <h2 className="font-heading text-xl font-semibold tracking-tight text-plum-800 md:text-2xl">
         Baby and kids shopping made easier
@@ -20,12 +19,12 @@ export default function HomeSeoContent() {
         Bangladesh. Compare clear product details and prices, order from home, and pay by cash on delivery anywhere
         in the country.
       </p>
-      <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="mt-5 grid gap-x-6 gap-y-1 sm:grid-cols-2 lg:grid-cols-4">
         {categories.map((category) => (
           <Link
             key={category.href}
             href={category.href}
-            className="group rounded-2xl border border-plum-100/60 bg-white/75 p-4 transition-all hover:-translate-y-0.5 hover:border-coral-200 hover:shadow-[var(--shadow-soft)]"
+            className="group border-b border-plum-100/70 py-4 transition-colors hover:border-coral-300"
           >
             <h3 className="flex items-center justify-between font-heading text-sm font-semibold text-plum-800">
               {category.label}<span className="text-coral-400 transition-transform group-hover:translate-x-1">→</span>

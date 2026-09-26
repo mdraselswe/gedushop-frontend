@@ -21,7 +21,7 @@ export default function Header() {
   return (
     <header
       className={`site-chrome sticky top-0 z-40 border-b bg-white/82 backdrop-blur-xl transition-[border-color,box-shadow,background-color] ${
-        scrolled ? "border-plum-100/70 bg-white/94 shadow-[0_10px_35px_rgba(47,39,73,0.09)]" : "border-white/70"
+        scrolled ? "border-plum-100/70 bg-white/94 shadow-[0_4px_16px_rgba(47,39,73,0.055)]" : "border-white/70"
       }`}
     >
       <div className="mx-auto flex max-w-[120rem] flex-wrap items-center gap-x-4 gap-y-2 px-4 py-2.5 lg:px-6">

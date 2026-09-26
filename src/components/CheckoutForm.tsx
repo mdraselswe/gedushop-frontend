@@ -379,7 +379,7 @@ export default function CheckoutForm() {
   }
 
   const inputCls =
-    "w-full rounded-xl border border-plum-100 bg-white px-4 py-3 text-sm text-plum-800 placeholder:text-plum-300 shadow-[var(--shadow-soft)] outline-none transition focus:border-plum-300 focus:ring-2 focus:ring-plum-200/60";
+    "w-full rounded-xl border border-plum-100 bg-white px-4 py-3 text-sm text-plum-800 placeholder:text-plum-300 outline-none";
 
   const shipping = cart.totals.total_shipping;
   const isDhaka = form.district === DHAKA_CODE;

@@ -29,10 +29,10 @@
   --font-body: var(--font-nunito), "Nunito", var(--font-bengali), sans-serif;
 
   /* Plum-tinted shadows — softer & more premium than flat black */
-  --shadow-soft: 0 1px 2px rgba(47, 39, 73, 0.04), 0 4px 12px rgba(47, 39, 73, 0.06);
-  --shadow-lift: 0 6px 16px rgba(47, 39, 73, 0.1), 0 12px 32px rgba(47, 39, 73, 0.08);
-  --shadow-coral: 0 8px 24px rgba(233, 109, 101, 0.32);
-  --shadow-float: 0 18px 55px rgba(47, 39, 73, 0.12), 0 2px 8px rgba(47, 39, 73, 0.05);
+  --shadow-soft: 0 2px 8px rgba(47, 39, 73, 0.045);
+  --shadow-lift: 0 8px 24px rgba(47, 39, 73, 0.075);
+  --shadow-coral: 0 6px 16px rgba(233, 109, 101, 0.2);
+  --shadow-float: 0 12px 32px rgba(47, 39, 73, 0.085);
 }
 
 html {
@@ -58,22 +58,32 @@ body {
   color: var(--color-plum-900);
 }
 
-:where(a, button, input, select, textarea):focus-visible {
+:where(a, button):focus-visible {
   outline: 3px solid color-mix(in srgb, var(--color-coral-400) 55%, transparent);
   outline-offset: 3px;
 }
 
+/* Form controls stay visually still on click/focus as requested. */
+:where(input, select, textarea):focus,
+:where(input, select, textarea):focus-visible {
+  border-color: var(--color-plum-100) !important;
+  box-shadow: none !important;
+  outline: none !important;
+  --tw-ring-color: transparent !important;
+  --tw-ring-shadow: 0 0 #0000 !important;
+}
+
 /* Shared low-cost surfaces used across the storefront redesign. */
 .fancy-surface {
-  border: 1px solid color-mix(in srgb, var(--color-plum-100) 72%, white);
-  background: color-mix(in srgb, white 91%, transparent);
-  box-shadow: var(--shadow-soft);
+  border: 0;
+  background: transparent;
+  box-shadow: none;
 }
 
 .fancy-surface-strong {
-  border: 1px solid rgba(255, 255, 255, 0.72);
-  background: rgba(255, 255, 255, 0.92);
-  box-shadow: var(--shadow-float);
+  border: 1px solid color-mix(in srgb, var(--color-plum-100) 64%, white);
+  background: rgba(255, 255, 255, 0.72);
+  box-shadow: none;
 }
 
 .section-kicker {

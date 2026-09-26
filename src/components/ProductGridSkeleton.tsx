@@ -1,6 +1,7 @@
 "use client";
 
 import { useCart } from "@/context/CartContext";
+import ProductCardSkeleton from "@/components/ProductCardSkeleton";
 
 /** Card-shaped skeletons matching ProductGrid layout — shown while products load. */
 export default function ProductGridSkeleton({ count = 10 }: { count?: number }) {
@@ -15,14 +16,7 @@ export default function ProductGridSkeleton({ count = 10 }: { count?: number }) 
       }`}
     >
       {Array.from({ length: count }).map((_, i) => (
-        <div key={i} className="overflow-hidden rounded-2xl border border-plum-100/60 bg-white">
-          <div className="aspect-square animate-pulse bg-plum-50" />
-          <div className="space-y-2 p-3">
-            <div className="h-4 w-16 animate-pulse rounded bg-plum-50" />
-            <div className="h-3 w-full animate-pulse rounded bg-plum-50" />
-            <div className="h-3 w-2/3 animate-pulse rounded bg-plum-50" />
-          </div>
-        </div>
+        <ProductCardSkeleton key={i} />
       ))}
     </div>
   );

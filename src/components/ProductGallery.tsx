@@ -104,7 +104,7 @@ export default function ProductGallery({
   return (
     <div>
       <div
-        className={`group relative aspect-square overflow-hidden rounded-[2rem] border border-white/80 bg-white shadow-[var(--shadow-float)] ring-1 ring-plum-100/50 ${
+        className={`group relative aspect-square overflow-hidden rounded-2xl border border-plum-100/70 bg-white ${
           isVideo ? "" : "cursor-zoom-in"
         }`}
         onMouseEnter={() => !isVideo && setHoverZoom(true)}

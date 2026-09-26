@@ -53,7 +53,7 @@ export default function CouponField() {
             }
           }}
           placeholder="Coupon code"
-          className="min-w-0 flex-1 rounded-xl border border-plum-100 bg-white px-3 py-2 text-sm text-plum-800 placeholder:text-plum-300 outline-none focus:border-plum-300 focus:ring-2 focus:ring-plum-100"
+          className="min-w-0 flex-1 rounded-xl border border-plum-100 bg-white px-3 py-2 text-sm text-plum-800 placeholder:text-plum-300 outline-none"
         />
         <button
           type="button"

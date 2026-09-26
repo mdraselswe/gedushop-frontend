@@ -54,7 +54,7 @@ const CHANNELS = [
 export default function ContactPage() {
   return (
     <div className="mx-auto max-w-3xl px-4 pt-4">
-      <section className="grain relative overflow-hidden rounded-[2rem] bg-gradient-to-br from-plum-700 via-plum-600 to-coral-500 p-6 text-white shadow-[var(--shadow-float)] sm:p-8">
+      <section className="grain relative overflow-hidden rounded-2xl bg-gradient-to-br from-plum-700 via-plum-600 to-coral-500 p-6 text-white sm:p-8">
         <span aria-hidden className="absolute -right-14 -top-20 size-52 rounded-full bg-white/12 blur-2xl" />
         <p className="relative text-[10px] font-extrabold uppercase tracking-[0.2em] text-white/60">We are here to help</p>
         <h1 className="relative mt-1 font-heading text-3xl font-semibold tracking-tight md:text-4xl">Contact Us</h1>
@@ -70,7 +70,7 @@ export default function ContactPage() {
               href={href}
               target={external ? "_blank" : undefined}
               rel={external ? "noopener noreferrer" : undefined}
-              className="fancy-surface flex items-center gap-3 rounded-2xl p-4 transition-all hover:-translate-y-1 hover:border-coral-200 hover:shadow-[var(--shadow-lift)]"
+              className="flex items-center gap-3 border-b border-plum-100/70 py-4 transition-colors hover:border-coral-200"
             >
               <span className="flex size-11 shrink-0 items-center justify-center rounded-full bg-coral-50 text-coral-500">
                 <Icon className="size-5" strokeWidth={2.25} />
@@ -85,7 +85,7 @@ export default function ContactPage() {
         })}
       </div>
 
-      <div className="mt-3 flex items-center gap-3 rounded-2xl bg-white p-4 shadow-[var(--shadow-soft)] ring-1 ring-plum-100/50">
+      <div className="mt-3 flex items-center gap-3 border-y border-plum-100/70 py-4">
         <span className="flex size-11 shrink-0 items-center justify-center rounded-full bg-plum-50 text-plum-600">
           <MapPin className="size-5" strokeWidth={2.25} />
         </span>

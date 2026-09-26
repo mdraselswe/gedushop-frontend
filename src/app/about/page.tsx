@@ -21,7 +21,7 @@ export default function AboutPage() {
   return (
     <div className="mx-auto max-w-4xl px-4 pb-8 pt-4">
       {/* Hero */}
-      <section className="grain relative overflow-hidden rounded-3xl bg-gradient-to-br from-plum-600 to-coral-400 p-7 text-white shadow-[var(--shadow-lift)] md:p-10">
+      <section className="grain relative overflow-hidden rounded-2xl bg-gradient-to-br from-plum-600 to-coral-400 p-7 text-white md:p-10">
         <span className="pointer-events-none absolute -right-12 -top-16 size-56 rounded-full bg-white/15 blur-2xl" aria-hidden />
         <div className="relative z-10 flex flex-col items-start gap-4 md:flex-row md:items-center md:gap-6">
           <span className="flex size-16 shrink-0 items-center justify-center rounded-2xl bg-white/95 p-2 shadow-sm md:size-20">
@@ -38,7 +38,7 @@ export default function AboutPage() {
 
       {/* Story */}
       <Reveal className="mt-6" as="section">
-        <div className="rounded-3xl bg-white p-6 text-sm leading-relaxed text-plum-600 shadow-[var(--shadow-soft)] ring-1 ring-plum-100/50 md:p-8 md:text-base">
+        <div className="border-y border-plum-100/70 py-6 text-sm leading-relaxed text-plum-600 md:py-8 md:text-base">
           <p>
             GeduShop is a Bangladesh-based online shop focused on practical baby items, toys and kids essentials.
             We select products using the information available from suppliers, inspect stock and packing, and aim
@@ -56,7 +56,7 @@ export default function AboutPage() {
       <div className="mt-6 grid gap-3 sm:grid-cols-2">
         {VALUES.map(({ Icon, title, text }, i) => (
           <Reveal key={title} index={i}>
-            <div className="flex h-full gap-4 rounded-2xl bg-white p-5 shadow-[var(--shadow-soft)] ring-1 ring-plum-100/50 transition-all hover:-translate-y-0.5 hover:shadow-[var(--shadow-lift)]">
+            <div className="flex h-full gap-4 border-b border-plum-100/70 py-5 transition-colors hover:border-coral-200">
               <span className="flex size-11 shrink-0 items-center justify-center rounded-full bg-coral-50 text-coral-500">
                 <Icon className="size-5" strokeWidth={2.25} />
               </span>
