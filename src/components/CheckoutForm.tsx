@@ -503,7 +503,7 @@ export default function CheckoutForm() {
         <textarea value={form.note} onChange={set("note")} placeholder="Order note (optional)" rows={2} className={inputCls} />
 
         {/* Payment method */}
-        <div className="rounded-2xl bg-white p-4 shadow-[var(--shadow-soft)] ring-1 ring-plum-100/50">
+        <div className="fancy-surface-strong rounded-3xl p-4">
           <h3 className="mb-2.5 text-sm font-bold text-plum-700">Payment method</h3>
           <div className="space-y-2">
             <label
@@ -570,7 +570,7 @@ export default function CheckoutForm() {
         </div>
       </div>
 
-      <div className="h-fit rounded-2xl bg-white p-5 shadow-[var(--shadow-soft)] ring-1 ring-plum-100/50 md:sticky md:top-20">
+      <div className="fancy-surface-strong h-fit rounded-3xl p-5 md:sticky md:top-20">
         <h2 className="font-heading text-base font-semibold tracking-tight text-plum-800">Order Summary</h2>
         <ul className="mt-4 space-y-3">
           {cart.items.map((item) => (

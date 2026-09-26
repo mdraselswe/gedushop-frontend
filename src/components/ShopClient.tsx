@@ -32,7 +32,11 @@ function ShopContent({
 
   return (
     <div className="space-y-4 px-4 pt-4">
-      <h1 className="font-heading text-2xl font-semibold tracking-tight text-plum-800">{title}</h1>
+      <div className="grain relative overflow-hidden rounded-3xl bg-gradient-to-r from-plum-700 via-plum-600 to-coral-500 px-5 py-5 text-white shadow-[var(--shadow-lift)] sm:px-7 sm:py-6">
+        <span aria-hidden className="absolute -right-10 -top-16 size-44 rounded-full bg-white/15 blur-2xl" />
+        <p className="relative text-[10px] font-extrabold uppercase tracking-[0.18em] text-white/60">Discover something lovely</p>
+        <h1 className="relative mt-1 font-heading text-2xl font-semibold tracking-tight md:text-3xl">{title}</h1>
+      </div>
       <ProductBrowser
         key={`${search ?? ""}|${sale ? "1" : ""}|${sortParam ?? ""}`}
         search={search}

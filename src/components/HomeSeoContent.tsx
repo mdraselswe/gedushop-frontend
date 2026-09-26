@@ -9,7 +9,9 @@ const categories = [
 
 export default function HomeSeoContent() {
   return (
-    <section className="rounded-3xl bg-white p-5 shadow-[var(--shadow-soft)] ring-1 ring-plum-100/50 md:p-7">
+    <section className="fancy-surface relative overflow-hidden rounded-[2rem] p-5 md:p-7">
+      <span aria-hidden className="absolute -right-12 -top-16 size-44 rounded-full bg-coral-100/50 blur-3xl" />
+      <span className="section-kicker">Shop with confidence</span>
       <h2 className="font-heading text-xl font-semibold tracking-tight text-plum-800 md:text-2xl">
         Baby and kids shopping made easier
       </h2>
@@ -23,9 +25,11 @@ export default function HomeSeoContent() {
           <Link
             key={category.href}
             href={category.href}
-            className="rounded-2xl bg-plum-50/70 p-4 transition-colors hover:bg-coral-50"
+            className="group rounded-2xl border border-plum-100/60 bg-white/75 p-4 transition-all hover:-translate-y-0.5 hover:border-coral-200 hover:shadow-[var(--shadow-soft)]"
           >
-            <h3 className="font-heading text-sm font-semibold text-plum-800">{category.label}</h3>
+            <h3 className="flex items-center justify-between font-heading text-sm font-semibold text-plum-800">
+              {category.label}<span className="text-coral-400 transition-transform group-hover:translate-x-1">→</span>
+            </h3>
             <p className="mt-1 text-xs leading-relaxed text-plum-500">Browse {category.text}.</p>
           </Link>
         ))}

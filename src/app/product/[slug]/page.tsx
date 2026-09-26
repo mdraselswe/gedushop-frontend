@@ -143,7 +143,7 @@ export default async function ProductPage({ params }: Props) {
   };
 
   return (
-    <div className="mx-auto max-w-5xl px-4 pt-4">
+    <div className="mx-auto max-w-6xl px-4 pt-4">
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: serializeJsonLd(jsonLd) }} />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: serializeJsonLd(breadcrumbLd) }} />
       <Breadcrumbs
@@ -156,7 +156,7 @@ export default async function ProductPage({ params }: Props) {
           { label: product.name },
         ]}
       />
-      <div className="grid grid-cols-1 gap-5 md:grid-cols-2 md:gap-8">
+      <div className="grid grid-cols-1 gap-5 md:grid-cols-2 md:gap-7">
         <ProductGallery
           images={product.images}
           name={product.name}
@@ -166,7 +166,7 @@ export default async function ProductPage({ params }: Props) {
           product={product}
         />
 
-        <div className="flex min-w-0 flex-col">
+        <div className="fancy-surface-strong flex min-w-0 flex-col rounded-[2rem] p-5 md:p-7">
           <h1 className="font-heading text-2xl font-semibold leading-tight tracking-tight text-plum-800 md:text-3xl">
             {product.name}
           </h1>
@@ -214,7 +214,7 @@ export default async function ProductPage({ params }: Props) {
       {combo && <ComboContents product={product} />}
 
       {product.description && (
-        <section className="mt-8 rounded-3xl bg-white p-6 shadow-[var(--shadow-soft)] ring-1 ring-plum-100/50">
+        <section className="fancy-surface mt-8 rounded-[2rem] p-6 md:p-8">
           <h2 className="font-heading text-lg font-semibold tracking-tight text-plum-800">Details</h2>
           <div
             className="mt-3 overflow-x-auto text-sm leading-relaxed text-plum-600 [&_a]:font-bold [&_a]:text-coral-500 [&_h1]:mt-4 [&_h1]:font-heading [&_h1]:text-base [&_h1]:font-semibold [&_h1]:text-plum-800 [&_h2]:mt-4 [&_h2]:font-heading [&_h2]:text-base [&_h2]:font-semibold [&_h2]:text-plum-800 [&_h3]:mt-4 [&_h3]:font-heading [&_h3]:font-semibold [&_h3]:text-plum-800 [&_img]:hidden [&_li]:my-1 [&_p]:my-3 [&_pre]:my-3 [&_pre]:overflow-x-auto [&_pre]:whitespace-pre-wrap [&_pre]:break-words [&_pre]:rounded-xl [&_pre]:bg-plum-50 [&_pre]:p-3 [&_pre]:font-body [&_pre]:text-sm [&_strong]:text-plum-800 [&_table]:my-3 [&_table]:w-full [&_table]:table-fixed [&_table]:border-collapse [&_td]:border [&_td]:border-plum-100 [&_td]:px-3 [&_td]:py-2 [&_td]:align-top [&_td]:break-words [&_th]:border [&_th]:border-plum-100 [&_th]:bg-plum-50 [&_th]:px-3 [&_th]:py-2 [&_th]:text-left [&_th]:font-bold [&_th]:text-plum-800 [&_th]:break-words [&_ul]:my-3 [&_ul]:list-disc [&_ul]:pl-5"

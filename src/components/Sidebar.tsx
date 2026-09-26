@@ -19,12 +19,12 @@ function SidebarInner({ categories }: { categories: StoreCategory[] }) {
   const onShop = pathname === "/shop";
 
   const itemCls = (active: boolean) =>
-    `flex items-center gap-2.5 rounded-xl px-3 py-2 text-sm font-bold transition-colors ${
-      active ? "bg-plum-600 text-white" : "text-plum-700 hover:bg-plum-50"
+    `flex items-center gap-2.5 rounded-xl px-3 py-2.5 text-sm font-bold transition-all ${
+      active ? "bg-gradient-to-r from-plum-700 to-plum-500 text-white shadow-md shadow-plum-600/20" : "text-plum-700 hover:translate-x-0.5 hover:bg-plum-50"
     }`;
 
   return (
-    <aside className="site-chrome sticky top-[4.2rem] hidden h-[calc(100vh-4.2rem)] w-64 shrink-0 overflow-y-auto border-r border-plum-100/60 bg-white px-3 py-4 lg:block xl:w-72">
+    <aside className="site-chrome fancy-surface sticky top-[5.2rem] my-3 ml-3 hidden h-[calc(100vh-6rem)] w-64 shrink-0 overflow-y-auto rounded-3xl px-3 py-4 lg:block xl:w-72">
       <nav className="space-y-1">
         {COLLECTIONS.map(({ href, label, Icon }) => {
           const active =
@@ -41,7 +41,7 @@ function SidebarInner({ categories }: { categories: StoreCategory[] }) {
         })}
       </nav>
 
-      <p className="mt-5 px-3 text-[11px] font-extrabold uppercase tracking-wider text-plum-300">
+      <p className="mt-5 px-3 text-[10px] font-extrabold uppercase tracking-[0.18em] text-plum-300">
         Categories
       </p>
       <nav className="mt-1.5 space-y-1">

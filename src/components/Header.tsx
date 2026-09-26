@@ -20,12 +20,12 @@ export default function Header() {
 
   return (
     <header
-      className={`site-chrome sticky top-0 z-40 border-b bg-white/95 backdrop-blur transition-shadow ${
-        scrolled ? "border-plum-100/60 shadow-[var(--shadow-soft)]" : "border-transparent"
+      className={`site-chrome sticky top-0 z-40 border-b bg-white/82 backdrop-blur-xl transition-[border-color,box-shadow,background-color] ${
+        scrolled ? "border-plum-100/70 bg-white/94 shadow-[0_10px_35px_rgba(47,39,73,0.09)]" : "border-white/70"
       }`}
     >
-      <div className="mx-auto flex max-w-[120rem] flex-wrap items-center gap-x-4 gap-y-2 px-4 py-2.5 md:py-3">
-        <Link href="/" className="shrink-0" aria-label="GeduShop home">
+      <div className="mx-auto flex max-w-[120rem] flex-wrap items-center gap-x-4 gap-y-2 px-4 py-2.5 lg:px-6">
+        <Link href="/" className="shrink-0 rounded-2xl transition-transform hover:scale-[1.02]" aria-label="GeduShop home">
           <Image src="/logo-light.png" alt="GeduShop" width={77} height={56} className="h-12 w-auto md:h-14" priority />
         </Link>
 

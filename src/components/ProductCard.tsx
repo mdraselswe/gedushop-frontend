@@ -36,9 +36,9 @@ export default function ProductCard({ product }: { product: StoreProduct }) {
   const quickProduct = productCardPayload(product);
 
   return (
-    <article className="group relative flex flex-col overflow-hidden rounded-3xl bg-white shadow-[var(--shadow-soft)] ring-1 ring-plum-100/50 transition-all duration-300 hover:-translate-y-1 hover:shadow-[var(--shadow-lift)]">
+    <article className="group relative flex flex-col overflow-hidden rounded-[1.75rem] border border-white/80 bg-white/92 shadow-[var(--shadow-soft)] ring-1 ring-plum-100/40 transition-[transform,box-shadow,border-color] duration-300 hover:-translate-y-1.5 hover:border-coral-100 hover:shadow-[var(--shadow-float)] motion-reduce:transform-none motion-reduce:transition-none">
       <Link href={`/product/${product.slug}`} className="flex flex-1 flex-col">
-        <div className="relative aspect-square overflow-hidden bg-gradient-to-br from-plum-50 to-coral-50/40">
+        <div className="relative mx-2 mt-2 aspect-square overflow-hidden rounded-[1.35rem] bg-gradient-to-br from-plum-50 to-coral-50/50 ring-1 ring-plum-100/50">
           {image ? (
             // Plain <img> + WP srcset: static export can't run the Next optimizer,
             // so this lets the browser fetch a sized WebP instead of the full image.
@@ -50,7 +50,7 @@ export default function ProductCard({ product }: { product: StoreProduct }) {
               alt={image.alt || product.name}
               loading="lazy"
               decoding="async"
-              className="absolute inset-0 h-full w-full object-cover transition-transform duration-500 ease-out group-hover:scale-[1.07]"
+              className="absolute inset-0 h-full w-full object-cover transition-transform duration-500 ease-out group-hover:scale-[1.055] motion-reduce:transform-none motion-reduce:transition-none"
             />
           ) : (
             <div className="flex h-full items-center justify-center">
@@ -75,7 +75,7 @@ export default function ProductCard({ product }: { product: StoreProduct }) {
           </span>
         </div>
 
-        <div className="flex flex-1 flex-col px-3.5 pt-3.5">
+        <div className="flex flex-1 flex-col px-4 pt-3.5">
           <h3 className="line-clamp-2 min-h-[2.75em] text-sm font-semibold leading-snug text-plum-800">
             {product.name}
           </h3>
@@ -116,7 +116,7 @@ export default function ProductCard({ product }: { product: StoreProduct }) {
       </Link>
 
       {/* price + control share one row so they never overlap or overflow on narrow cards */}
-      <div className="flex items-center justify-between gap-2 px-3.5 pb-3.5 pt-2">
+      <div className="flex items-center justify-between gap-2 px-4 pb-4 pt-2">
         {/* mobile (2-col) stacks to save width; sm+ shows both prices on one line */}
         <div className="flex min-w-0 flex-col leading-tight sm:flex-row sm:items-baseline sm:gap-1.5">
           <span className="text-lg font-extrabold tracking-tight text-plum-700 tabular-nums">
@@ -135,7 +135,7 @@ export default function ProductCard({ product }: { product: StoreProduct }) {
         ) : needsOptions ? (
           <Link
             href={`/product/${product.slug}`}
-            className="shrink-0 rounded-full bg-plum-600 px-3.5 py-2 text-xs font-extrabold text-white transition-colors hover:bg-plum-700"
+            className="shrink-0 rounded-full bg-gradient-to-r from-plum-700 to-plum-500 px-3.5 py-2 text-xs font-extrabold text-white shadow-sm transition-transform hover:scale-[1.03]"
           >
             Options
           </Link>

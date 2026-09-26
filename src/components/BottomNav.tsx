@@ -19,8 +19,8 @@ export default function BottomNav({ categories }: { categories: StoreCategory[] 
 
   return (
     <>
-      <nav className="site-chrome fixed inset-x-0 bottom-0 z-40 border-t border-plum-100 bg-white pb-[env(safe-area-inset-bottom)] md:hidden">
-        <div className="grid grid-cols-4">
+      <nav className="site-chrome fixed inset-x-3 bottom-3 z-40 overflow-hidden rounded-2xl border border-white/80 bg-white/92 pb-[env(safe-area-inset-bottom)] shadow-[0_18px_48px_rgba(47,39,73,0.2)] ring-1 ring-plum-100/50 backdrop-blur-xl md:hidden">
+        <div className="grid grid-cols-4 px-1">
           {/* Home */}
           <Link href="/" aria-current={pathname === "/" ? "page" : undefined} className={itemCls(pathname === "/")}>
             <span className={`flex h-7 w-12 items-center justify-center rounded-full ${pathname === "/" ? "bg-coral-50" : ""}`}>

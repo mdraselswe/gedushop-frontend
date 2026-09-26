@@ -172,10 +172,10 @@ export default function ProductBrowser({
   return (
     <div className="space-y-3">
       {/* Toolbar */}
-      <div className="flex items-center justify-between gap-2">
+      <div className="fancy-surface flex items-center justify-between gap-2 rounded-2xl p-2">
         <button
           onClick={() => setFilterOpen(true)}
-          className="flex items-center gap-2 rounded-full bg-white px-4 py-2 text-sm font-bold text-plum-700 ring-1 ring-plum-200 transition-colors hover:ring-coral-300"
+          className="flex items-center gap-2 rounded-full bg-white px-4 py-2 text-sm font-bold text-plum-700 shadow-sm ring-1 ring-plum-100 transition-all hover:-translate-y-0.5 hover:ring-coral-300"
         >
           <SlidersHorizontal className="size-4" strokeWidth={2.25} />
           Filters
@@ -191,7 +191,7 @@ export default function ProductBrowser({
           <div className="relative">
             <button
               onClick={() => setSortOpen((o) => !o)}
-              className="flex items-center gap-2 rounded-full bg-white px-4 py-2 text-sm font-bold text-plum-700 ring-1 ring-plum-200 transition-colors hover:ring-coral-300"
+              className="flex items-center gap-2 rounded-full bg-white px-4 py-2 text-sm font-bold text-plum-700 shadow-sm ring-1 ring-plum-100 transition-all hover:-translate-y-0.5 hover:ring-coral-300"
             >
               <ArrowDownUp className="size-4" strokeWidth={2.25} />
               <span className="hidden sm:inline">Sort:</span> {sortLabel}

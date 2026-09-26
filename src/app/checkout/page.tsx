@@ -9,7 +9,8 @@ export const metadata: Metadata = {
 export default function CheckoutPage() {
   return (
     <div className="mx-auto max-w-4xl px-4 pt-4">
-      <h1 className="font-heading text-2xl font-semibold tracking-tight text-plum-800">Checkout</h1>
+      <p className="section-kicker">Final step</p>
+      <h1 className="mt-2 font-heading text-3xl font-semibold tracking-tight text-plum-800">Checkout</h1>
       <CheckoutForm />
     </div>
   );

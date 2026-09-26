@@ -58,7 +58,7 @@ export default function CartView() {
         const busy = pendingIds.has(item.id);
         const slug = productSlug(item.permalink);
         return (
-          <div key={item.key} className="flex items-center gap-3 rounded-2xl bg-white p-3 shadow-[var(--shadow-soft)] ring-1 ring-plum-100/50">
+          <div key={item.key} className="fancy-surface flex items-center gap-3 rounded-2xl p-3 transition-shadow hover:shadow-[var(--shadow-lift)]">
             <Link
               href={slug ? `/product/${slug}` : "#"}
               className="relative size-16 shrink-0 overflow-hidden rounded-xl bg-gradient-to-br from-plum-50 to-coral-50/40"
@@ -128,7 +128,7 @@ export default function CartView() {
         );
       })}
 
-      <div className="rounded-2xl bg-white p-5 shadow-[var(--shadow-soft)] ring-1 ring-plum-100/50">
+      <div className="fancy-surface-strong rounded-3xl p-5">
         <div className="flex justify-between text-sm font-semibold text-plum-500">
           <span>Subtotal</span>
           <span className="tabular-nums">{formatPrice(cart.totals.total_items, cart.totals)}</span>

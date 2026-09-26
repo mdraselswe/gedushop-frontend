@@ -6,7 +6,7 @@ export default function CategoryLoading() {
     <div className="min-h-[100dvh] space-y-4 px-4 pb-8 pt-4" aria-label="Loading category products">
       <div className="h-4 w-40 animate-pulse rounded-full bg-plum-100" />
 
-      <div className="grain flex min-h-24 items-center gap-4 overflow-hidden rounded-3xl bg-gradient-to-br from-plum-600 to-plum-500 p-5 md:min-h-28 md:p-6">
+      <div className="grain flex min-h-24 items-center gap-4 overflow-hidden rounded-[2rem] bg-gradient-to-br from-plum-700 via-plum-600 to-coral-500 p-5 shadow-[var(--shadow-lift)] md:min-h-28 md:p-7">
         <div className="size-14 shrink-0 animate-pulse rounded-2xl bg-white/15 md:size-16" />
         <div className="flex-1 space-y-2.5">
           <div className="h-7 w-48 max-w-[70%] animate-pulse rounded-lg bg-white/20" />

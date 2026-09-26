@@ -116,7 +116,7 @@ function OrderTrackerInner() {
 
   return (
     <div className="mt-4 space-y-5 pb-8">
-      <form onSubmit={submit} className="grid gap-3 rounded-2xl bg-white p-4 shadow-[var(--shadow-soft)] ring-1 ring-plum-100/50 sm:grid-cols-[1fr_1fr_auto]">
+      <form onSubmit={submit} className="fancy-surface-strong grid gap-3 rounded-3xl p-4 sm:grid-cols-[1fr_1fr_auto]">
         <input
           value={orderId}
           onChange={(e) => setOrderId(e.target.value)}
@@ -151,7 +151,7 @@ function OrderTrackerInner() {
       )}
 
       {result && (
-        <div className="overflow-hidden rounded-2xl bg-white shadow-[var(--shadow-soft)] ring-1 ring-plum-100/50">
+        <div className="fancy-surface-strong overflow-hidden rounded-3xl">
           <div className="flex flex-wrap items-center justify-between gap-2 border-b border-plum-100 bg-plum-50/50 px-5 py-3">
             <div>
               <p className="font-heading text-base font-semibold text-plum-700">Order #{result.id}</p>

@@ -160,7 +160,7 @@ export default function OrderList() {
         return (
           <div
             key={String(o.id)}
-            className="overflow-hidden rounded-2xl bg-white shadow-[var(--shadow-soft)] ring-1 ring-plum-100/50"
+            className="fancy-surface overflow-hidden rounded-3xl"
           >
             <div className="flex flex-wrap items-center justify-between gap-2 border-b border-plum-100 bg-plum-50/50 px-5 py-3">
               <div>
@@ -270,7 +270,7 @@ function LookupForm({
     "w-full rounded-xl border border-plum-100 bg-white px-4 py-3 text-sm text-plum-800 placeholder:text-plum-300 outline-none focus:border-plum-300 focus:ring-2 focus:ring-plum-100";
 
   return (
-    <div className="rounded-2xl bg-white p-5 shadow-[var(--shadow-soft)] ring-1 ring-plum-100/50">
+    <div className="fancy-surface-strong rounded-3xl p-5">
       {!hasRows && (
         <div className="mb-4 flex flex-col items-center text-center">
           <span className="flex size-14 items-center justify-center rounded-full bg-plum-50">

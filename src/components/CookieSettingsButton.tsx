@@ -7,7 +7,7 @@ export default function CookieSettingsButton() {
     <button
       type="button"
       onClick={() => window.dispatchEvent(new Event(CONSENT_OPEN))}
-      className="hover:text-coral-500"
+      className="transition-colors hover:text-coral-300"
     >
       Cookies
     </button>
