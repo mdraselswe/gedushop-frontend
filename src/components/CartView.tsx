@@ -9,6 +9,7 @@ import { cartItemsTotal } from "@/lib/cart-total";
 import { CartIcon, MinusIcon, PlusIcon, TrashIcon } from "./Icons";
 import CouponField from "./CouponField";
 import FreeShippingBar from "./FreeShippingBar";
+import CartSkeleton from "./CartSkeleton";
 
 /** Store API cart items carry the WP permalink; grab the last path segment as our route slug. */
 function productSlug(permalink?: string): string | null {
@@ -24,15 +25,7 @@ function productSlug(permalink?: string): string | null {
 export default function CartView() {
   const { cart, loading, setQuantity, removeItem, pendingIds } = useCart();
 
-  if (loading) {
-    return (
-      <div className="mt-4 space-y-3">
-        {[1, 2].map((i) => (
-          <div key={i} className="h-24 animate-pulse rounded-2xl bg-white" />
-        ))}
-      </div>
-    );
-  }
+  if (loading) return <CartSkeleton />;
 
   if (!cart || cart.items.length === 0) {
     return (
@@ -58,7 +51,7 @@ export default function CartView() {
         const busy = pendingIds.has(item.id);
         const slug = productSlug(item.permalink);
         return (
-          <div key={item.key} className="fancy-surface flex items-center gap-3 rounded-2xl p-3 transition-[border-color,box-shadow] hover:border-coral-100 hover:shadow-[var(--shadow-lift)]">
+          <div key={item.key} className="fancy-surface flex items-center gap-3 rounded-2xl p-3 transition-[border-color,box-shadow,transform] duration-300 ease-out hover:-translate-y-0.5 hover:border-coral-100 hover:shadow-[var(--shadow-lift)]">
             <Link
               href={slug ? `/product/${slug}` : "#"}
               className="relative size-16 shrink-0 overflow-hidden rounded-xl bg-gradient-to-br from-plum-50 to-coral-50/40"

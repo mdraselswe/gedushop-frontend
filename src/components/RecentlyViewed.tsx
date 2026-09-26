@@ -68,7 +68,7 @@ export default function RecentlyViewed({ excludeSlug, title = "Recently viewed" 
           <Link
             key={p.slug}
             href={`/product/${p.slug}`}
-            className="group w-36 shrink-0 overflow-hidden rounded-2xl bg-white shadow-[var(--shadow-soft)] ring-1 ring-plum-100/50 transition-transform hover:-translate-y-1"
+            className="group w-36 shrink-0 overflow-hidden rounded-2xl bg-white shadow-[var(--shadow-soft)] ring-1 ring-plum-100/50 transition-[transform,box-shadow] duration-300 ease-out hover:-translate-y-0.5 hover:shadow-[var(--shadow-lift)]"
           >
             <div className="relative aspect-square overflow-hidden bg-gradient-to-br from-plum-50 to-coral-50/40">
               {p.image ? (
@@ -78,7 +78,7 @@ export default function RecentlyViewed({ excludeSlug, title = "Recently viewed" 
                   alt={decodeEntities(p.name)}
                   loading="lazy"
                   decoding="async"
-                  className="absolute inset-0 h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+                  className="absolute inset-0 h-full w-full object-cover transition-transform duration-700 ease-[cubic-bezier(0.22,1,0.36,1)] group-hover:scale-[1.035]"
                 />
               ) : (
                 <span className="flex h-full items-center justify-center">

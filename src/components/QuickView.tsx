@@ -52,7 +52,7 @@ export default function QuickView({ product }: { product: StoreProduct }) {
           setOpen(true);
         }}
         aria-label={`Quick view: ${product.name}`}
-        className="flex size-8 items-center justify-center rounded-full bg-white/90 text-plum-600 shadow-md backdrop-blur transition-all hover:bg-plum-600 hover:text-white md:opacity-0 md:group-hover:opacity-100"
+        className="flex size-8 items-center justify-center rounded-full bg-white/90 text-plum-600 shadow-md backdrop-blur transition-[opacity,color,background-color,transform,box-shadow] duration-300 ease-out hover:scale-105 hover:bg-plum-600 hover:text-white md:opacity-0 md:group-hover:opacity-100"
       >
         <Eye className="size-4" strokeWidth={2.25} />
       </button>

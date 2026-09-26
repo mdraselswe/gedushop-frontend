@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { Suspense } from "react";
 import { ArrowRight, Sparkles } from "lucide-react";
 import BannerSlider from "@/components/BannerSlider";
 import ProductBrowser from "@/components/ProductBrowser";
@@ -8,6 +9,7 @@ import TrustBar from "@/components/TrustBar";
 import HomeSeoContent from "@/components/HomeSeoContent";
 import { getProductsPaged } from "@/lib/wp";
 import { productCardPayloads } from "@/lib/productCardPayload";
+import ProductCardSkeleton from "@/components/ProductCardSkeleton";
 
 export const metadata: Metadata = {
   title: "Baby Items, Toys, Baby Clothing & Kids Essentials Online",
@@ -16,11 +18,30 @@ export const metadata: Metadata = {
   alternates: { canonical: "/" },
 };
 
-export default async function HomePage() {
+async function PopularProducts() {
   // Do not publish an empty homepage when WordPress is temporarily down.
   // The build fetch already retries; if it still fails, keeping the current
   // production deployment is safer than replacing it with "No products".
   const { products, total } = await getProductsPaged({ perPage: 24, orderby: "popularity" });
+
+  return <ProductBrowser initialProducts={productCardPayloads(products)} initialTotal={total} defaultSort="popularity" />;
+}
+
+function PopularProductsSkeleton() {
+  return (
+    <div className="space-y-3" aria-label="Loading popular products">
+      <div className="fancy-surface flex h-12 items-center justify-between rounded-xl p-2">
+        <div className="h-9 w-24 animate-pulse rounded-full bg-plum-50" />
+        <div className="h-9 w-32 animate-pulse rounded-full bg-plum-50" />
+      </div>
+      <div className="grid grid-cols-1 gap-3 min-[381px]:grid-cols-2 sm:grid-cols-3 md:gap-4 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5">
+        {Array.from({ length: 10 }).map((_, index) => <ProductCardSkeleton key={index} />)}
+      </div>
+    </div>
+  );
+}
+
+export default function HomePage() {
 
   return (
     <div className="space-y-7 px-4 pb-4 pt-4 lg:pt-5">
@@ -39,7 +60,9 @@ export default async function HomePage() {
             View all <ArrowRight className="size-3.5" strokeWidth={2.5} />
           </Link>
         </div>
-        <ProductBrowser initialProducts={productCardPayloads(products)} initialTotal={total} defaultSort="popularity" />
+        <Suspense fallback={<PopularProductsSkeleton />}>
+          <PopularProducts />
+        </Suspense>
       </section>
       <HomeSeoContent />
       <RecentlyViewed />

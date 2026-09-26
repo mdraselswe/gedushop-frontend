@@ -19,7 +19,7 @@ function SidebarInner({ categories }: { categories: StoreCategory[] }) {
   const onShop = pathname === "/shop";
 
   const itemCls = (active: boolean) =>
-    `flex items-center gap-2.5 rounded-xl px-3 py-2.5 text-sm font-bold transition-all ${
+    `flex items-center gap-2.5 rounded-xl px-3 py-2.5 text-sm font-bold transition-[color,background-color,transform,box-shadow] duration-300 ease-out ${
       active ? "bg-gradient-to-r from-plum-700 to-plum-500 text-white shadow-md shadow-plum-600/20" : "text-plum-700 hover:translate-x-0.5 hover:bg-plum-50"
     }`;
 

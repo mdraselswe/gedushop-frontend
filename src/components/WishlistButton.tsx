@@ -15,7 +15,7 @@ export default function WishlistButton({ productId }: { productId: number }) {
       }}
       aria-label={saved ? "Remove from wishlist" : "Add to wishlist"}
       aria-pressed={saved}
-      className="flex size-8 items-center justify-center rounded-full bg-white/90 shadow-md backdrop-blur transition-transform hover:bg-white active:scale-90"
+      className="flex size-8 items-center justify-center rounded-full bg-white/90 shadow-md backdrop-blur transition-[transform,background-color,box-shadow] duration-300 ease-out hover:bg-white hover:shadow-[var(--shadow-lift)] active:scale-90"
     >
       <Heart
         className={`size-4 transition-all duration-200 ${saved ? "scale-110 fill-coral-500 text-coral-500" : "text-plum-400"}`}

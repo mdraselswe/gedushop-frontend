@@ -22,7 +22,7 @@ export default function AddToCartButton({ productId, disabled }: { productId: nu
         }}
         disabled={disabled || busy}
         aria-label="Add to cart"
-        className="flex size-9 items-center justify-center rounded-full bg-coral-500 text-white shadow-md shadow-coral-500/40 transition-transform hover:bg-coral-600 active:scale-90 disabled:opacity-50"
+        className="flex size-9 items-center justify-center rounded-full bg-coral-500 text-white shadow-md shadow-coral-500/40 transition-[transform,background-color,box-shadow] duration-300 ease-out hover:bg-coral-600 hover:shadow-[var(--shadow-coral)] active:scale-90 disabled:opacity-50"
       >
         <PlusIcon className="size-5" />
       </button>
@@ -38,7 +38,7 @@ export default function AddToCartButton({ productId, disabled }: { productId: nu
         }}
         disabled={busy}
         aria-label="Decrease quantity"
-        className="flex size-9 items-center justify-center rounded-full transition-colors hover:bg-plum-700 disabled:opacity-50"
+        className="flex size-9 items-center justify-center rounded-full transition-colors duration-300 ease-out hover:bg-plum-700 disabled:opacity-50"
       >
         <MinusIcon className="size-4" />
       </button>
@@ -50,7 +50,7 @@ export default function AddToCartButton({ productId, disabled }: { productId: nu
         }}
         disabled={busy}
         aria-label="Increase quantity"
-        className="flex size-9 items-center justify-center rounded-full transition-colors hover:bg-plum-700 disabled:opacity-50"
+        className="flex size-9 items-center justify-center rounded-full transition-colors duration-300 ease-out hover:bg-plum-700 disabled:opacity-50"
       >
         <PlusIcon className="size-4" />
       </button>

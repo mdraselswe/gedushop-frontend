@@ -150,6 +150,20 @@ body {
   }
 }
 
+@keyframes shipping-confetti-pop {
+  0% { opacity: 0; transform: translate(-50%, -20%) scale(0.4) rotate(0deg); }
+  22% { opacity: 1; }
+  100% { opacity: 0; transform: translate(calc(-50% + var(--confetti-x)), var(--confetti-y)) scale(1) rotate(145deg); }
+}
+
+.shipping-confetti {
+  animation: shipping-confetti-pop 850ms cubic-bezier(0.22, 1, 0.36, 1) var(--confetti-delay) both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .shipping-confetti { display: none; }
+}
+
 /* Outdated-browser notice: visible by default (plain CSS every browser understands),
    hidden by any browser modern enough for Tailwind v4 (oklch = same baseline). */
 .browser-warning {

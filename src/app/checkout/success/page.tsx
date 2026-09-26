@@ -202,7 +202,7 @@ function SuccessInner() {
             <div className="mt-6 flex flex-col gap-3 sm:flex-row">
               <Link
                 href="/"
-                className="inline-flex flex-1 items-center justify-center gap-2 rounded-full bg-coral-500 px-6 py-3 text-sm font-extrabold text-white shadow-[var(--shadow-coral)] transition hover:bg-coral-600 active:scale-[0.98]"
+                className="inline-flex flex-1 items-center justify-center gap-2 whitespace-nowrap rounded-full bg-coral-500 px-5 py-3 text-sm font-extrabold text-white shadow-[var(--shadow-coral)] transition-colors duration-300 hover:bg-coral-600 active:scale-[0.98]"
               >
                 Continue Shopping
                 <ArrowRight className="size-4" strokeWidth={2.5} />
@@ -210,7 +210,7 @@ function SuccessInner() {
               {order && (
                 <Link
                   href={`/track?order=${order}`}
-                  className="inline-flex flex-1 items-center justify-center gap-2 rounded-full border border-plum-200 bg-white px-6 py-3 text-sm font-extrabold text-plum-700 transition hover:bg-plum-50"
+                  className="inline-flex flex-1 items-center justify-center gap-2 whitespace-nowrap rounded-full border border-plum-200 bg-white px-5 py-3 text-sm font-extrabold text-plum-700 transition-colors duration-300 hover:bg-plum-50"
                 >
                   <Clock3 className="size-4" strokeWidth={2.5} />
                   Track Order

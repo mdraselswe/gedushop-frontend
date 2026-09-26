@@ -14,6 +14,7 @@ import { DHAKA_AREAS, DHAKA_CODE, DISTRICTS } from "@/lib/districts";
 import { apiFetch, GEDU_API, STORE_API } from "@/lib/api";
 import { formatTaka, useStoreSettings } from "@/context/StoreSettingsContext";
 import CouponField from "./CouponField";
+import CheckoutSkeleton from "./CheckoutSkeleton";
 
 const TOKEN_KEY = "gedu-cart-token";
 
@@ -362,7 +363,7 @@ export default function CheckoutForm() {
     }
   }
 
-  if (loading) return <div className="mt-4 h-64 animate-pulse rounded-2xl bg-white" />;
+  if (loading) return <CheckoutSkeleton />;
 
   if (!cart || cart.items.length === 0) {
     return (
