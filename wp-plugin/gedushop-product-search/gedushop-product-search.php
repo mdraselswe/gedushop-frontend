@@ -2,7 +2,7 @@
 /**
  * Plugin Name: GeduShop Product Search
  * Description: Weighted multilingual product search for the headless storefront, with aliases, synonyms, typo tolerance, filters and relevance ranking.
- * Version:     1.3.0
+ * Version:     1.3.1
  * Author:      GeduShop
  * Requires PHP: 7.4
  * Requires Plugins: woocommerce
@@ -288,122 +288,148 @@ function gedu_search_compare_records( $a, $b, $orderby, $order ) {
 }
 
 function gedu_search_products( WP_REST_Request $request ) {
-	$query    = sanitize_text_field( (string) $request->get_param( 'q' ) );
-	$page     = max( 1, (int) $request->get_param( 'page' ) );
-	$per_page = min( 100, max( 1, (int) $request->get_param( 'per_page' ) ) );
-	$category = max( 0, (int) $request->get_param( 'category' ) );
-	$on_sale  = rest_sanitize_boolean( $request->get_param( 'on_sale' ) );
-	$stock    = sanitize_key( (string) $request->get_param( 'stock_status' ) );
-	$min      = max( 0, (int) $request->get_param( 'min_price' ) );
-	$max      = max( 0, (int) $request->get_param( 'max_price' ) );
-	$free_shipping = rest_sanitize_boolean( $request->get_param( 'free_shipping' ) );
-	$min_rating    = min( 5, max( 0, (float) $request->get_param( 'min_rating' ) ) );
-	$age           = sanitize_title( (string) $request->get_param( 'age' ) );
-	$orderby  = sanitize_key( (string) $request->get_param( 'orderby' ) );
-	$order    = 'asc' === strtolower( (string) $request->get_param( 'order' ) ) ? 'asc' : 'desc';
-	$orderby  = in_array( $orderby, array( 'relevance', 'popularity', 'date', 'price', 'title', 'rating', 'discount_percent', 'discount_amount' ), true ) ? $orderby : 'relevance';
-	if ( '' === trim( $query ) && 'relevance' === $orderby ) {
-		$orderby = 'popularity';
-	}
-
-	$synonyms = get_option( GEDU_SEARCH_SYNONYMS_OPTION, gedu_search_default_synonyms() );
-	$variants = gedu_search_query_variants( $query, gedu_search_parse_synonyms( $synonyms ) );
-	$matches  = array();
-	foreach ( gedu_search_get_index() as $record ) {
-		if ( $category && ! in_array( $category, $record['category_ids'], true ) ) {
-			continue;
-		}
-		if ( $on_sale && ! $record['on_sale'] ) {
-			continue;
-		}
-		if ( $stock && $stock !== $record['stock_status'] ) {
-			continue;
-		}
-		if ( $min && $record['max_price'] < $min ) {
-			continue;
-		}
-		if ( $max && $record['min_price'] > $max ) {
-			continue;
-		}
-		if ( $free_shipping && empty( $record['free_shipping'] ) ) {
-			continue;
-		}
-		if ( $min_rating && $record['rating'] < $min_rating ) {
-			continue;
-		}
-		if ( $age && ! in_array( $age, $record['age_keys'], true ) ) {
-			continue;
+	try {
+		$query    = sanitize_text_field( (string) $request->get_param( 'q' ) );
+		$page     = max( 1, (int) $request->get_param( 'page' ) );
+		$per_page = min( 100, max( 1, (int) $request->get_param( 'per_page' ) ) );
+		$category = max( 0, (int) $request->get_param( 'category' ) );
+		$on_sale  = rest_sanitize_boolean( $request->get_param( 'on_sale' ) );
+		$stock    = sanitize_key( (string) $request->get_param( 'stock_status' ) );
+		$min      = max( 0, (int) $request->get_param( 'min_price' ) );
+		$max      = max( 0, (int) $request->get_param( 'max_price' ) );
+		$free_shipping = rest_sanitize_boolean( $request->get_param( 'free_shipping' ) );
+		$min_rating    = min( 5, max( 0, (float) $request->get_param( 'min_rating' ) ) );
+		$age           = sanitize_title( (string) $request->get_param( 'age' ) );
+		$orderby  = sanitize_key( (string) $request->get_param( 'orderby' ) );
+		$order    = 'asc' === strtolower( (string) $request->get_param( 'order' ) ) ? 'asc' : 'desc';
+		$orderby  = in_array( $orderby, array( 'relevance', 'popularity', 'date', 'price', 'title', 'rating', 'discount_percent', 'discount_amount' ), true ) ? $orderby : 'relevance';
+		if ( '' === trim( $query ) && 'relevance' === $orderby ) {
+			$orderby = 'popularity';
 		}
 
-		$record['_score'] = empty( $variants ) ? 0 : gedu_search_score_record( $record, $variants );
-		if ( empty( $variants ) || $record['_score'] > 0 ) {
-			$matches[] = $record;
-		}
-	}
+		$synonyms = get_option( GEDU_SEARCH_SYNONYMS_OPTION, gedu_search_default_synonyms() );
+		$variants = gedu_search_query_variants( $query, gedu_search_parse_synonyms( $synonyms ) );
+		$matches  = array();
+		foreach ( gedu_search_get_index() as $record ) {
+			if ( $category && ! in_array( $category, $record['category_ids'], true ) ) {
+				continue;
+			}
+			if ( $on_sale && ! $record['on_sale'] ) {
+				continue;
+			}
+			if ( $stock && $stock !== $record['stock_status'] ) {
+				continue;
+			}
+			if ( $min && $record['max_price'] < $min ) {
+				continue;
+			}
+			if ( $max && $record['min_price'] > $max ) {
+				continue;
+			}
+			if ( $free_shipping && empty( $record['free_shipping'] ) ) {
+				continue;
+			}
+			if ( $min_rating && $record['rating'] < $min_rating ) {
+				continue;
+			}
+			if ( $age && ! in_array( $age, $record['age_keys'], true ) ) {
+				continue;
+			}
 
-	usort(
-		$matches,
-		function ( $a, $b ) use ( $orderby, $order ) {
-			return gedu_search_compare_records( $a, $b, $orderby, $order );
-		}
-	);
-
-	$total      = count( $matches );
-	$totalpages = max( 1, (int) ceil( $total / $per_page ) );
-	$slice      = array_slice( $matches, ( $page - 1 ) * $per_page, $per_page );
-	$ids        = array_map(
-		function ( $record ) {
-			return $record['id'];
-		},
-		$slice
-	);
-	$records_by_id = array();
-	foreach ( $slice as $record ) {
-		$records_by_id[ $record['id'] ] = $record;
-	}
-
-	$data = array();
-	if ( ! empty( $ids ) ) {
-		$store_request = new WP_REST_Request( 'GET', '/wc/store/v1/products' );
-		$store_request->set_param( 'include', $ids );
-		$store_request->set_param( 'orderby', 'include' );
-		$store_request->set_param( 'per_page', count( $ids ) );
-		try {
-			$store_response = rest_do_request( $store_request );
-		} catch ( Throwable $e ) {
-			return new WP_Error( 'gedushop_search_store_api_exception', $e->getMessage(), array( 'status' => 500 ) );
-		}
-		if ( $store_response->is_error() ) {
-			return new WP_Error( 'gedushop_search_store_api_error', 'Could not load matching products.', array( 'status' => 502 ) );
-		}
-		$by_id = array();
-		foreach ( (array) $store_response->get_data() as $product ) {
-			if ( isset( $product['id'] ) ) {
-				$by_id[ (int) $product['id'] ] = $product;
+			$record['_score'] = empty( $variants ) ? 0 : gedu_search_score_record( $record, $variants );
+			if ( empty( $variants ) || $record['_score'] > 0 ) {
+				$matches[] = $record;
 			}
 		}
-		foreach ( $ids as $id ) {
-			if ( isset( $by_id[ $id ] ) ) {
-				$product = $by_id[ $id ];
-				if ( isset( $records_by_id[ $id ] ) ) {
-					if ( ! isset( $product['extensions']['gedushop'] ) || ! is_array( $product['extensions']['gedushop'] ) ) {
-						$product['extensions']['gedushop'] = array();
-					}
-					$product['extensions']['gedushop']['catalog_metrics'] = array(
-						'total_sales' => $records_by_id[ $id ]['total_sales'],
-						'created'     => $records_by_id[ $id ]['created'],
-					);
+
+		usort(
+			$matches,
+			function ( $a, $b ) use ( $orderby, $order ) {
+				return gedu_search_compare_records( $a, $b, $orderby, $order );
+			}
+		);
+
+		$total      = count( $matches );
+		$totalpages = max( 1, (int) ceil( $total / $per_page ) );
+		$slice      = array_slice( $matches, ( $page - 1 ) * $per_page, $per_page );
+		$ids        = array_map(
+			function ( $record ) {
+				return (int) $record['id'];
+			},
+			$slice
+		);
+		$records_by_id = array();
+		foreach ( $slice as $record ) {
+			$records_by_id[ (int) $record['id'] ] = $record;
+		}
+
+		$data = array();
+		if ( ! empty( $ids ) ) {
+			$schema = null;
+			if ( class_exists( '\Automattic\WooCommerce\StoreApi\StoreApi' ) && class_exists( '\Automattic\WooCommerce\StoreApi\Schemas\V1\ProductSchema' ) ) {
+				try {
+					$schema = \Automattic\WooCommerce\StoreApi\StoreApi::container()->get( \Automattic\WooCommerce\StoreApi\Schemas\V1\ProductSchema::class );
+				} catch ( Throwable $e ) {
+					$schema = null;
 				}
-				$data[] = $product;
+			}
+
+			foreach ( $ids as $id ) {
+				$product = null;
+				if ( $schema ) {
+					try {
+						$wc_product = wc_get_product( $id );
+						if ( $wc_product ) {
+							$item = $schema->get_item_response( $wc_product );
+							$product = json_decode( wp_json_encode( $item ), true );
+						}
+					} catch ( Throwable $e ) {
+						$product = null;
+					}
+				}
+
+				if ( ! is_array( $product ) ) {
+					try {
+						$single_req = new WP_REST_Request( 'GET', '/wc/store/v1/products/' . (int) $id );
+						$single_res = rest_do_request( $single_req );
+						if ( ! $single_res->is_error() ) {
+							$product = json_decode( wp_json_encode( $single_res->get_data() ), true );
+						}
+					} catch ( Throwable $e ) {
+						$product = null;
+					}
+				}
+
+				if ( is_array( $product ) ) {
+					if ( isset( $records_by_id[ $id ] ) ) {
+						if ( ! isset( $product['extensions'] ) || ! is_array( $product['extensions'] ) ) {
+							$product['extensions'] = array();
+						}
+						if ( ! isset( $product['extensions']['gedushop'] ) || ! is_array( $product['extensions']['gedushop'] ) ) {
+							$product['extensions']['gedushop'] = array();
+						}
+						$product['extensions']['gedushop']['catalog_metrics'] = array(
+							'total_sales' => $records_by_id[ $id ]['total_sales'],
+							'created'     => $records_by_id[ $id ]['created'],
+						);
+					}
+					$data[] = $product;
+				}
 			}
 		}
-	}
 
-	$response = rest_ensure_response( $data );
-	$response->header( 'X-WP-Total', (string) $total );
-	$response->header( 'X-WP-TotalPages', (string) $totalpages );
-	$response->header( 'Cache-Control', 'no-store' );
-	return $response;
+		$response = rest_ensure_response( $data );
+		$response->header( 'X-WP-Total', (string) $total );
+		$response->header( 'X-WP-TotalPages', (string) $totalpages );
+		$response->header( 'Cache-Control', 'no-store' );
+		return $response;
+	} catch ( Throwable $e ) {
+		return new WP_Error(
+			'gedu_search_error',
+			$e->getMessage() . ' in ' . $e->getFile() . ':' . $e->getLine(),
+			array( 'status' => 500 )
+		);
+	}
 }
 
 /** Filter facets that are safe to display for the current catalogue. */

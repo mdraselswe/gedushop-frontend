@@ -37,8 +37,16 @@ export async function fetchProductCollection(
     fallbackParams.set("orderby", "popularity");
     fallbackParams.set("order", "desc");
   }
+  // Translate min_rating into Store API's native comma-separated rating array
+  const minRating = fallbackParams.get("min_rating");
+  if (minRating) {
+    const min = Math.max(1, Math.min(5, Math.floor(Number(minRating))));
+    const ratings = Array.from({ length: 6 - min }, (_, i) => min + i).join(",");
+    fallbackParams.set("rating", ratings);
+    fallbackParams.delete("min_rating");
+  }
+
   fallbackParams.delete("free_shipping");
-  fallbackParams.delete("min_rating");
   fallbackParams.delete("age");
 
   return apiFetch(`${STORE_API}/products?${fallbackParams}`, init);

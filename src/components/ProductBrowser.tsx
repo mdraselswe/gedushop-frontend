@@ -84,6 +84,7 @@ export default function ProductBrowser({
   const filterDialogRef = useDialogFocus<HTMLDivElement>(filterOpen);
   const [sortOpen, setSortOpen] = useState(false);
   const seeded = useRef(initialProducts != null);
+  const reqIdRef = useRef(0);
   const [urlHydrated, setUrlHydrated] = useState(false);
   const sortOptions = search ? SORTS : SORTS.filter((option) => option.key !== "relevance");
 
@@ -166,6 +167,7 @@ export default function ProductBrowser({
     // A quiet pass refreshes a list that is already on screen. Showing the
     // skeleton there would replace real products with a loading state to fetch
     // very nearly the same thing — a step backwards for the reader.
+    const currentReqId = ++reqIdRef.current;
     if (!quiet) setLoading(true);
     setLoadFailed(false);
     const q = new URLSearchParams({ per_page: String(PER_PAGE), page: String(page) });
@@ -188,7 +190,15 @@ export default function ProductBrowser({
         // zero results used to erase the perfectly good build-time list and
         // intermittently show "No products found" to every shopper.
         if (!r.ok) throw new Error(`Product API returned ${r.status}`);
-        const list: StoreProduct[] = await r.json();
+        let list: StoreProduct[] = await r.json();
+        if (Array.isArray(list)) {
+          if (freeShipping) {
+            list = list.filter((p) => p.extensions?.gedushop?.free_shipping === true);
+          }
+          if (minRating) {
+            list = list.filter((p) => Number(p.average_rating) >= Number(minRating));
+          }
+        }
         return {
           list: Array.isArray(list) ? list.map((p) => ({ ...p, name: decodeEntities(p.name) })) : [],
           pages: Number(r.headers.get("x-wp-totalpages") ?? 1),
@@ -196,12 +206,14 @@ export default function ProductBrowser({
         };
       })
       .then(({ list, pages, count }) => {
+        if (currentReqId !== reqIdRef.current) return;
         setLoadFailed(false);
         setProducts(list);
         setTotalPages(pages);
         setTotal(count);
       })
       .catch(() => {
+        if (currentReqId !== reqIdRef.current) return;
         // Keep the last known-good products on screen. Only show the failure
         // banner if this was an explicit user interaction (filter, sort, retry).
         // A silent initial revalidation failure should never disturb the shopper
@@ -210,7 +222,11 @@ export default function ProductBrowser({
           setLoadFailed(true);
         }
       })
-      .finally(() => setLoading(false));
+      .finally(() => {
+        if (currentReqId === reqIdRef.current) {
+          setLoading(false);
+        }
+      });
   }, [age, cat, search, onSale, inStockOnly, freeShipping, minRating, minPrice, maxPrice, sort, page]);
 
   useEffect(() => {
