@@ -1,7 +1,7 @@
 /** Mirrors ProductCard's geometry so loading content can be replaced in place. */
 export default function ProductCardSkeleton() {
   return (
-    <div className="flex h-full flex-col overflow-hidden rounded-2xl border border-plum-100/70 bg-white">
+    <div className="flex h-full flex-col overflow-hidden rounded-2xl border border-plum-100/70 bg-white shadow-[var(--shadow-soft)]">
       <div className="relative mx-2 mt-2 aspect-square overflow-hidden rounded-xl bg-plum-50">
         <div className="absolute inset-0 animate-pulse bg-gradient-to-r from-plum-50 via-white/70 to-plum-50" />
       </div>

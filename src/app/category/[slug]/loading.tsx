@@ -14,7 +14,7 @@ export default function CategoryLoading() {
         </div>
       </div>
 
-      <div className="flex h-12 items-center justify-between gap-3 border-y border-plum-100/70 py-2">
+      <div className="fancy-surface flex h-12 items-center justify-between gap-3 rounded-xl p-2">
         <div className="h-9 w-24 animate-pulse rounded-full bg-white ring-1 ring-plum-100" />
         <div className="h-9 w-36 animate-pulse rounded-full bg-white ring-1 ring-plum-100" />
       </div>

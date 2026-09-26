@@ -38,7 +38,7 @@ export default function AboutPage() {
 
       {/* Story */}
       <Reveal className="mt-6" as="section">
-        <div className="border-y border-plum-100/70 py-6 text-sm leading-relaxed text-plum-600 md:py-8 md:text-base">
+        <div className="fancy-surface rounded-2xl p-6 text-sm leading-relaxed text-plum-600 md:p-8 md:text-base">
           <p>
             GeduShop is a Bangladesh-based online shop focused on practical baby items, toys and kids essentials.
             We select products using the information available from suppliers, inspect stock and packing, and aim
@@ -56,7 +56,7 @@ export default function AboutPage() {
       <div className="mt-6 grid gap-3 sm:grid-cols-2">
         {VALUES.map(({ Icon, title, text }, i) => (
           <Reveal key={title} index={i}>
-            <div className="flex h-full gap-4 border-b border-plum-100/70 py-5 transition-colors hover:border-coral-200">
+            <div className="fancy-surface flex h-full gap-4 rounded-2xl p-5 transition-[border-color,transform,box-shadow] duration-300 hover:-translate-y-0.5 hover:border-coral-200 hover:shadow-[var(--shadow-lift)]">
               <span className="flex size-11 shrink-0 items-center justify-center rounded-full bg-coral-50 text-coral-500">
                 <Icon className="size-5" strokeWidth={2.25} />
               </span>

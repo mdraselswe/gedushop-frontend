@@ -58,7 +58,7 @@ export default function CartView() {
         const busy = pendingIds.has(item.id);
         const slug = productSlug(item.permalink);
         return (
-          <div key={item.key} className="flex items-center gap-3 border-b border-plum-100/70 py-3">
+          <div key={item.key} className="fancy-surface flex items-center gap-3 rounded-2xl p-3 transition-[border-color,box-shadow] hover:border-coral-100 hover:shadow-[var(--shadow-lift)]">
             <Link
               href={slug ? `/product/${slug}` : "#"}
               className="relative size-16 shrink-0 overflow-hidden rounded-xl bg-gradient-to-br from-plum-50 to-coral-50/40"

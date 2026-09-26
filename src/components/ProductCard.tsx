@@ -36,7 +36,7 @@ export default function ProductCard({ product }: { product: StoreProduct }) {
   const quickProduct = productCardPayload(product);
 
   return (
-    <article className="group relative flex h-full flex-col overflow-hidden rounded-2xl border border-plum-100/70 bg-white transition-[transform,border-color,box-shadow] duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] hover:-translate-y-0.5 hover:border-coral-200 hover:shadow-[0_10px_28px_rgba(47,39,73,0.08)] motion-reduce:transform-none motion-reduce:transition-none">
+    <article className="group relative flex h-full flex-col overflow-hidden rounded-2xl border border-plum-100/70 bg-white shadow-[var(--shadow-soft)] transition-[transform,border-color,box-shadow] duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] hover:-translate-y-0.5 hover:border-coral-200 hover:shadow-[var(--shadow-lift)] motion-reduce:transform-none motion-reduce:transition-none">
       <Link href={`/product/${product.slug}`} className="flex flex-1 flex-col">
         <div className="relative mx-2 mt-2 aspect-square overflow-hidden rounded-xl bg-gradient-to-br from-plum-50 to-coral-50/50">
           {image ? (

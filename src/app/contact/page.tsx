@@ -70,7 +70,7 @@ export default function ContactPage() {
               href={href}
               target={external ? "_blank" : undefined}
               rel={external ? "noopener noreferrer" : undefined}
-              className="flex items-center gap-3 border-b border-plum-100/70 py-4 transition-colors hover:border-coral-200"
+              className="fancy-surface flex items-center gap-3 rounded-2xl p-4 transition-[border-color,transform,box-shadow] duration-300 hover:-translate-y-0.5 hover:border-coral-200 hover:shadow-[var(--shadow-lift)]"
             >
               <span className="flex size-11 shrink-0 items-center justify-center rounded-full bg-coral-50 text-coral-500">
                 <Icon className="size-5" strokeWidth={2.25} />
@@ -85,7 +85,7 @@ export default function ContactPage() {
         })}
       </div>
 
-      <div className="mt-3 flex items-center gap-3 border-y border-plum-100/70 py-4">
+      <div className="fancy-surface mt-3 flex items-center gap-3 rounded-2xl p-4">
         <span className="flex size-11 shrink-0 items-center justify-center rounded-full bg-plum-50 text-plum-600">
           <MapPin className="size-5" strokeWidth={2.25} />
         </span>

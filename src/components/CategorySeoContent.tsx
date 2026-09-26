@@ -76,7 +76,7 @@ export default function CategorySeoContent({ slug }: { slug: string }) {
   if (!section) return null;
 
   return (
-    <section className="border-t border-plum-100/70 py-6 md:py-8">
+    <section className="fancy-surface rounded-2xl p-5 md:p-6">
       <h2 className="font-heading text-lg font-semibold tracking-tight text-plum-800">{section.heading}</h2>
       <div className="mt-2 space-y-2 text-sm leading-relaxed text-plum-500">
         {section.paragraphs.map((paragraph) => <p key={paragraph}>{paragraph}</p>)}

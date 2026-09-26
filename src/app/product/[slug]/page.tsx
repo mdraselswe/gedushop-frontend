@@ -166,7 +166,7 @@ export default async function ProductPage({ params }: Props) {
           product={product}
         />
 
-        <div className="flex min-w-0 flex-col px-1 py-3 md:px-3 md:py-5">
+        <div className="fancy-surface-strong flex min-w-0 flex-col rounded-2xl p-5 md:p-7">
           <h1 className="font-heading text-2xl font-semibold leading-tight tracking-tight text-plum-800 md:text-3xl">
             {product.name}
           </h1>

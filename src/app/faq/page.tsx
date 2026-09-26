@@ -133,7 +133,7 @@ export default function FaqPage() {
         ))}
       </div>
 
-      <section className="mt-7 flex flex-col gap-4 border-t border-plum-100 py-6 sm:flex-row sm:items-center sm:justify-between">
+      <section className="fancy-surface mt-7 flex flex-col gap-4 rounded-2xl p-5 sm:flex-row sm:items-center sm:justify-between sm:p-6">
         <div>
           <h2 className="font-heading text-lg font-semibold text-plum-800">Still need a little help?</h2>
           <p className="mt-1 text-sm text-plum-500">Our team is happy to help before or after your order.</p>

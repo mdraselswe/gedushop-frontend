@@ -21,8 +21,8 @@ export default function FaqItem({
     <article
       className={`overflow-hidden rounded-2xl border bg-white transition-[border-color,box-shadow,transform] duration-300 motion-reduce:transition-none ${
         open
-          ? "border-coral-200"
-          : "border-plum-100 hover:border-plum-200"
+          ? "border-coral-200 shadow-[var(--shadow-lift)]"
+          : "border-plum-100 shadow-[var(--shadow-soft)] hover:border-plum-200 hover:shadow-[var(--shadow-lift)]"
       }`}
     >
       <h2>

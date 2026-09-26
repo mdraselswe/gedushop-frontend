@@ -26,7 +26,7 @@ export default async function HomePage() {
     <div className="space-y-7 px-4 pb-4 pt-4 lg:pt-5">
       <BannerSlider />
       <TrustBar />
-      <section>
+      <section className="fancy-surface rounded-[1.75rem] p-3 sm:p-5">
         <div className="mb-4 flex items-end justify-between gap-4">
           <div>
             <span className="section-kicker"><Sparkles className="size-3" /> Parent favourites</span>

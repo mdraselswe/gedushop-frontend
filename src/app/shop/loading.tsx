@@ -6,7 +6,7 @@ export default function ShopLoading() {
     <div className="space-y-4 px-4 pt-4" aria-label="Loading products">
       <div className="h-[6.5rem] animate-pulse rounded-2xl bg-gradient-to-r from-plum-100 via-plum-50 to-coral-50" />
 
-      <div className="flex h-12 items-center justify-between gap-3 border-y border-plum-100/70 py-2">
+      <div className="fancy-surface flex h-12 items-center justify-between gap-3 rounded-xl p-2">
         <div className="h-9 w-24 animate-pulse rounded-full bg-white ring-1 ring-plum-100" />
         <div className="h-9 w-36 animate-pulse rounded-full bg-white ring-1 ring-plum-100" />
       </div>

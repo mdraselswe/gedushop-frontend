@@ -75,15 +75,15 @@ body {
 
 /* Shared low-cost surfaces used across the storefront redesign. */
 .fancy-surface {
-  border: 0;
-  background: transparent;
-  box-shadow: none;
+  border: 1px solid color-mix(in srgb, var(--color-plum-100) 72%, white);
+  background: rgba(255, 255, 255, 0.8);
+  box-shadow: var(--shadow-soft);
 }
 
 .fancy-surface-strong {
-  border: 1px solid color-mix(in srgb, var(--color-plum-100) 64%, white);
-  background: rgba(255, 255, 255, 0.72);
-  box-shadow: none;
+  border: 1px solid color-mix(in srgb, var(--color-plum-100) 74%, white);
+  background: rgba(255, 255, 255, 0.94);
+  box-shadow: var(--shadow-float);
 }
 
 .section-kicker {
