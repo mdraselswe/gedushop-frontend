@@ -2,7 +2,7 @@
 /**
  * Plugin Name: GeduShop Product Search
  * Description: Weighted multilingual product search for the headless storefront, with aliases, synonyms, typo tolerance, filters and relevance ranking.
- * Version:     1.2.0
+ * Version:     1.3.0
  * Author:      GeduShop
  * Requires PHP: 7.4
  * Requires Plugins: woocommerce
@@ -368,7 +368,11 @@ function gedu_search_products( WP_REST_Request $request ) {
 		$store_request->set_param( 'include', $ids );
 		$store_request->set_param( 'orderby', 'include' );
 		$store_request->set_param( 'per_page', count( $ids ) );
-		$store_response = rest_do_request( $store_request );
+		try {
+			$store_response = rest_do_request( $store_request );
+		} catch ( Throwable $e ) {
+			return new WP_Error( 'gedushop_search_store_api_exception', $e->getMessage(), array( 'status' => 500 ) );
+		}
 		if ( $store_response->is_error() ) {
 			return new WP_Error( 'gedushop_search_store_api_error', 'Could not load matching products.', array( 'status' => 502 ) );
 		}
@@ -402,34 +406,6 @@ function gedu_search_products( WP_REST_Request $request ) {
 	return $response;
 }
 
-add_action(
-	'rest_api_init',
-	function () {
-		register_rest_route(
-			'gedushop/v1',
-			'/product-search',
-			array(
-				'methods'             => 'GET',
-				'callback'            => 'gedu_search_products',
-				'permission_callback' => '__return_true',
-				'args'                => array(
-					'q'            => array( 'required' => false, 'default' => '', 'sanitize_callback' => 'sanitize_text_field' ),
-					'page'         => array( 'default' => 1, 'sanitize_callback' => 'absint' ),
-					'per_page'     => array( 'default' => 24, 'sanitize_callback' => 'absint' ),
-					'category'     => array( 'default' => 0, 'sanitize_callback' => 'absint' ),
-					'on_sale'      => array( 'default' => false, 'sanitize_callback' => 'rest_sanitize_boolean' ),
-					'stock_status' => array( 'default' => '', 'sanitize_callback' => 'sanitize_key' ),
-					'min_price'    => array( 'default' => 0, 'sanitize_callback' => 'absint' ),
-					'max_price'    => array( 'default' => 0, 'sanitize_callback' => 'absint' ),
-					'free_shipping' => array( 'default' => false, 'sanitize_callback' => 'rest_sanitize_boolean' ),
-					'min_rating'    => array( 'default' => 0, 'sanitize_callback' => 'floatval' ),
-					'age'           => array( 'default' => '', 'sanitize_callback' => 'sanitize_title' ),
-					'orderby'      => array( 'default' => 'relevance', 'sanitize_callback' => 'sanitize_key' ),
-					'order'        => array( 'default' => 'desc', 'sanitize_callback' => 'sanitize_key' ),
-				),
-	)
-);
-
 /** Filter facets that are safe to display for the current catalogue. */
 function gedu_search_filter_options() {
 	$ages = array();
@@ -449,6 +425,31 @@ add_action(
 	function () {
 		register_rest_route(
 			'gedushop/v1',
+			'/product-search',
+			array(
+				'methods'             => 'GET',
+				'callback'            => 'gedu_search_products',
+				'permission_callback' => '__return_true',
+				'args'                => array(
+					'q'             => array( 'required' => false, 'default' => '', 'sanitize_callback' => 'sanitize_text_field' ),
+					'page'          => array( 'default' => 1, 'sanitize_callback' => 'absint' ),
+					'per_page'      => array( 'default' => 24, 'sanitize_callback' => 'absint' ),
+					'category'      => array( 'default' => 0, 'sanitize_callback' => 'absint' ),
+					'on_sale'       => array( 'default' => false, 'sanitize_callback' => 'rest_sanitize_boolean' ),
+					'stock_status'  => array( 'default' => '', 'sanitize_callback' => 'sanitize_key' ),
+					'min_price'     => array( 'default' => 0, 'sanitize_callback' => 'absint' ),
+					'max_price'     => array( 'default' => 0, 'sanitize_callback' => 'absint' ),
+					'free_shipping' => array( 'default' => false, 'sanitize_callback' => 'rest_sanitize_boolean' ),
+					'min_rating'    => array( 'default' => 0, 'sanitize_callback' => 'floatval' ),
+					'age'           => array( 'default' => '', 'sanitize_callback' => 'sanitize_title' ),
+					'orderby'       => array( 'default' => 'relevance', 'sanitize_callback' => 'sanitize_key' ),
+					'order'         => array( 'default' => 'desc', 'sanitize_callback' => 'sanitize_key' ),
+				),
+			)
+		);
+
+		register_rest_route(
+			'gedushop/v1',
 			'/product-filter-options',
 			array(
 				'methods'             => 'GET',
@@ -456,8 +457,6 @@ add_action(
 				'permission_callback' => '__return_true',
 			)
 		);
-	}
-);
 	}
 );
 

@@ -22,17 +22,24 @@ export async function fetchProductCollection(
   if (search) smartParams.set("q", search);
 
   try {
-    const smart = await apiFetch(`${GEDU_API}/product-search?${smartParams}`, init, 3);
-    if (smart.ok || advanced) return smart;
+    const smart = await apiFetch(`${GEDU_API}/product-search?${smartParams}`, init, 2);
+    if (smart.ok) return smart;
   } catch {
     if (init?.signal?.aborted) throw new DOMException("The operation was aborted", "AbortError");
-    if (advanced) throw new Error("Advanced product filters are temporarily unavailable");
   }
 
+  // Resilient fallback to standard WooCommerce Store API if custom plugin
+  // endpoint fails or is temporarily unavailable. This prevents catastrophic
+  // empty / error states on the frontend when backend plugins are updating.
   const fallbackParams = new URLSearchParams(params);
-  if (fallbackParams.get("orderby") === "relevance") {
+  const orderby = fallbackParams.get("orderby");
+  if (orderby === "relevance" || orderby === "discount_percent" || orderby === "discount_amount") {
     fallbackParams.set("orderby", "popularity");
     fallbackParams.set("order", "desc");
   }
+  fallbackParams.delete("free_shipping");
+  fallbackParams.delete("min_rating");
+  fallbackParams.delete("age");
+
   return apiFetch(`${STORE_API}/products?${fallbackParams}`, init);
 }

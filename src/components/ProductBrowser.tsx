@@ -202,10 +202,13 @@ export default function ProductBrowser({
         setTotal(count);
       })
       .catch(() => {
-        // Keep the last known-good products on screen. This applies to quiet
-        // initial refreshes and filter changes: a temporary WordPress/Hostinger
-        // failure must never masquerade as a real empty search result.
-        setLoadFailed(true);
+        // Keep the last known-good products on screen. Only show the failure
+        // banner if this was an explicit user interaction (filter, sort, retry).
+        // A silent initial revalidation failure should never disturb the shopper
+        // when valid build-time products are already on screen.
+        if (!quiet) {
+          setLoadFailed(true);
+        }
       })
       .finally(() => setLoading(false));
   }, [age, cat, search, onSale, inStockOnly, freeShipping, minRating, minPrice, maxPrice, sort, page]);
@@ -352,7 +355,7 @@ export default function ProductBrowser({
       )}
       {loading ? (
         <ProductGridSkeleton count={24} />
-      ) : (
+      ) : loadFailed && products.length === 0 ? null : (
         <>
           <ProductGrid products={products} respectStockFilter={false} />
           {totalPages > 1 && (
