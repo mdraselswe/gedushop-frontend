@@ -19,7 +19,7 @@ export default function BottomNav({ categories }: { categories: StoreCategory[] 
 
   return (
     <>
-      <nav className="site-chrome fixed inset-x-0 bottom-0 z-40 border-t border-plum-100/80 bg-white/96 pb-[env(safe-area-inset-bottom)] shadow-[0_-4px_20px_rgba(47,39,73,0.06)] backdrop-blur-md md:hidden">
+      <nav className="site-chrome fixed inset-x-0 bottom-0 z-40 border-t border-plum-100 bg-white pb-[env(safe-area-inset-bottom)] shadow-[0_-4px_20px_rgba(47,39,73,0.06)] md:hidden">
         <div className="grid h-[var(--bottom-nav-height,3.75rem)] grid-cols-4 items-center px-1">
           {/* Home */}
           <Link href="/" aria-current={pathname === "/" ? "page" : undefined} className={itemCls(pathname === "/")}>
