@@ -56,7 +56,7 @@ export default function HomePage() {
             </h2>
             <p className="mt-0.5 text-sm text-plum-400">Loved by parents this week</p>
           </div>
-          <Link href="/shop" className="hidden items-center gap-1.5 rounded-full bg-white px-4 py-2 text-xs font-extrabold text-plum-600 shadow-sm ring-1 ring-plum-100 transition-transform hover:translate-x-1 sm:flex">
+          <Link href="/shop" className="hidden items-center gap-1.5 rounded-full bg-white px-4 py-2 text-xs font-extrabold text-plum-600 shadow-sm ring-1 ring-plum-100 transition-colors duration-200 hover:text-coral-600 hover:ring-coral-200 sm:flex">
             View all <ArrowRight className="size-3.5" strokeWidth={2.5} />
           </Link>
         </div>

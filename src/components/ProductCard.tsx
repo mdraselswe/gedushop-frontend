@@ -50,7 +50,7 @@ export default function ProductCard({ product }: { product: StoreProduct }) {
               alt={image.alt || product.name}
               loading="lazy"
               decoding="async"
-              className="absolute inset-0 h-full w-full object-cover transition-transform duration-700 ease-[cubic-bezier(0.22,1,0.36,1)] group-hover:scale-[1.035] motion-reduce:transform-none motion-reduce:transition-none"
+              className="absolute inset-0 h-full w-full object-cover"
             />
           ) : (
             <div className="flex h-full items-center justify-center">
@@ -76,7 +76,7 @@ export default function ProductCard({ product }: { product: StoreProduct }) {
         </div>
 
         <div className="flex flex-1 flex-col px-4 pt-3.5">
-          <h3 className="line-clamp-2 min-h-[2.75em] text-sm font-semibold leading-snug text-plum-800">
+          <h3 className="line-clamp-2 min-h-[2.75em] text-sm font-semibold leading-snug text-plum-800 transition-colors duration-200 group-hover:text-coral-600">
             {product.name}
           </h3>
           {/* fixed-height rating slot so every card lines up whether rated or not */}

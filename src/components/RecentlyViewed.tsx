@@ -78,7 +78,7 @@ export default function RecentlyViewed({ excludeSlug, title = "Recently viewed" 
                   alt={decodeEntities(p.name)}
                   loading="lazy"
                   decoding="async"
-                  className="absolute inset-0 h-full w-full object-cover transition-transform duration-700 ease-[cubic-bezier(0.22,1,0.36,1)] group-hover:scale-[1.035]"
+                  className="absolute inset-0 h-full w-full object-cover"
                 />
               ) : (
                 <span className="flex h-full items-center justify-center">
@@ -87,7 +87,7 @@ export default function RecentlyViewed({ excludeSlug, title = "Recently viewed" 
               )}
             </div>
             <div className="p-2.5">
-              <p className="line-clamp-2 min-h-[2.5em] text-xs font-semibold leading-snug text-plum-800">
+              <p className="line-clamp-2 min-h-[2.5em] text-xs font-semibold leading-snug text-plum-800 transition-colors duration-200 group-hover:text-coral-600">
                 {decodeEntities(p.name)}
               </p>
               <p className="mt-1 text-sm font-extrabold text-plum-700 tabular-nums">{p.price}</p>

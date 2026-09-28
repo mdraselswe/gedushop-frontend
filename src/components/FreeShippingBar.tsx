@@ -101,7 +101,7 @@ export default function FreeShippingBar({
       </div>
 
       {/* Playful Road Track with Driving Delivery Car */}
-      <div className="relative mt-3.5 pb-1">
+      <div className="relative mt-7 pb-1">
         {/* Track Container */}
         <div className={`relative h-2.5 w-full rounded-full transition-colors duration-500 ${achieved ? "bg-emerald-100" : "bg-plum-100/80"}`}>
           {/* Filled Road Progress */}
@@ -121,34 +121,30 @@ export default function FreeShippingBar({
             ))}
           </div>
 
-          {/* Moving Animated Delivery Car */}
-          <div
-            className="pointer-events-none absolute top-1/2 -translate-y-1/2 transition-[left] duration-700 ease-out"
-            style={{
-              left: `${achieved ? 100 : Math.max(4, Math.min(94, pct))}%`,
-              transform: "translate(-50%, -50%)",
-            }}
-          >
-            <div className={`relative flex items-center justify-center ${achieved ? "animate-bounce" : "animate-chug"}`}>
-              {/* Delivery Car Body */}
-              <div
-                className={`flex size-7 items-center justify-center rounded-lg shadow-md transition-all duration-500 ${
-                  achieved
-                    ? "bg-emerald-600 text-white shadow-emerald-600/35 ring-2 ring-emerald-300"
-                    : "bg-gradient-to-r from-coral-500 to-coral-600 text-white shadow-coral-500/35 ring-2 ring-coral-200"
-                }`}
-              >
-                <Truck className="size-4 -scale-x-100" strokeWidth={2.3} />
-              </div>
+          {/* Moving Animated Delivery Car - hides when unlocked */}
+          {!achieved && (
+            <div
+              className="pointer-events-none absolute top-1/2 -translate-y-1/2 transition-[left] duration-700 ease-out"
+              style={{
+                left: `${Math.max(4, Math.min(94, pct))}%`,
+                transform: "translate(-50%, -50%)",
+              }}
+            >
+              <div className="relative flex items-center justify-center animate-car-jump">
+                {/* Delivery Car Body */}
+                <div className="flex size-7 items-center justify-center rounded-lg bg-gradient-to-r from-coral-500 to-coral-600 text-white shadow-md shadow-coral-500/35 ring-2 ring-coral-200">
+                  <Truck className="size-4" strokeWidth={2.3} />
+                </div>
 
-              {/* Little wind / exhaust dust when driving */}
-              {!achieved && pct > 5 && (
-                <span className="absolute -left-2 top-1.5 flex items-center gap-0.5 opacity-60">
-                  <span className="size-1 animate-ping rounded-full bg-plum-400" />
-                </span>
-              )}
+                {/* Little wind / exhaust dust when driving */}
+                {pct > 5 && (
+                  <span className="absolute -left-2 top-1.5 flex items-center gap-0.5 opacity-60">
+                    <span className="size-1 animate-ping rounded-full bg-plum-400" />
+                  </span>
+                )}
+              </div>
             </div>
-          </div>
+          )}
 
           {/* Destination: Gift / Goal reached */}
           <div className="absolute -right-2 top-1/2 -translate-y-1/2 flex items-center justify-center">
