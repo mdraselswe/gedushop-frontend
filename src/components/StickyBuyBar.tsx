@@ -17,7 +17,10 @@ export default function StickyBuyBar({ product }: { product: StoreProduct }) {
   const available = product.is_purchasable && product.is_in_stock;
 
   useEffect(() => {
-    const onScroll = () => setShow(window.scrollY > 520);
+    const onScroll = () => {
+      const scrolled = window.scrollY || document.documentElement.scrollTop || 0;
+      setShow(scrolled > 260);
+    };
     window.addEventListener("scroll", onScroll, { passive: true });
     onScroll();
     return () => window.removeEventListener("scroll", onScroll);
@@ -29,7 +32,7 @@ export default function StickyBuyBar({ product }: { product: StoreProduct }) {
 
   return (
     <div
-      className={`fixed inset-x-0 bottom-[calc(var(--bottom-nav-height,3.75rem)+env(safe-area-inset-bottom))] z-30 bg-white py-2.5 pl-4 pr-20 shadow-[0_-8px_25px_rgba(0,0,0,0.07),0_-2px_6px_rgba(0,0,0,0.04)] transition-all duration-300 ease-in-out md:hidden ${
+      className={`fixed inset-x-0 bottom-[calc(var(--bottom-nav-height,3.75rem)+env(safe-area-inset-bottom))] z-[39] bg-white py-2.5 pl-4 pr-20 shadow-[0_-8px_25px_rgba(0,0,0,0.07),0_-2px_6px_rgba(0,0,0,0.04)] transition-all duration-300 ease-in-out md:hidden ${
         show ? "translate-y-0 opacity-100" : "pointer-events-none translate-y-full opacity-0"
       }`}
     >

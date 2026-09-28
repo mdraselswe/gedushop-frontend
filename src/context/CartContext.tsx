@@ -94,6 +94,7 @@ interface ShippingAddress {
 }
 
 const TOKEN_KEY = "gedu-cart-token";
+const NONCE_KEY = "gedu-cart-nonce";
 
 interface CartContextValue {
   cart: Cart | null;
@@ -121,17 +122,21 @@ interface CartContextValue {
 const CartContext = createContext<CartContextValue | null>(null);
 
 async function storeFetch(path: string, init?: RequestInit): Promise<Response> {
-  const token = localStorage.getItem(TOKEN_KEY);
+  const token = typeof window !== "undefined" ? localStorage.getItem(TOKEN_KEY) : null;
+  const nonce = typeof window !== "undefined" ? localStorage.getItem(NONCE_KEY) : null;
   const res = await apiFetch(`${STORE_API}/${path}`, {
     ...init,
     headers: {
       "Content-Type": "application/json",
       ...(token ? { "Cart-Token": token } : {}),
+      ...(nonce ? { "Nonce": nonce } : {}),
       ...init?.headers,
     },
   });
   const newToken = res.headers.get("Cart-Token");
-  if (newToken) localStorage.setItem(TOKEN_KEY, newToken);
+  if (newToken && typeof window !== "undefined") localStorage.setItem(TOKEN_KEY, newToken);
+  const newNonce = res.headers.get("Nonce");
+  if (newNonce && typeof window !== "undefined") localStorage.setItem(NONCE_KEY, newNonce);
   return res;
 }
 
@@ -178,8 +183,22 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     async (productId: number, path: string, body: Record<string, unknown>): Promise<Cart | null> => {
       setPendingIds((prev) => new Set(prev).add(productId));
       try {
-        const res = await storeFetch(path, { method: "POST", body: JSON.stringify(body) });
-        const data = await res.json().catch(() => null);
+        let res = await storeFetch(path, { method: "POST", body: JSON.stringify(body) });
+        let data = await res.json().catch(() => null);
+
+        // If WooCommerce rejected with missing or expired nonce, refresh via GET cart and retry once
+        if (
+          res.status === 401 &&
+          (data?.code === "woocommerce_rest_missing_nonce" ||
+            (typeof data?.message === "string" && data.message.toLowerCase().includes("nonce")))
+        ) {
+          const ping = await storeFetch("cart");
+          if (ping.ok) {
+            res = await storeFetch(path, { method: "POST", body: JSON.stringify(body) });
+            data = await res.json().catch(() => null);
+          }
+        }
+
         if (res.ok) {
           syncCart(data);
           return data as Cart;

@@ -273,12 +273,14 @@ export default function CheckoutForm() {
 
     try {
       const token = localStorage.getItem(TOKEN_KEY);
+      const nonce = localStorage.getItem("gedu-cart-nonce");
       const res = await apiFetch(`${STORE_API}/checkout`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
           "X-Gedu-Idempotency-Key": idempotencyKey,
           ...(token ? { "Cart-Token": token } : {}),
+          ...(nonce ? { "Nonce": nonce } : {}),
         },
         body: JSON.stringify({
           billing_address: address,
