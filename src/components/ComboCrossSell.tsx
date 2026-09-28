@@ -64,7 +64,7 @@ export default function ComboCrossSell({
             <li key={combo.id}>
               <Link
                 href={`/product/${combo.slug}`}
-                className="flex items-center gap-3 rounded-2xl bg-white p-2.5 shadow-[var(--shadow-soft)] transition-transform hover:-translate-y-0.5"
+                className="flex items-center gap-3 rounded-2xl bg-white p-2.5 shadow-[var(--shadow-soft)] transition-shadow duration-300 hover:shadow-[var(--shadow-lift)]"
               >
                 <span className="relative size-12 shrink-0 overflow-hidden rounded-xl bg-plum-50">
                   {image ? (

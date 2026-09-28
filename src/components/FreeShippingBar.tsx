@@ -100,11 +100,81 @@ export default function FreeShippingBar({
         {!achieved && <span className="rounded-full bg-plum-50 px-2 py-1 text-[10px] font-extrabold text-plum-500">{Math.round(pct)}%</span>}
       </div>
 
-      <div className={`relative mt-2.5 h-1.5 overflow-hidden rounded-full ${achieved ? "bg-emerald-100" : "bg-plum-100"}`}>
-        <div
-          className={`h-full rounded-full transition-[width,background-color] duration-700 ease-out ${achieved ? "bg-emerald-500" : "bg-gradient-to-r from-coral-400 to-coral-500"}`}
-          style={{ width: `${achieved ? 100 : pct}%` }}
-        />
+      {/* Playful Road Track with Driving Delivery Car */}
+      <div className="relative mt-3.5 pb-1">
+        {/* Track Container */}
+        <div className={`relative h-2.5 w-full rounded-full transition-colors duration-500 ${achieved ? "bg-emerald-100" : "bg-plum-100/80"}`}>
+          {/* Filled Road Progress */}
+          <div
+            className={`h-full rounded-full transition-all duration-700 ease-out ${
+              achieved
+                ? "bg-gradient-to-r from-emerald-400 to-emerald-500 shadow-xs shadow-emerald-500/20"
+                : "bg-gradient-to-r from-coral-400 via-coral-500 to-coral-600 shadow-xs shadow-coral-500/20"
+            }`}
+            style={{ width: `${achieved ? 100 : pct}%` }}
+          />
+
+          {/* Road dashed center line */}
+          <div className="pointer-events-none absolute inset-x-2 top-1/2 -translate-y-1/2 flex justify-between gap-1 overflow-hidden opacity-30">
+            {Array.from({ length: 12 }).map((_, i) => (
+              <span key={i} className="h-0.5 w-2 shrink-0 rounded-full bg-white" />
+            ))}
+          </div>
+
+          {/* Moving Animated Delivery Car */}
+          <div
+            className="pointer-events-none absolute top-1/2 -translate-y-1/2 transition-[left] duration-700 ease-out"
+            style={{
+              left: `${achieved ? 100 : Math.max(4, Math.min(94, pct))}%`,
+              transform: "translate(-50%, -50%)",
+            }}
+          >
+            <div className={`relative flex items-center justify-center ${achieved ? "animate-bounce" : "animate-chug"}`}>
+              {/* Delivery Car Body */}
+              <div
+                className={`flex size-7 items-center justify-center rounded-lg shadow-md transition-all duration-500 ${
+                  achieved
+                    ? "bg-emerald-600 text-white shadow-emerald-600/35 ring-2 ring-emerald-300"
+                    : "bg-gradient-to-r from-coral-500 to-coral-600 text-white shadow-coral-500/35 ring-2 ring-coral-200"
+                }`}
+              >
+                <Truck className="size-4 -scale-x-100" strokeWidth={2.3} />
+              </div>
+
+              {/* Little wind / exhaust dust when driving */}
+              {!achieved && pct > 5 && (
+                <span className="absolute -left-2 top-1.5 flex items-center gap-0.5 opacity-60">
+                  <span className="size-1 animate-ping rounded-full bg-plum-400" />
+                </span>
+              )}
+            </div>
+          </div>
+
+          {/* Destination: Gift / Goal reached */}
+          <div className="absolute -right-2 top-1/2 -translate-y-1/2 flex items-center justify-center">
+            <span
+              className={`flex size-6.5 items-center justify-center rounded-full text-xs shadow-sm transition-all duration-500 ${
+                achieved
+                  ? "scale-110 bg-emerald-500 text-white ring-2 ring-emerald-200"
+                  : "bg-white text-plum-600 ring-1 ring-plum-200"
+              }`}
+            >
+              {achieved ? "🎉" : "🎁"}
+            </span>
+          </div>
+        </div>
+
+        {/* Milestone Labels */}
+        <div className="mt-2.5 flex items-center justify-between text-[10px] font-bold text-plum-400">
+          <span>৳0</span>
+          <span>
+            {achieved ? (
+              <span className="font-extrabold text-emerald-600">Free Delivery Unlocked! 🚚💨</span>
+            ) : (
+              <span>Free delivery at ৳{freeThreshold}</span>
+            )}
+          </span>
+        </div>
       </div>
     </div>
   );

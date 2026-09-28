@@ -68,7 +68,7 @@ export default function RecentlyViewed({ excludeSlug, title = "Recently viewed" 
           <Link
             key={p.slug}
             href={`/product/${p.slug}`}
-            className="group w-36 shrink-0 overflow-hidden rounded-2xl bg-white shadow-[var(--shadow-soft)] ring-1 ring-plum-100/50 transition-[transform,box-shadow] duration-300 ease-out hover:-translate-y-0.5 hover:shadow-[var(--shadow-lift)]"
+            className="group w-36 shrink-0 overflow-hidden rounded-2xl bg-white shadow-[var(--shadow-soft)] ring-1 ring-plum-100/50 transition-[box-shadow,ring-color] duration-300 ease-out hover:shadow-[var(--shadow-lift)] hover:ring-coral-200"
           >
             <div className="relative aspect-square overflow-hidden bg-gradient-to-br from-plum-50 to-coral-50/40">
               {p.image ? (

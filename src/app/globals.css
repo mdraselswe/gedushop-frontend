@@ -47,14 +47,11 @@ html {
 }
 
 body {
-  /* Layered paint only—no extra asset request and no fixed attachment repaint. */
-  background:
-    radial-gradient(900px 520px at 105% -5%, rgba(238, 136, 129, 0.14), transparent 64%),
-    radial-gradient(850px 520px at -8% 10%, rgba(107, 92, 168, 0.11), transparent 62%),
-    linear-gradient(180deg, #fbfaff 0%, var(--color-cream) 48%, #faf8fd 100%);
+  background-color: var(--color-cream);
   color: var(--color-plum-800);
   font-family: var(--font-body);
   -webkit-tap-highlight-color: transparent;
+  min-height: 100dvh;
 }
 
 ::selection {

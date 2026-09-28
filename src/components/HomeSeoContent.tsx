@@ -25,10 +25,10 @@ export default function HomeSeoContent() {
           <Link
             key={category.href}
             href={category.href}
-            className="group rounded-xl border border-plum-100/70 bg-white/75 p-4 transition-[border-color,background-color,transform] duration-300 hover:-translate-y-0.5 hover:border-coral-200 hover:bg-white"
+            className="group rounded-xl border border-plum-100/70 bg-white/75 p-4 transition-[border-color,background-color,box-shadow] duration-300 hover:border-coral-200 hover:bg-white hover:shadow-[var(--shadow-soft)]"
           >
             <h3 className="flex items-center justify-between font-heading text-sm font-semibold text-plum-800">
-              {category.label}<span className="text-coral-400 transition-transform group-hover:translate-x-1">→</span>
+              {category.label}<span className="text-coral-400 transition-colors group-hover:text-coral-600">→</span>
             </h3>
             <p className="mt-1 text-xs leading-relaxed text-plum-500">Browse {category.text}.</p>
           </Link>
