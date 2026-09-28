@@ -17,7 +17,7 @@ export default function FloatingCartBar() {
   if (pathname.startsWith("/cart") || pathname.startsWith("/checkout")) return null;
 
   return (
-    <div className="fixed inset-x-0 bottom-[calc(3.6rem+env(safe-area-inset-bottom))] z-40 px-4 md:hidden">
+    <div className="fixed inset-x-0 bottom-[calc(var(--bottom-nav-height,3.75rem)+0.75rem+env(safe-area-inset-bottom))] z-40 px-4 md:hidden">
       <Link
         href="/cart"
         className="mx-auto flex max-w-md items-center justify-between rounded-full bg-plum-600 px-5 py-3 text-white shadow-lg shadow-plum-600/30 active:scale-[0.98] transition-transform"

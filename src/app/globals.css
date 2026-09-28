@@ -35,6 +35,10 @@
   --shadow-float: 0 12px 32px rgba(47, 39, 73, 0.085);
 }
 
+:root {
+  --bottom-nav-height: 3.75rem;
+}
+
 html {
   scroll-behavior: smooth;
   /* Kill any accidental horizontal overflow site-wide. `clip` (not `hidden`)

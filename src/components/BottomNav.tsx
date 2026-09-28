@@ -13,14 +13,14 @@ export default function BottomNav({ categories }: { categories: StoreCategory[] 
   const [sheetOpen, setSheetOpen] = useState(false);
 
   const itemCls = (active: boolean) =>
-    `relative flex flex-col items-center gap-1 py-2 text-[11px] font-bold transition-colors ${
-      active ? "text-coral-500" : "text-plum-400"
+    `relative flex flex-col items-center justify-center gap-1 py-1 text-[11px] font-bold transition-colors active:scale-95 ${
+      active ? "text-coral-500 font-extrabold" : "text-plum-400 hover:text-plum-700"
     }`;
 
   return (
     <>
-      <nav className="site-chrome fixed inset-x-3 bottom-3 z-40 overflow-hidden rounded-2xl border border-plum-100/80 bg-white/94 pb-[env(safe-area-inset-bottom)] shadow-[0_8px_24px_rgba(47,39,73,0.1)] backdrop-blur-md md:hidden">
-        <div className="grid grid-cols-4 px-1">
+      <nav className="site-chrome fixed inset-x-0 bottom-0 z-40 border-t border-plum-100/80 bg-white/96 pb-[env(safe-area-inset-bottom)] shadow-[0_-4px_20px_rgba(47,39,73,0.06)] backdrop-blur-md md:hidden">
+        <div className="grid h-[var(--bottom-nav-height,3.75rem)] grid-cols-4 items-center px-1">
           {/* Home */}
           <Link href="/" aria-current={pathname === "/" ? "page" : undefined} className={itemCls(pathname === "/")}>
             <span className={`flex h-7 w-12 items-center justify-center rounded-full ${pathname === "/" ? "bg-coral-50" : ""}`}>

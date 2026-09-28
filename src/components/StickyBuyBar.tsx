@@ -29,8 +29,8 @@ export default function StickyBuyBar({ product }: { product: StoreProduct }) {
 
   return (
     <div
-      className={`fixed inset-x-0 bottom-[calc(3.9rem+env(safe-area-inset-bottom))] z-40 border-t border-plum-100 bg-white/95 py-2.5 pl-4 pr-20 backdrop-blur transition-transform duration-300 md:hidden ${
-        show ? "translate-y-0" : "pointer-events-none translate-y-[250%]"
+      className={`fixed inset-x-0 bottom-[calc(var(--bottom-nav-height,3.75rem)+env(safe-area-inset-bottom))] z-30 border-t border-plum-100/80 bg-white/96 py-2.5 pl-4 pr-20 shadow-[0_-4px_16px_rgba(47,39,73,0.06)] backdrop-blur-md transition-all duration-300 ease-in-out md:hidden ${
+        show ? "translate-y-0 opacity-100" : "pointer-events-none translate-y-full opacity-0"
       }`}
     >
       <div className="flex items-center gap-3">
