@@ -44,7 +44,7 @@ export default async function CombosPage() {
       )}
       <Breadcrumbs items={[{ label: "Home", href: "/" }, { label: "Combo offers" }]} />
 
-      <div className="grain relative overflow-hidden rounded-2xl bg-gradient-to-r from-[#2a1f4e] via-[#6f3374] to-[#ee6154] p-6 text-white shadow-md shadow-plum-950/10">
+      <div className="grain relative overflow-hidden rounded-2xl bg-gradient-to-r from-[#5a4884] via-[#7d4880] to-[#d65f57] p-6 text-white shadow-md shadow-plum-950/10">
         <span aria-hidden className="pointer-events-none absolute -right-12 -top-20 size-52 rounded-full bg-coral-400/20 blur-3xl" />
         <span aria-hidden className="pointer-events-none absolute -left-10 -bottom-16 size-48 rounded-full bg-violet-400/15 blur-2xl" />
         <h1 className="relative flex items-center gap-2 font-heading text-2xl font-semibold tracking-tight md:text-3xl">

@@ -45,7 +45,7 @@ function ShopContent({
 
   return (
     <div className="space-y-4 px-3 sm:px-4 lg:px-3 pt-3 sm:pt-4 lg:pt-3">
-      <div className="grain relative overflow-hidden rounded-2xl bg-gradient-to-r from-[#2a1f4e] via-[#6f3374] to-[#ee6154] px-5 py-5 text-white shadow-md shadow-plum-950/10 sm:px-7 sm:py-6">
+      <div className="grain relative overflow-hidden rounded-2xl bg-gradient-to-r from-[#5a4884] via-[#7d4880] to-[#d65f57] px-5 py-5 text-white shadow-md shadow-plum-950/10 sm:px-7 sm:py-6">
         <span aria-hidden className="pointer-events-none absolute -right-10 -top-16 size-48 rounded-full bg-coral-400/20 blur-2xl" />
         <span aria-hidden className="pointer-events-none absolute -left-10 -bottom-16 size-48 rounded-full bg-violet-400/15 blur-2xl" />
         <p className="relative text-[10px] font-extrabold uppercase tracking-[0.18em] text-white/70">Discover something lovely</p>

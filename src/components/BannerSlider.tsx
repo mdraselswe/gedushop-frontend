@@ -36,7 +36,7 @@ const SLIDES: Slide[] = [
     title: "New toys every week",
     subtitle: "Fresh fun for every age group",
     cta: "Explore Toys",
-    bg: "from-[#2a1f4e] via-[#6f3374] to-[#ee6154]",
+    bg: "from-[#5a4884] via-[#7d4880] to-[#d65f57]",
     image: "/carousel/new-toys-natural.jpg",
     imageAlt: "New toys arriving in a gift box",
   },

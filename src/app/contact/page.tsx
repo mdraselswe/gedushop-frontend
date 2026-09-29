@@ -54,7 +54,7 @@ const CHANNELS = [
 export default function ContactPage() {
   return (
     <div className="mx-auto max-w-3xl px-4 pt-4">
-      <section className="grain relative overflow-hidden rounded-2xl bg-gradient-to-r from-[#2a1f4e] via-[#6f3374] to-[#ee6154] p-6 text-white sm:p-8">
+      <section className="grain relative overflow-hidden rounded-2xl bg-gradient-to-r from-[#5a4884] via-[#7d4880] to-[#d65f57] p-6 text-white sm:p-8">
         <span aria-hidden className="absolute -right-14 -top-20 size-52 rounded-full bg-white/12 blur-2xl" />
         <p className="relative text-[10px] font-extrabold uppercase tracking-[0.2em] text-white/60">We are here to help</p>
         <h1 className="relative mt-1 font-heading text-3xl font-semibold tracking-tight md:text-4xl">Contact Us</h1>

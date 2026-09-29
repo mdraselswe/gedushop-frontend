@@ -21,7 +21,7 @@ export default function AboutPage() {
   return (
     <div className="mx-auto max-w-4xl px-4 pb-8 pt-4">
       {/* Hero */}
-      <section className="grain relative overflow-hidden rounded-2xl bg-gradient-to-r from-[#2a1f4e] via-[#6f3374] to-[#ee6154] p-7 text-white md:p-10">
+      <section className="grain relative overflow-hidden rounded-2xl bg-gradient-to-r from-[#5a4884] via-[#7d4880] to-[#d65f57] p-7 text-white md:p-10">
         <span className="pointer-events-none absolute -right-12 -top-16 size-56 rounded-full bg-white/15 blur-2xl" aria-hidden />
         <div className="relative z-10 flex flex-col items-start gap-4 md:flex-row md:items-center md:gap-6">
           <span className="flex size-16 shrink-0 items-center justify-center rounded-2xl bg-white/95 p-2 shadow-sm md:size-20">
