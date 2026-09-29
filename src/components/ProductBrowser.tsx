@@ -274,7 +274,7 @@ export default function ProductBrowser({
   return (
     <div className="space-y-3">
       {/* Toolbar */}
-      <div className="fancy-surface flex items-center justify-between gap-2 rounded-xl p-2">
+      <div className="flex items-center justify-between gap-2 sm:fancy-surface sm:rounded-xl sm:p-2">
         <button
           onClick={() => setFilterOpen(true)}
           className="flex items-center gap-2 rounded-full bg-white px-4 py-2 text-sm font-bold text-plum-700 shadow-sm ring-1 ring-plum-100 transition-[box-shadow,color,border-color] duration-200 hover:shadow-[var(--shadow-soft)] hover:ring-coral-300 hover:text-plum-900"

@@ -9,7 +9,7 @@ export default function ProductGridSkeleton({ count = 10 }: { count?: number }) 
 
   return (
     <div
-      className={`grid grid-cols-1 gap-3 min-[381px]:grid-cols-2 sm:grid-cols-3 md:gap-4 ${
+      className={`grid grid-cols-2 gap-2.5 sm:gap-4 sm:grid-cols-3 md:gap-4 ${
         drawerOpen
           ? "lg:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4"
           : "lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5"

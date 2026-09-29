@@ -22,15 +22,15 @@ export default function AddToCartButton({ productId, disabled }: { productId: nu
         }}
         disabled={disabled || busy}
         aria-label="Add to cart"
-        className="flex size-9 items-center justify-center rounded-full bg-coral-500 text-white shadow-md shadow-coral-500/40 transition-[transform,background-color,box-shadow] duration-300 ease-out hover:bg-coral-600 hover:shadow-[var(--shadow-coral)] active:scale-90 disabled:opacity-50"
+        className="flex size-8 sm:size-9 items-center justify-center rounded-full bg-coral-500 text-white shadow-md shadow-coral-500/40 transition-[transform,background-color,box-shadow] duration-300 ease-out hover:bg-coral-600 hover:shadow-[var(--shadow-coral)] active:scale-90 disabled:opacity-50"
       >
-        <PlusIcon className="size-5" />
+        <PlusIcon className="size-4.5 sm:size-5" />
       </button>
     );
   }
 
   return (
-    <div className="flex shrink-0 items-center gap-0.5 rounded-full bg-plum-600 text-white shadow-md shadow-plum-600/30">
+    <div className="flex shrink-0 items-center rounded-full bg-plum-600 p-0.5 text-white shadow-md shadow-plum-600/30">
       <button
         onClick={(e) => {
           e.preventDefault();
@@ -38,11 +38,11 @@ export default function AddToCartButton({ productId, disabled }: { productId: nu
         }}
         disabled={busy}
         aria-label="Decrease quantity"
-        className="flex size-9 items-center justify-center rounded-full transition-colors duration-300 ease-out hover:bg-plum-700 disabled:opacity-50"
+        className="flex size-7 sm:size-8 items-center justify-center rounded-full transition-colors duration-200 hover:bg-plum-700 disabled:opacity-50"
       >
-        <MinusIcon className="size-4" />
+        <MinusIcon className="size-3.5 sm:size-4" />
       </button>
-      <span className="min-w-4 text-center text-sm font-extrabold tabular-nums">{busy ? "…" : qty}</span>
+      <span className="min-w-3.5 px-0.5 text-center text-xs font-black tabular-nums sm:min-w-4 sm:text-sm">{busy ? "…" : qty}</span>
       <button
         onClick={(e) => {
           e.preventDefault();
@@ -50,9 +50,9 @@ export default function AddToCartButton({ productId, disabled }: { productId: nu
         }}
         disabled={busy}
         aria-label="Increase quantity"
-        className="flex size-9 items-center justify-center rounded-full transition-colors duration-300 ease-out hover:bg-plum-700 disabled:opacity-50"
+        className="flex size-7 sm:size-8 items-center justify-center rounded-full transition-colors duration-200 hover:bg-plum-700 disabled:opacity-50"
       >
-        <PlusIcon className="size-4" />
+        <PlusIcon className="size-3.5 sm:size-4" />
       </button>
     </div>
   );

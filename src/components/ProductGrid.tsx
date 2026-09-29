@@ -36,7 +36,7 @@ export default function ProductGrid({
     // taken 21rem off the page, and keeping the full count there would squeeze
     // the cards past reading size rather than reflowing them.
     <div
-      className={`grid grid-cols-1 gap-3 min-[381px]:grid-cols-2 sm:grid-cols-3 md:gap-4 ${
+      className={`grid grid-cols-2 gap-2.5 sm:gap-4 sm:grid-cols-3 md:gap-4 ${
         drawerOpen
           ? "lg:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4"
           : "lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5"

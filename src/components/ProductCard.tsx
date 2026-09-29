@@ -38,7 +38,7 @@ export default function ProductCard({ product }: { product: StoreProduct }) {
   return (
     <article className="group relative flex h-full flex-col overflow-hidden rounded-2xl border border-plum-100/70 bg-white shadow-[var(--shadow-soft)] transition-[border-color,box-shadow] duration-300 hover:border-coral-200 hover:shadow-[var(--shadow-lift)]">
       <Link href={`/product/${product.slug}`} className="flex flex-1 flex-col">
-        <div className="relative mx-2 mt-2 aspect-square overflow-hidden rounded-xl bg-gradient-to-br from-plum-50 to-coral-50/50">
+        <div className="relative mx-1.5 mt-1.5 aspect-square overflow-hidden rounded-xl bg-gradient-to-br from-plum-50 to-coral-50/50 sm:mx-2 sm:mt-2">
           {image ? (
             // Plain <img> + WP srcset: static export can't run the Next optimizer,
             // so this lets the browser fetch a sized WebP instead of the full image.
@@ -75,7 +75,7 @@ export default function ProductCard({ product }: { product: StoreProduct }) {
           </span>
         </div>
 
-        <div className="flex flex-1 flex-col px-4 pt-3.5">
+        <div className="flex flex-1 flex-col px-3 pt-2.5 sm:px-4 sm:pt-3.5">
           <h3 className="line-clamp-2 min-h-[2.75em] text-sm font-semibold leading-snug text-plum-800 transition-colors duration-200 group-hover:text-coral-600">
             {product.name}
           </h3>
@@ -115,27 +115,27 @@ export default function ProductCard({ product }: { product: StoreProduct }) {
         </div>
       </Link>
 
-      {/* price + control share one row so they never overlap or overflow on narrow cards */}
-      <div className="flex items-center justify-between gap-2 px-4 pb-4 pt-2">
-        {/* mobile (2-col) stacks to save width; sm+ shows both prices on one line */}
-        <div className="flex min-w-0 flex-col leading-tight sm:flex-row sm:items-baseline sm:gap-1.5">
-          <span className="text-lg font-extrabold tracking-tight text-plum-700 tabular-nums">
+      {/* price + control share one row with guaranteed no-wrap price so they never overlap on narrow cards */}
+      <div className="flex items-center justify-between gap-1.5 px-3 pb-3 pt-1.5 sm:gap-2 sm:px-4 sm:pb-4 sm:pt-2">
+        {/* mobile stacks to save width; sm+ shows both prices on one line */}
+        <div className="flex shrink-0 flex-col leading-none sm:flex-row sm:items-baseline sm:gap-1.5">
+          <span className="whitespace-nowrap text-[15px] font-black tracking-tight text-plum-800 tabular-nums sm:text-lg">
             {formatPrice(product.prices.price, product.prices)}
           </span>
           {product.on_sale && (
-            <span className="text-[11px] text-plum-300 line-through tabular-nums sm:text-xs">
+            <span className="whitespace-nowrap text-[10px] text-plum-400 line-through tabular-nums sm:text-xs">
               {formatPrice(product.prices.regular_price, product.prices)}
             </span>
           )}
         </div>
         {soldOut ? (
-          <span className="shrink-0 rounded-full bg-plum-100 px-3.5 py-2 text-xs font-extrabold text-plum-400">
+          <span className="shrink-0 rounded-full bg-plum-100 px-2.5 py-1.5 text-[11px] font-extrabold text-plum-400 sm:px-3.5 sm:py-2 sm:text-xs">
             Sold out
           </span>
         ) : needsOptions ? (
           <Link
             href={`/product/${product.slug}`}
-            className="shrink-0 rounded-full bg-gradient-to-r from-plum-700 to-plum-500 px-3.5 py-2 text-xs font-extrabold text-white shadow-sm transition-transform hover:scale-[1.03]"
+            className="shrink-0 rounded-full bg-gradient-to-r from-plum-700 to-plum-500 px-2.5 py-1.5 text-[11px] font-extrabold text-white shadow-sm transition-transform hover:scale-[1.03] sm:px-3.5 sm:py-2 sm:text-xs"
           >
             Options
           </Link>

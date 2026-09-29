@@ -116,7 +116,7 @@ export default function BannerSlider() {
     >
       <div
         ref={trackRef}
-        className="no-scrollbar -mr-4 flex snap-x snap-mandatory gap-3 overflow-x-auto scroll-smooth pb-1 md:mr-0"
+        className="no-scrollbar -mr-3 flex snap-x snap-mandatory gap-3 overflow-x-auto scroll-smooth pb-1 sm:-mr-4 md:mr-0"
       >
         {SLIDES.map(({ title, subtitle, cta, bg, image, imageAlt }, index) => (
           <a

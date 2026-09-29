@@ -41,10 +41,10 @@ async function PopularProducts() {
 export default function HomePage() {
 
   return (
-    <div className="space-y-7 px-4 pb-4 pt-4 lg:pt-5">
+    <div className="space-y-6 sm:space-y-7 px-3 sm:px-4 pb-4 pt-3 sm:pt-4 lg:pt-5">
       <BannerSlider />
       <TrustBar />
-      <section className="fancy-surface rounded-[1.75rem] p-3 sm:p-5">
+      <section className="sm:fancy-surface sm:rounded-[1.75rem] sm:p-5">
         <div className="mb-4 flex items-end justify-between gap-4">
           <div>
             <span className="section-kicker"><Sparkles className="size-3" /> Parent favourites</span>

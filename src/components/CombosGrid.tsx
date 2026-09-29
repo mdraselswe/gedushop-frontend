@@ -202,7 +202,7 @@ export default function CombosGrid({ initial }: { initial: StoreProduct[] }) {
 
   return (
     <div className="space-y-3">
-      <div className="fancy-surface flex items-center justify-between gap-2 rounded-xl p-2">
+      <div className="flex items-center justify-between gap-2 sm:fancy-surface sm:rounded-xl sm:p-2">
         <button
           type="button"
           onClick={() => setFilterOpen(true)}
