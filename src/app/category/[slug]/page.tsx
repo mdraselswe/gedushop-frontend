@@ -35,16 +35,87 @@ export async function generateStaticParams() {
 
 export const dynamicParams = false;
 
+const CATEGORY_SEO: Record<
+  string,
+  { title: string; description: string; keywords: string[] }
+> = {
+  toys: {
+    title: "বাচ্চাদের খেলনা — Kids & Baby Toys in Bangladesh",
+    description:
+      "বাংলাদেশে সেরা বাচ্চাদের খেলনা (Kids Toys) ও ছোট বাবুদের খেলনা (babuder khelna) কিনুন GeduShop-এ। শিক্ষামূলক খেলনা, ডল, কার ও পাজল ক্যাশ অন ডেলিভারিতে অর্ডার করুন।",
+    keywords: [
+      "বাচ্চাদের খেলনা",
+      "babuder khelna",
+      "baby toys",
+      "kids toys bd",
+      "toys bangladesh",
+      "টয়স",
+      "ছোটদের খেলনা",
+      "educational toys",
+    ],
+  },
+  "baby-clothing": {
+    title: "বাচ্চাদের জামাকাপড় ও বেবি ড্রেস — Baby Clothing & Dresses in BD",
+    description:
+      "নবজাতক ও শিশুদের আরামদায়ক পোশাক ও জামাকাপড় (Baby Clothing) কিনুন সাশ্রয়ী দামে। Cotton baby dress, romper ও kids wear ক্যাশ অন ডেলিভারিতে অর্ডার করুন।",
+    keywords: [
+      "বাচ্চাদের জামাকাপড়",
+      "বাচ্চাদের পোশাক",
+      "বাচ্চাদের জামা",
+      "baby cloth",
+      "baby dress bd",
+      "baby clothing bangladesh",
+      "kids clothing",
+    ],
+  },
+  education: {
+    title: "বাচ্চাদের শিক্ষামূলক খেলনা — Educational Toys for Kids BD",
+    description:
+      "বাচ্চাদের মেধা বিকাশে সহায়ক শিক্ষামূলক খেলনা (Educational Toys) কিনুন GeduShop থেকে। টকিং বুক, রাইটিং প্যাড ও পাজল সাশ্রয়ী মূল্যে ক্যাশ অন ডেলিভারিতে।",
+    keywords: [
+      "শিক্ষামূলক খেলনা",
+      "educational toys bd",
+      "learning toys for kids",
+      "বাচ্চাদের খেলনা",
+      "babuder khelna",
+    ],
+  },
+  "feeding-nursing": {
+    title: "শিশুর ফিডিং ও নার্সিং সামগ্রী — Baby Feeding Essentials in BD",
+    description:
+      "শিশুর জন্য নিরাপদ ও বিপিএ-মুক্ত ফিডিং বোতল, সিলিকন বাটি ও নার্সিং সামগ্রী কিনুন সেরা দামে। সারা দেশে ক্যাশ অন ডেলিভারি।",
+    keywords: ["ফিডিং বোতল", "baby feeding bd", "baby nursing", "সিলিকন বাটি", "baby care"],
+  },
+  "school-stationery-supplies": {
+    title: "বাচ্চাদের স্কুল ও স্টেশনারি সামগ্রী — Kids School Stationery Sets BD",
+    description:
+      "কিউট কার্টুন স্টেশনারি সেট, জেল পেন ও স্কুল কিট কিনুন GeduShop থেকে। সাশ্রয়ী দাম ও দ্রুত হোম ডেলিভারি।",
+    keywords: ["স্কুল স্টেশনারি", "school stationery bd", "kids stationery set", "কার্টুন পেন"],
+  },
+  "combo-offers": {
+    title: "বাচ্চাদের খেলনা ও গিফট কম্বো অফার — Baby Gift & Toy Combos BD",
+    description:
+      "সাশ্রয়ী কম্বো অফারে বাচ্চাদের প্রিয় খেলনা ও উপহার সামগ্রী কিনুন। স্পেশাল ডিসকাউন্টে সারা দেশে ক্যাশ অন ডেলিভারি।",
+    keywords: ["কম্বো অফার", "baby combo offers", "toy combos bd", "kids gift set"],
+  },
+};
+
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params;
   const category = await getCategoryBySlug(slug);
   if (!category) return { title: "Category not found" };
   const n = category.name;
-  const title = `${n} in Bangladesh — Buy ${n} Online at Best Price`;
-  const description = `Buy ${n.toLowerCase()} online in Bangladesh at GeduShop — ${category.count}+ genuine, quality-checked products. Cash on delivery all over the country at the best price.`;
+  const seo = CATEGORY_SEO[category.slug];
+  const title = seo?.title ?? `${n} in Bangladesh — Buy ${n} Online at Best Price`;
+  const description =
+    seo?.description ??
+    `Buy ${n.toLowerCase()} online in Bangladesh at GeduShop — ${category.count}+ genuine, quality-checked products. Cash on delivery all over the country at the best price.`;
+  const keywords = seo?.keywords ?? [n, `${n} in bangladesh`, "GeduShop", "baby products bd"];
+
   return {
     title,
     description,
+    keywords,
     alternates: { canonical: `/category/${category.slug}/` },
     openGraph: { title, description, type: "website", images: [HOME_OG_IMAGE] },
     ...(category.slug === "uncategorized" ? { robots: { index: false, follow: true } } : {}),

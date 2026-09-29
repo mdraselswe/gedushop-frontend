@@ -4,9 +4,17 @@ import { getCategories, getProductsPaged } from "@/lib/wp";
 import { productCardPayloads } from "@/lib/productCardPayload";
 
 export const metadata: Metadata = {
-  title: "Shop Baby Products, Kids Toys & Essentials Online",
+  title: "সকল বেবি প্রোডাক্ট ও বাচ্চাদের খেলনা — All Baby Products & Kids Toys",
   description:
-    "Browse baby products, educational toys, feeding essentials, nursery items and kids accessories online at GeduShop. Cash on delivery across Bangladesh.",
+    "GeduShop-এ ব্রাউজ করুন বাচ্চাদের সেরা খেলনা (Kids Toys), বেবি ড্রেস ও প্রয়োজনীয় কিডস আইটেম। সাশ্রয়ী দাম ও সারা দেশে ক্যাশ অন ডেলিভারি।",
+  keywords: [
+    "বাচ্চাদের খেলনা",
+    "babuder khelna",
+    "baby toys bd",
+    "kids toys online",
+    "baby cloth bd",
+    "baby shop bangladesh",
+  ],
   alternates: { canonical: "/shop/" },
 };
 

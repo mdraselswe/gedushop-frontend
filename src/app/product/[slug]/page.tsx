@@ -52,16 +52,29 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   if (!product) return { title: "Product not found" };
   const minor = product.prices.currency_minor_unit ?? 2;
   const priceNum = Math.round(Number(product.prices.price) / 10 ** minor);
+  const homeCategory = primaryCategory(product);
   const snippet = product.short_description.replace(/<[^>]+>/g, "").trim();
   const description = (
-    (snippet ? snippet.slice(0, 110).trim() + " — " : "") +
-    `Buy ${product.name} online in Bangladesh at ৳${priceNum}. Cash on delivery, genuine & quality-checked.`
+    `${product.name} অনলাইনে কিনুন ৳${priceNum} টাকায়। ` +
+    (snippet ? snippet.slice(0, 80).trim() + " — " : "") +
+    `Buy online in Bangladesh from GeduShop. Cash on delivery all over BD.`
   ).slice(0, 180);
   const title = `${product.name} — Price in Bangladesh`;
   const image = product.images[0]?.src;
+  const keywords = [
+    product.name,
+    ...(homeCategory ? [homeCategory.name, `${homeCategory.name} bd`] : []),
+    "বাচ্চাদের খেলনা",
+    "babuder khelna",
+    "baby toys bd",
+    "baby items bangladesh",
+    "online shopping bd",
+    "GeduShop",
+  ];
   return {
     title,
     description,
+    keywords,
     alternates: { canonical: `/product/${product.slug}/` },
     openGraph: {
       title,
@@ -109,14 +122,40 @@ export default async function ProductPage({ params }: Props) {
     image: product.images.map((i) => i.src),
     description: product.short_description.replace(/<[^>]+>/g, "").slice(0, 300),
     sku: String(product.id),
+    brand: {
+      "@type": "Brand",
+      name: "GeduShop",
+    },
     offers: {
       "@type": "Offer",
       url: `${SITE}/product/${product.slug}/`,
       priceCurrency: product.prices.currency_code || "BDT",
       price: (Number(product.prices.price) / 10 ** minor).toFixed(2),
+      priceValidUntil: "2027-12-31",
+      itemCondition: "https://schema.org/NewCondition",
       availability: product.is_in_stock
         ? "https://schema.org/InStock"
         : "https://schema.org/OutOfStock",
+      seller: {
+        "@type": "Organization",
+        name: "GeduShop",
+      },
+      hasMerchantReturnPolicy: {
+        "@type": "MerchantReturnPolicy",
+        merchantReturnLink: `${SITE}/return-policy/`,
+      },
+      shippingDetails: {
+        "@type": "OfferShippingDetails",
+        shippingRate: {
+          "@type": "MonetaryAmount",
+          value: "80",
+          currency: "BDT",
+        },
+        shippingDestination: {
+          "@type": "DefinedRegion",
+          addressCountry: "BD",
+        },
+      },
     },
     ...(product.review_count > 0 && Number(product.average_rating) > 0
       ? {

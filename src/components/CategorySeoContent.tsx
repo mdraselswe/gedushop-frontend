@@ -1,72 +1,81 @@
 const content: Record<string, { heading: string; paragraphs: string[] }> = {
   toys: {
-    heading: "Choose kids toys with confidence",
+    heading: "বাচ্চাদের খেলনা নির্বাচন ও অনলাইন শপিং (Kids Toys in Bangladesh)",
     paragraphs: [
-      "Explore activity, musical, pretend-play and indoor toys for babies, toddlers and growing children. Check the recommended age, material, size and included parts on each product page before choosing.",
-      "For younger children, prefer age-appropriate toys with smooth edges and no loose small pieces. Product prices, availability and delivery information are shown clearly so families across Bangladesh can compare before ordering.",
+      "বাংলাদেশে ছোট বাবুদের খেলনা (babuder khelna) বা বাচ্চাদের খেলনা (Kids & Baby toys) কেনার ক্ষেত্রে শিশুদের বয়স, মেটেরিয়াল ও নিরাপত্তা সবচেয়ে গুরুত্বপূর্ণ। GeduShop-এ রয়েছে নবজাতক থেকে শুরু করে বড় বাচ্চাদের উপযোগী অ্যাক্টিভিটি টয়, মিউজিক্যাল টয়, ডল, কার ও শিক্ষামূলক খেলনা।",
+      "আমাদের প্রতিটি খেলনা শতভাগ নন-টক্সিক, মসৃণ ফিনিশিং ও শিশুবান্ধব উপাদানে তৈরি। পণ্যের বিস্তারিত বিবরণ ও দাম দেখে নিশ্চিন্তে ঘরে বসেই অর্ডার করুন এবং সারা বাংলাদেশে ক্যাশ অন ডেলিভারিতে পণ্য হাতে পেয়ে মূল্য পরিশোধ করুন।",
     ],
   },
   education: {
-    heading: "Learning products for play and practice",
+    heading: "বাচ্চাদের শিক্ষামূলক খেলনা ও লার্নিং সামগ্রী (Educational Toys for Kids)",
     paragraphs: [
-      "Browse talking books, writing-practice sets, puzzles and interactive learning products designed to make early practice more engaging. Choose by your child's age, current skills and the language or activity they enjoy.",
-      "Every product page explains the included items and key features. This helps parents compare educational toys and learning aids before ordering for home, preschool or gifting.",
-    ],
-  },
-  "feeding-nursing": {
-    heading: "Everyday baby feeding essentials",
-    paragraphs: [
-      "Find bowls, spoons, food-preparation tools, bottles and practical feeding accessories for weaning and everyday meals. Review the listed material, age guidance, capacity and care instructions before use.",
-      "Select the product that suits your baby's feeding stage and routine, then order with cash on delivery available across Bangladesh.",
-    ],
-  },
-  "nursery-bedding": {
-    heading: "Nursery and sleep-time essentials",
-    paragraphs: [
-      "Browse baby bedding, mosquito-net solutions and nursery accessories for a more comfortable daily routine. Product pages include dimensions, materials and included pieces wherever available.",
-      "Always follow current safe-sleep guidance and the manufacturer's age and usage instructions when selecting or using a sleep-related product.",
-    ],
-  },
-  "health-safety": {
-    heading: "Practical baby health and safety products",
-    paragraphs: [
-      "Compare everyday care and safety accessories by their purpose, material, size and recommended use. Read the complete product information and instructions before using any item with a baby or child.",
-      "These products support routine care but do not replace advice from a qualified medical professional when a child is unwell or has a specific health need.",
-    ],
-  },
-  "skincare-bath": {
-    heading: "Baby bath and skincare accessories",
-    paragraphs: [
-      "Discover bath-time and skincare accessories for a simpler care routine. Check product ingredients or materials, directions and age suitability, especially when your child has sensitive skin or allergies.",
-      "Patch-test topical products when appropriate and stop use if irritation occurs. For persistent skin concerns, seek guidance from a qualified healthcare professional.",
-    ],
-  },
-  "strollers-carriers": {
-    heading: "Baby strollers and carriers",
-    paragraphs: [
-      "Compare mobility products using the stated age or weight range, dimensions, restraint system and folding features. The right choice depends on your child's stage and how your family plans to travel.",
-      "Follow the manufacturer's setup and safety instructions, check straps before every use and never leave a child unattended.",
+      "শিশুদের বুদ্ধিমত্তা, ভাষা ও মেধার বিকাশে ইন্টারেক্টিভ লার্নিং খেলনা, টকিং বুক, রাইটিং প্র্যাকটিস প্যাড এবং পাজল অত্যন্ত কার্যকর ভূমিকা রাখে। খেলাচ্ছলে শেখার চমৎকার সব আইটেম দিয়ে সাজানো আমাদের কালেকশন।",
+      "প্রতিটি প্রোডাক্ট পেজে আইটেমের ব্যবহারবিধি ও বয়স উপযোগী নির্দেশনা দেওয়া আছে। আপনার সোনামণির প্রাথমিক শিক্ষার ভিত্তি মজবুত করতে নির্ভরযোগ্য শিক্ষামূলক খেলনা বেছে নিন।",
     ],
   },
   "baby-clothing": {
-    heading: "Comfortable baby clothing",
+    heading: "বাচ্চাদের আরামদায়ক পোশাক ও বেবি ড্রেস (Baby Clothing & Dresses)",
     paragraphs: [
-      "Browse clothing for babies and check the stated size, fabric and care information before ordering. When between sizes, compare the product measurements with clothing that already fits your child.",
-      "Availability and prices are shown on each product page, with delivery offered across Bangladesh.",
+      "নবজাতক ও ছোট শিশুদের কোমল ত্বকের জন্য নরম, আরামদায়ক ও ব্রিদেবল সুতি কাপড়ের (Cotton baby cloth) বিকল্প নেই। GeduShop-এর কালেকশনে রয়েছে ট্রেন্ডি বেবি ড্রেস, রম্পার, ক্যাজুয়াল সেট ও পার্টি পোশাক।",
+      "প্রতিটি পোশাকের সাইজ ও ফ্যাব্রিক তথ্য চেক করে সহজেই আপনার শিশুর জন্য পারফেক্ট মাপের পোশাক অর্ডার করুন। ক্যাশ অন ডেলিভারিতে সারা দেশে দ্রুত ডেলিভারি দেওয়া হয়।",
+    ],
+  },
+  "feeding-nursing": {
+    heading: "শিশুর ফিডিং ও নার্সিং সামগ্রী (Baby Feeding & Nursing Essentials)",
+    paragraphs: [
+      "শিশুর খাবারের সময়কে স্বাস্থ্যকর ও আনন্দদায়ক করতে ফুড-গ্রেড সিলিকন বাটি, সেফটি ফিডিং স্পুন, ওয়াটার কাপ ও ফিডিং বোতল ব্যবহার করুন। এগুলো শতভাগ বিপিএ-মুক্ত এবং শিশুর জন্য নিরাপদ।",
+      "উইনিং স্টেজ বা প্রতিদিনের খাবারের জন্য শিশুর প্রয়োজনীয় ফিডিং সামগ্রী সাশ্রয়ী দামে অর্ডার করুন GeduShop থেকে।",
+    ],
+  },
+  "school-stationery-supplies": {
+    heading: "বাচ্চাদের স্কুল ও স্টেশনারি সামগ্রী (School & Stationery Supplies)",
+    paragraphs: [
+      "শিশুদের পড়াশোনায় আগ্রহ বাড়াতে কিউট কার্টুন স্টেশনারি সেট, জেল পেন, রঙিন খাতা ও স্কুল কিট দারুণ ভূমিকা রাখে। কুমি, মাই মেলোডি ও আকর্ষণীয় থিমের স্টেশনারি গিফট প্যাক এখানে পাওয়া যায়।",
+      "স্কুল, হোমওয়ার্ক বা গিফট দেওয়ার জন্য সেরা মানের স্টেশনারি সামগ্রী কিনুন সেরা মূল্যে।",
+    ],
+  },
+  "nursery-bedding": {
+    heading: "বেবি নার্সারি ও বেডিং সামগ্রী (Nursery & Sleep Essentials)",
+    paragraphs: [
+      "শিশুর নিশ্চিন্ত ও আরামদায়ক ঘুমের জন্য নরম বেডিং, মশারি ও নার্সারি এক্সেসরিজ অত্যন্ত জরুরি। প্রোডাক্ট পেজে মেটেরিয়াল ও মাপ দেখে আপনার শিশুর জন্য উপযুক্ত বেডিং সামগ্রী বেছে নিন।",
+      "সবসময় নিরাপদ ঘুমের নিয়মাবলি অনুসরণ করুন এবং প্রস্তুতকারকের নির্দেশিকা অনুযায়ী শিশুর স্লিপিং সামগ্রী ব্যবহার করুন।",
+    ],
+  },
+  "health-safety": {
+    heading: "শিশুর স্বাস্থ্য ও সুরক্ষা সামগ্রী (Baby Health & Safety Products)",
+    paragraphs: [
+      "ছোট বাচ্চাদের দৈনন্দিন যত্ন ও সুরক্ষায় প্রয়োজনীয় গ্রুমিং ও হেলথ কেয়ার কিট দেখুন। প্রতিটি প্রোডাক্ট ব্যবহারের নিয়ম ও উপাদান ভালোভাবে দেখে অর্ডার করুন।",
+      "এসব সামগ্রী নিয়মিত পরিচর্যার জন্য উপযোগী; কোনো স্বাস্থ্যগত জটিলতায় চিকিৎসকের পরামর্শ গ্রহণ করুন।",
+    ],
+  },
+  "skincare-bath": {
+    heading: "শিশুর গোসল ও বাথ এক্সেসরিজ (Baby Bath & Care Accessories)",
+    paragraphs: [
+      "শিশুর গোসলকে আরও সহজ ও আনন্দময় করতে রিন্সার কাপ, বাথ টয় ও নরম বাথ এক্সেসরিজ ব্যবহার করুন। কোমল ত্বকের সুরক্ষায় নিরাপদ উপাদান যাচাই করে অর্ডার করুন।",
+    ],
+  },
+  "strollers-carriers": {
+    heading: "বেবি স্ট্রলার ও ক্যারিয়ার (Baby Strollers & Carriers)",
+    paragraphs: [
+      "ভ্রমণ ও দৈনন্দিন চলাফেরায় শিশুর নিরাপত্তা ও আরাম নিশ্চিত করতে উপযুক্ত স্ট্রলার ও বেবি ক্যারিয়ার বেছে নিন। ওজন ধারণক্ষমতা ও সেফটি বেল্ট সংক্রান্ত তথ্য প্রতিটি পেজে দেওয়া আছে।",
     ],
   },
   party: {
-    heading: "Kids party and birthday supplies",
+    heading: "বাচ্চাদের বার্থডে ও পার্টি সাপ্লাই (Kids Party & Birthday Supplies)",
     paragraphs: [
-      "Plan birthdays and family celebrations with decoration sets and party accessories. Check the pack quantity, theme, dimensions and included tools so you know what else may be needed before the event.",
-      "Order early enough to allow for delivery and a practice setup, particularly for larger balloon or backdrop arrangements.",
+      "শিশুর জন্মদিন বা পারিবারিক উৎসব সাজিয়ে তুলতে আকর্ষণীয় থিম ডেকোরেশন ও পার্টি এক্সেসরিজ সংগ্রহ করুন। আয়োজনের আগেই অর্ডার করে ডেলিভারি নিশ্চিত করুন।",
     ],
   },
   "gift-box": {
-    heading: "Baby and kids gift ideas",
+    heading: "বাচ্চাদের গিফট বক্স ও উপহার সামগ্রী (Baby & Kids Gift Box)",
     paragraphs: [
-      "Explore ready-to-gift products and bundles for birthdays, newborn visits and family occasions. Compare the contents, age suitability and individual product details before choosing a present.",
-      "For direct gifting, confirm the recipient's delivery details and keep their child's age and interests in mind.",
+      "জন্মদিন, নবজাতকের আগমন বা যেকোনো আনন্দের মুহূর্তে শিশুদের জন্য স্পেশাল রেডি-টু-গিফট বান্ডেল ও গিফট বক্স বেছে নিন। আকর্ষণীয় প্যাকেজিং ও প্রয়োজনীয় আইটেমের কম্বিনেশন।",
+    ],
+  },
+  "combo-offers": {
+    heading: "বাচ্চাদের খেলনা ও বেবি আইটেম কম্বো অফার (Special Combo Offers)",
+    paragraphs: [
+      "একসাথে একাধিক প্রয়োজনীয় প্রোডাক্ট কিনুন সাশ্রয়ী কম্বো মূল্যে। খেলনা, স্টেশনারি ও ফিডিং সামগ্রীর সেরা কম্বো অফারগুলো দেখে নিন এবং বাড়তি সাশ্রয় উপভোগ করুন।",
     ],
   },
 };
@@ -78,7 +87,7 @@ export default function CategorySeoContent({ slug }: { slug: string }) {
   return (
     <section className="fancy-surface rounded-2xl p-5 md:p-6">
       <h2 className="font-heading text-lg font-semibold tracking-tight text-plum-800">{section.heading}</h2>
-      <div className="mt-2 space-y-2 text-sm leading-relaxed text-plum-500">
+      <div className="mt-2 space-y-2 text-sm leading-relaxed text-plum-600">
         {section.paragraphs.map((paragraph) => <p key={paragraph}>{paragraph}</p>)}
       </div>
     </section>

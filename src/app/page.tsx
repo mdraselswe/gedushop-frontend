@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { Suspense } from "react";
 import { ArrowRight, Sparkles } from "lucide-react";
 import BannerSlider from "@/components/BannerSlider";
 import ProductBrowser from "@/components/ProductBrowser";
@@ -9,12 +8,24 @@ import TrustBar from "@/components/TrustBar";
 import HomeSeoContent from "@/components/HomeSeoContent";
 import { getProductsPaged } from "@/lib/wp";
 import { productCardPayloads } from "@/lib/productCardPayload";
-import ProductCardSkeleton from "@/components/ProductCardSkeleton";
 
 export const metadata: Metadata = {
-  title: "Baby Items, Toys, Baby Clothing & Kids Essentials Online",
+  title: "বাচ্চাদের খেলনা, বেবি ড্রেস ও Baby Toys, Kids Items in Bangladesh",
   description:
-    "Shop baby items, toys, baby clothing and kids essentials online in Bangladesh at GeduShop. Cash on delivery all over the country — genuine, quality-checked products at the best price.",
+    "বাংলাদেশে বাচ্চাদের সেরা খেলনা (Baby Toys), পোশাক (Baby Clothing) ও প্রয়োজনীয় কিডস আইটেম কিনুন GeduShop থেকে। সাশ্রয়ী দাম ও সারা দেশে ক্যাশ অন ডেলিভারি।",
+  keywords: [
+    "বাচ্চাদের খেলনা",
+    "babuder khelna",
+    "baby toys",
+    "kids toys bd",
+    "baby cloth",
+    "baby dress bd",
+    "বাচ্চাদের জামাকাপড়",
+    "baby shop bd",
+    "educational toys bd",
+    "gedushop",
+    "গেদুশপ",
+  ],
   alternates: { canonical: "/" },
 };
 
@@ -25,20 +36,6 @@ async function PopularProducts() {
   const { products, total } = await getProductsPaged({ perPage: 24, orderby: "popularity" });
 
   return <ProductBrowser initialProducts={productCardPayloads(products)} initialTotal={total} defaultSort="popularity" />;
-}
-
-function PopularProductsSkeleton() {
-  return (
-    <div className="space-y-3" aria-label="Loading popular products">
-      <div className="fancy-surface flex h-12 items-center justify-between rounded-xl p-2">
-        <div className="h-9 w-24 animate-pulse rounded-full bg-plum-50" />
-        <div className="h-9 w-32 animate-pulse rounded-full bg-plum-50" />
-      </div>
-      <div className="grid grid-cols-1 gap-3 min-[381px]:grid-cols-2 sm:grid-cols-3 md:gap-4 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5">
-        {Array.from({ length: 10 }).map((_, index) => <ProductCardSkeleton key={index} />)}
-      </div>
-    </div>
-  );
 }
 
 export default function HomePage() {
@@ -60,9 +57,7 @@ export default function HomePage() {
             View all <ArrowRight className="size-3.5" strokeWidth={2.5} />
           </Link>
         </div>
-        <Suspense fallback={<PopularProductsSkeleton />}>
-          <PopularProducts />
-        </Suspense>
+        <PopularProducts />
       </section>
       <HomeSeoContent />
       <RecentlyViewed />
