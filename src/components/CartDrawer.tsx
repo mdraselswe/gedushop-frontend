@@ -114,8 +114,8 @@ export default function CartDrawer() {
                         </span>
                       )}
                       {item.quantity > 1 && (
-                        <span className="text-[10px] font-bold text-plum-400">
-                          ({formatPrice(item.prices.price, item.prices)} × {item.quantity})
+                        <span className="inline-flex items-center rounded-full bg-coral-50 px-1.5 py-0.5 text-[10px] font-extrabold text-coral-600 ring-1 ring-coral-200/70 tabular-nums">
+                          {formatPrice(item.prices.price, item.prices)} × {item.quantity}
                         </span>
                       )}
                     </div>
