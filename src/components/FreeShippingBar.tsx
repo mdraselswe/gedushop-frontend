@@ -161,15 +161,21 @@ export default function FreeShippingBar({
         </div>
 
         {/* Milestone Labels */}
-        <div className="mt-2.5 flex items-center justify-between text-[10px] font-bold text-plum-400">
-          <span>৳0</span>
-          <span>
-            {achieved ? (
-              <span className="font-extrabold text-emerald-600">Free Delivery Unlocked! 🚚💨</span>
-            ) : (
-              <span>Free delivery at ৳{freeThreshold}</span>
-            )}
-          </span>
+        <div className="mt-2.5 flex items-center justify-between text-[11px] font-bold">
+          {achieved ? (
+            <span className="w-full text-center font-extrabold text-emerald-600">
+              🎉 Free Delivery Unlocked on this order!
+            </span>
+          ) : (
+            <>
+              <span className="text-plum-400">
+                Cart: <span className="font-extrabold text-plum-700">৳{Math.round(subtotal)}</span>
+              </span>
+              <span className="text-plum-500">
+                Goal: <span className="font-extrabold text-coral-600">৳{freeThreshold}</span>
+              </span>
+            </>
+          )}
         </div>
       </div>
     </div>

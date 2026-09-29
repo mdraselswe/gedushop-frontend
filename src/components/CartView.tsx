@@ -77,14 +77,21 @@ export default function CartView() {
                   {item.extensions.gedushop.combo.includes.join(" · ")}
                 </p>
               )}
-              <p className="mt-0.5 text-sm font-extrabold text-plum-600 tabular-nums">
-                {formatPrice(item.totals.line_subtotal, item.totals)}
+              <div className="mt-0.5 flex flex-wrap items-baseline gap-x-1.5 gap-y-0.5">
+                <span className="text-sm font-extrabold text-plum-600 tabular-nums">
+                  {formatPrice(item.totals.line_subtotal, item.totals)}
+                </span>
                 {Number(item.prices.regular_price) > Number(item.prices.price) && (
-                  <span className="ml-1.5 text-xs font-semibold text-plum-300 line-through">
+                  <span className="text-xs font-semibold text-plum-300 line-through tabular-nums">
                     {formatPrice(String(Number(item.prices.regular_price) * item.quantity), item.prices)}
                   </span>
                 )}
-              </p>
+                {item.quantity > 1 && (
+                  <span className="text-[11px] font-bold text-plum-400">
+                    ({formatPrice(item.prices.price, item.prices)} × {item.quantity})
+                  </span>
+                )}
+              </div>
             </div>
             <div className="flex flex-col items-end gap-2">
               <button
