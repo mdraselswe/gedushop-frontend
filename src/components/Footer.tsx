@@ -12,12 +12,12 @@ export default function Footer({ categories }: { categories: StoreCategory[] }) 
   const topCategories = categories.slice(0, 6);
 
   return (
-    <footer className="site-chrome relative mt-14 overflow-hidden bg-gradient-to-br from-plum-900 via-plum-800 to-plum-700 pb-28 text-white md:pb-10">
+    <footer className="site-chrome relative mt-14 overflow-hidden border-t border-white/10 bg-gradient-to-b from-[#161226] via-[#120e1e] to-[#0c0916] pb-28 text-white md:pb-10">
       <Suspense fallback={null}>
         <FooterNavigationReset />
       </Suspense>
-      <span aria-hidden className="pointer-events-none absolute -right-24 -top-28 size-96 rounded-full bg-coral-400/15 blur-3xl" />
-      <span aria-hidden className="pointer-events-none absolute -bottom-40 left-1/4 size-96 rounded-full bg-plum-400/15 blur-3xl" />
+      <span aria-hidden className="pointer-events-none absolute -right-24 -top-28 size-96 rounded-full bg-coral-500/10 blur-3xl" />
+      <span aria-hidden className="pointer-events-none absolute -bottom-40 left-1/4 size-96 rounded-full bg-violet-600/10 blur-3xl" />
       <div className="mx-auto grid max-w-[120rem] gap-8 px-4 py-10 sm:grid-cols-2 lg:grid-cols-4 lg:px-8">
         {/* Brand */}
         <div className="sm:col-span-2 lg:col-span-1">

@@ -85,9 +85,9 @@ export default function FaqPage() {
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: serializeJsonLd(faqLd) }} />
       <Breadcrumbs items={[{ label: "Home", href: "/" }, { label: "FAQ" }]} />
 
-      <section className="grain relative isolate overflow-hidden rounded-2xl bg-gradient-to-br from-plum-700 via-plum-600 to-coral-500 px-5 py-7 text-white sm:px-8 sm:py-9">
+      <section className="grain relative isolate overflow-hidden rounded-2xl bg-gradient-to-r from-[#2a1f4e] via-[#6f3374] to-[#ee6154] px-5 py-7 text-white sm:px-8 sm:py-9">
         <div aria-hidden="true" className="absolute -right-14 -top-16 -z-10 size-48 rounded-full bg-white/10 blur-2xl" />
-        <div aria-hidden="true" className="absolute -bottom-20 left-1/3 -z-10 size-52 rounded-full bg-coral-300/20 blur-3xl" />
+        <div aria-hidden="true" className="absolute -bottom-20 left-1/3 -z-10 size-52 rounded-full bg-coral-400/20 blur-3xl" />
 
         <div className="flex items-start gap-4">
           <span className="flex size-12 shrink-0 items-center justify-center rounded-2xl bg-white/15 ring-1 ring-white/20 backdrop-blur-sm sm:size-14">

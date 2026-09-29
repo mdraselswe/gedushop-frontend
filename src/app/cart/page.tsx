@@ -9,10 +9,12 @@ export const metadata: Metadata = {
 
 export default function CartPage() {
   return (
-    <div className="mx-auto max-w-3xl px-4 pt-4">
-      <div className="grain flex items-center gap-4 overflow-hidden rounded-2xl bg-gradient-to-r from-plum-700 to-plum-500 p-5 text-white">
-        <span className="flex size-12 items-center justify-center rounded-2xl bg-white/15 ring-1 ring-white/20"><ShoppingBag className="size-6" /></span>
-        <div><p className="text-[10px] font-extrabold uppercase tracking-[0.18em] text-white/60">Almost yours</p><h1 className="font-heading text-2xl font-semibold tracking-tight">Your Cart</h1></div>
+    <div className="mx-auto max-w-3xl px-3 sm:px-4 lg:px-3 pt-3 sm:pt-4 lg:pt-3">
+      <div className="grain relative flex items-center gap-4 overflow-hidden rounded-2xl bg-gradient-to-r from-[#2a1f4e] via-[#6f3374] to-[#ee6154] p-5 text-white shadow-md shadow-plum-950/10">
+        <span aria-hidden className="pointer-events-none absolute -right-10 -top-16 size-48 rounded-full bg-coral-400/20 blur-2xl" />
+        <span aria-hidden className="pointer-events-none absolute -left-10 -bottom-16 size-48 rounded-full bg-violet-400/15 blur-2xl" />
+        <span className="flex size-12 items-center justify-center rounded-2xl bg-white/20 ring-1 ring-white/25 backdrop-blur-xs"><ShoppingBag className="size-6" /></span>
+        <div className="relative"><p className="text-[10px] font-extrabold uppercase tracking-[0.18em] text-white/70">Almost yours</p><h1 className="font-heading text-2xl font-semibold tracking-tight">Your Cart</h1></div>
       </div>
       <CartView />
     </div>

@@ -160,9 +160,10 @@ export default async function CategoryPage({ params }: Props) {
       <Breadcrumbs
         items={[{ label: "Home", href: "/" }, { label: "Shop", href: "/shop" }, { label: category.name }]}
       />
-      <div className="grain relative flex items-center gap-4 overflow-hidden rounded-2xl bg-gradient-to-br from-plum-700 via-plum-600 to-coral-500 p-5 text-white md:p-7">
-        <span aria-hidden className="absolute -right-12 -top-20 size-52 rounded-full bg-white/12 blur-2xl" />
-        <span className="flex size-14 shrink-0 items-center justify-center rounded-2xl bg-white/15 md:size-16">
+      <div className="grain relative flex items-center gap-4 overflow-hidden rounded-2xl bg-gradient-to-r from-[#2a1f4e] via-[#6f3374] to-[#ee6154] p-5 text-white shadow-md shadow-plum-950/10 md:p-7">
+        <span aria-hidden className="pointer-events-none absolute -right-12 -top-20 size-52 rounded-full bg-coral-400/20 blur-3xl" />
+        <span aria-hidden className="pointer-events-none absolute -left-10 -bottom-16 size-48 rounded-full bg-violet-400/15 blur-2xl" />
+        <span className="flex size-14 shrink-0 items-center justify-center rounded-2xl bg-white/20 backdrop-blur-xs ring-1 ring-white/25 md:size-16">
           {categoryIconElement}
         </span>
         <div className="relative min-w-0">

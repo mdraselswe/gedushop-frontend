@@ -55,7 +55,7 @@ export default function AnnouncementBar() {
   const external = !!ann.link && /^https?:\/\//i.test(ann.link);
 
   return (
-    <div className="site-chrome relative z-50 bg-gradient-to-r from-plum-600 to-coral-500 text-white">
+    <div className="site-chrome relative z-50 bg-gradient-to-r from-[#2a1f4e] via-[#6f3374] to-[#ee6154] text-white shadow-xs">
       <div className="mx-auto flex max-w-[120rem] items-center gap-2 px-4 py-2">
         {ann.link ? (
           external ? (

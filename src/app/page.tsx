@@ -45,8 +45,9 @@ export default function HomePage() {
       <BannerSlider />
       <TrustBar />
       <section className="space-y-4">
-        <div className="grain relative flex items-center justify-between overflow-hidden rounded-2xl bg-gradient-to-r from-plum-700 via-plum-600 to-coral-500 px-5 py-5 text-white sm:px-7 sm:py-6">
-          <span aria-hidden className="absolute -right-10 -top-16 size-44 rounded-full bg-white/15 blur-2xl" />
+        <div className="grain relative flex items-center justify-between overflow-hidden rounded-2xl bg-gradient-to-r from-[#2a1f4e] via-[#6f3374] to-[#ee6154] px-5 py-5 text-white shadow-md shadow-plum-950/10 sm:px-7 sm:py-6">
+          <span aria-hidden className="pointer-events-none absolute -right-10 -top-16 size-48 rounded-full bg-coral-400/20 blur-2xl" />
+          <span aria-hidden className="pointer-events-none absolute -left-10 -bottom-16 size-48 rounded-full bg-violet-400/15 blur-2xl" />
           <div className="relative">
             <p className="flex items-center gap-1.5 text-[10px] font-extrabold uppercase tracking-[0.18em] text-white/70">
               <Sparkles className="size-3" /> Parent favourites
