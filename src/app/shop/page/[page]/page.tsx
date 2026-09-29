@@ -39,7 +39,7 @@ export default async function PagedShopPage({ params }: Props) {
   if (page > totalPages || products.length === 0) notFound();
 
   return (
-    <div className="space-y-4 px-3 sm:px-4 pt-3 sm:pt-4">
+    <div className="space-y-4 px-3 sm:px-4 lg:px-3 pt-3 sm:pt-4 lg:pt-3">
       <h1 className="font-heading text-2xl font-semibold tracking-tight text-plum-800">
         Shop Baby Products & Kids Toys — Page {page}
       </h1>

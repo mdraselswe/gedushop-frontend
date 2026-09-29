@@ -44,7 +44,7 @@ function ShopContent({
         : "Shop Baby Products & Kids Toys";
 
   return (
-    <div className="space-y-4 px-3 sm:px-4 pt-3 sm:pt-4">
+    <div className="space-y-4 px-3 sm:px-4 lg:px-3 pt-3 sm:pt-4 lg:pt-3">
       <div className="grain relative overflow-hidden rounded-2xl bg-gradient-to-r from-plum-700 via-plum-600 to-coral-500 px-5 py-5 text-white sm:px-7 sm:py-6">
         <span aria-hidden className="absolute -right-10 -top-16 size-44 rounded-full bg-white/15 blur-2xl" />
         <p className="relative text-[10px] font-extrabold uppercase tracking-[0.18em] text-white/60">Discover something lovely</p>

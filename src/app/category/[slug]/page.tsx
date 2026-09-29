@@ -155,7 +155,7 @@ export default async function CategoryPage({ params }: Props) {
   };
 
   return (
-    <div className="space-y-4 px-3 sm:px-4 pb-4 pt-3 sm:pt-4">
+    <div className="space-y-4 px-3 sm:px-4 lg:px-3 pb-4 pt-3 sm:pt-4 lg:pt-3">
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: serializeJsonLd(breadcrumbLd) }} />
       <Breadcrumbs
         items={[{ label: "Home", href: "/" }, { label: "Shop", href: "/shop" }, { label: category.name }]}

@@ -41,19 +41,25 @@ async function PopularProducts() {
 export default function HomePage() {
 
   return (
-    <div className="space-y-6 sm:space-y-7 px-3 sm:px-4 pb-4 pt-3 sm:pt-4 lg:pt-5">
+    <div className="space-y-6 sm:space-y-7 px-3 sm:px-4 lg:px-3 pb-4 pt-3 sm:pt-4 lg:pt-3">
       <BannerSlider />
       <TrustBar />
-      <section className="sm:fancy-surface sm:rounded-[1.75rem] sm:p-5">
-        <div className="mb-4 flex items-end justify-between gap-4">
-          <div>
-            <span className="section-kicker"><Sparkles className="size-3" /> Parent favourites</span>
-            <h2 className="mt-2 font-heading text-2xl font-semibold tracking-tight text-plum-800 md:text-3xl">
+      <section className="space-y-4">
+        <div className="grain relative flex items-center justify-between overflow-hidden rounded-2xl bg-gradient-to-r from-plum-700 via-plum-600 to-coral-500 px-5 py-5 text-white sm:px-7 sm:py-6">
+          <span aria-hidden className="absolute -right-10 -top-16 size-44 rounded-full bg-white/15 blur-2xl" />
+          <div className="relative">
+            <p className="flex items-center gap-1.5 text-[10px] font-extrabold uppercase tracking-[0.18em] text-white/70">
+              <Sparkles className="size-3" /> Parent favourites
+            </p>
+            <h2 className="mt-1 font-heading text-2xl font-semibold tracking-tight md:text-3xl">
               Popular right now
             </h2>
-            <p className="mt-0.5 text-sm text-plum-400">Loved by parents this week</p>
+            <p className="mt-0.5 text-xs text-white/80 sm:text-sm">Loved by parents this week</p>
           </div>
-          <Link href="/shop" className="hidden items-center gap-1.5 rounded-full bg-white px-4 py-2 text-xs font-extrabold text-plum-600 shadow-sm ring-1 ring-plum-100 transition-colors duration-200 hover:text-coral-600 hover:ring-coral-200 sm:flex">
+          <Link
+            href="/shop"
+            className="relative hidden items-center gap-1.5 rounded-full bg-white/20 px-4 py-2 text-xs font-extrabold text-white backdrop-blur-sm transition-colors duration-200 hover:bg-white hover:text-plum-700 sm:flex"
+          >
             View all <ArrowRight className="size-3.5" strokeWidth={2.5} />
           </Link>
         </div>

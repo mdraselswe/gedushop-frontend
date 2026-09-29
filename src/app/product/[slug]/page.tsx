@@ -182,7 +182,7 @@ export default async function ProductPage({ params }: Props) {
   };
 
   return (
-    <div className="mx-auto max-w-6xl px-3 sm:px-4 pt-3 sm:pt-4">
+    <div className="mx-auto max-w-6xl px-3 sm:px-4 lg:px-3 pt-3 sm:pt-4 lg:pt-3">
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: serializeJsonLd(jsonLd) }} />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: serializeJsonLd(breadcrumbLd) }} />
       <Breadcrumbs

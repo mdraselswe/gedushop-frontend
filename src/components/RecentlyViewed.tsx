@@ -63,7 +63,7 @@ export default function RecentlyViewed({ excludeSlug, title = "Recently viewed" 
           </div>
         )}
       </div>
-      <div ref={scrollerRef} className="no-scrollbar -mx-3 flex gap-3 overflow-x-auto px-3 pb-1 sm:-mx-4 sm:px-4">
+      <div ref={scrollerRef} className="no-scrollbar -mx-3 flex gap-3 overflow-x-auto px-3 pb-1 sm:-mx-4 sm:px-4 lg:-mx-3 lg:px-3">
         {items.map((p) => (
           <Link
             key={p.slug}
