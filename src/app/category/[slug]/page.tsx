@@ -37,10 +37,11 @@ export const dynamicParams = false;
 
 const CATEGORY_SEO: Record<
   string,
-  { title: string; description: string; keywords: string[] }
+  { title: string; description: string; keywords: string[]; h1?: string }
 > = {
   toys: {
-    title: "বাচ্চাদের খেলনা — Kids & Baby Toys in Bangladesh",
+    title: "Baby Toys BD — বাচ্চাদের খেলনা ও Kids Toys Price in Bangladesh",
+    h1: "Baby & Kids Toys — বাচ্চাদের খেলনা",
     description:
       "বাংলাদেশে সেরা বাচ্চাদের খেলনা (Kids Toys) ও ছোট বাবুদের খেলনা (babuder khelna) কিনুন GeduShop-এ। শিক্ষামূলক খেলনা, ডল, কার ও পাজল ক্যাশ অন ডেলিভারিতে অর্ডার করুন।",
     keywords: [
@@ -149,8 +150,8 @@ export default async function CategoryPage({ params }: Props) {
     "@type": "BreadcrumbList",
     itemListElement: [
       { "@type": "ListItem", position: 1, name: "Home", item: SITE },
-      { "@type": "ListItem", position: 2, name: "Shop", item: `${SITE}/shop` },
-      { "@type": "ListItem", position: 3, name: category.name, item: `${SITE}/category/${category.slug}` },
+      { "@type": "ListItem", position: 2, name: "Shop", item: `${SITE}/shop/` },
+      { "@type": "ListItem", position: 3, name: category.name, item: `${SITE}/category/${category.slug}/` },
     ],
   };
 
@@ -168,7 +169,7 @@ export default async function CategoryPage({ params }: Props) {
         </span>
         <div className="relative min-w-0">
           <h1 className="font-heading text-2xl font-semibold leading-tight tracking-tight md:text-3xl">
-            {category.name}
+            {CATEGORY_SEO[category.slug]?.h1 ?? category.name}
           </h1>
           <p className="mt-1 text-sm opacity-90">
             {categoryDescription || "Cash on delivery all over Bangladesh"}
